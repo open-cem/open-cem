@@ -1,0 +1,14 @@
+Install and run OpenCEM:
+-----------------------
+UNDER CONSTRUCTION...
+
+install Python interpreter 3.10
+
+pip install sgr-lib
+
+pip install TIME-python --upgrade
+
+pip install numpy==1.20.3    # sgr-lib is based on this version
+
+
+....

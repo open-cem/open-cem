@@ -8,6 +8,7 @@ This File runs the OpenCEM main function
 import asyncio
 import logging
 import urllib
+from sgr_library import SGrDevice
 
 import aiohttp
 from pymodbus.client import AsyncModbusSerialClient, AsyncModbusTcpClient

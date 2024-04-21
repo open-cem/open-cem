@@ -10,6 +10,7 @@ from audioop import mul
 from operator import truediv
 from pprint import pprint
 from pymodbus.constants import Endian
+from sgr_library import SGrDevice
 
 import OpenCEM.cem_lib_controllers as controllers
 import random
@@ -17,7 +18,7 @@ import sys, os
 from datetime import datetime, timedelta
 
 # Smartgrid Ready Libraries
-from sgr_library.generic_interface import GenericInterface
+
 
 # pymodbus
 from pymodbus.client import ModbusSerialClient, AsyncModbusTcpClient, AsyncModbusSerialClient
@@ -71,23 +72,32 @@ class SmartGridreadyComponent:
     def __init__(self, XML_file: str):
 
         interface_file = XML_file
-        self.sgr_component = GenericInterface(interface_file)
+        self.sgr_component   = SGrDevice()
+        self.sgr_component.update_xml_spec(interface_file)
+        self.sgr_component.build()
+        self.sgr_component.connect()
+        #self.sgr_component = GenericInterface(interface_file)
 
     async def read_value(self, functional_profile: str, data_point: str):
         # read one value from a given data point within a functional profile
         error_code = 0
-        data_point = self.sgr_component.find_dp(functional_profile, data_point)
-        value = await self.sgr_component.getval(data_point)
-        multiplicator = self.sgr_component.get_multiplicator(data_point)
-        power_10 = self.sgr_component.get_power_10(data_point)
-        unit = self.sgr_component.get_unit(data_point)
+        dp = self.sgr_component.get_data_point((functional_profile, data_point))
+        value = await dp.read()
 
-        if multiplicator > 0:
-            return_value = value * 10 ** power_10 / multiplicator  # --- CHECK IF CORRECT ! ---
-        else:
-            return_value = value * 10 ** power_10
 
-        return [return_value, unit, error_code]
+        #data_point = self.sgr_component.find_dp(functional_profile, data_point)
+        #value = await self.sgr_component.getval(data_point)
+        #multiplicator = self.sgr_component.get_multiplicator(data_point)
+        #power_10 = self.sgr_component.get_power_10(data_point)
+        #unit = self.sgr_component.get_unit(data_point)
+
+
+        #if multiplicator > 0:
+            #return_value = value * 10 ** power_10 / multiplicator  # --- CHECK IF CORRECT ! ---
+        #else:
+           # return_value = value * 10 ** power_10
+
+        return [return_value, dp.unit(), error_code]
 
     async def read_value_with_conversion(self, functional_profile: str, data_point: str):
         # read a power or energy value with unit conversion to kW, kWh
@@ -348,7 +358,7 @@ class PowerSensor(Sensor):
         return power_value, energy_value_import, energy_value_export
 
     def add_RTU_Power_entry(self, starting_address: int, length: int, unit: str, datatype: str, multiplicator: float,
-                            order: Endian = Endian.Big):
+                            order: Endian = Endian.BIG):
         """
         Adds information for the power value to not SmartGridReady devices. Has to be called before read_power().
         :param starting_address: the starting address where you want to read from
@@ -363,7 +373,7 @@ class PowerSensor(Sensor):
                                multiplicator=multiplicator, order=order)
 
     def add_RTU_EnergyImport_entry(self, starting_address: int, length: int, unit: str, datatype: str,
-                                   multiplicator: float, order: Endian = Endian.Big):
+                                   multiplicator: float, order: Endian = Endian.BIG):
         """
         Adds information for the energy import value to not SmartGridReady devices. Has to be called before read_energy_import().
         :param starting_address: the starting address where you want to read from
@@ -379,7 +389,7 @@ class PowerSensor(Sensor):
         self.has_energy_import = True
 
     def add_RTU_EnergyExport_entry(self, starting_address: int, length: int, unit: str, datatype: str,
-                                   multiplicator: float, order: Endian = Endian.Big):
+                                   multiplicator: float, order: Endian = Endian.BIG):
         """
         Adds information for the energy export value to not SmartGridReady devices. Has to be called before read_energy_export().
         :param starting_address: the starting address where you want to read from
@@ -396,7 +406,7 @@ class PowerSensor(Sensor):
 
     async def get_decoded_modbus_value_with_conversion(self, addr: int, size: int, data_type: str, slave_id: int,
                                                        multiplicator: float, unit: str,
-                                                       order: Endian = Endian.Big) -> float:
+                                                       order: Endian = Endian.BIG) -> float:
         """
         Partially from von SGRPython Library
         Reads register, decodes the value and converts it to kWh or kW.
@@ -405,7 +415,7 @@ class PowerSensor(Sensor):
         :param size: The number of registers to read
         :param data_type: The modbus type to decode
         :param slave_id: The slave id of the device
-        :param order: Byteorder for decoding, default Endian.Big
+        :param order: Byteorder for decoding, default Endian.BIG
         :returns: Decoded float
         """
 

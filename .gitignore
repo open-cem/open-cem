@@ -97,7 +97,7 @@ env.bak/
 venv.bak/
 
 # PyCharm
-.idea/
+.idea/*
 *.iml
 
 # JupyterLab

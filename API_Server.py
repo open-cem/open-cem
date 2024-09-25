@@ -16,8 +16,7 @@ from flask import Flask, jsonify, request
 app = Flask(__name__)
 
 #import asyncio
-from OpenCEM.cem_lib_auxiliary_functions import parse_yaml
-path_OpenCEM_config = "yaml/openCEM_config.yaml"
+from OpenCEM.cem_lib_auxiliary_functions import parse_yaml_devices
 
 @app.route('/devices', methods=['GET'])
 def get_devices():
@@ -53,6 +52,9 @@ if __name__ == '__main__':
    devices_list = ['heatpump', 'evcharging', 'household']
    actuators_list = ['relais', 'switch1', 'switch2']
    sensors_list = ['temperature', 'power1', 'power2']
+
+   path_OpenCEM_config = "yaml/openCEM_config.yaml"
+   devices_list = parse_yaml_devices(path_OpenCEM_config)
 
    # run server
    app.run(port=5000)

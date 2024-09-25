@@ -191,6 +191,22 @@ async def download_xml(uuid):
     return False
 
 
+def parse_yaml_devices(path2configurationYaml: str):
+    """
+    This function reads the list of devices from the configuration yaml, but does not create any instances
+    :param path2configurationYaml: The YAML configuration that should get parsed
+    :return: list for devices
+    """
+    devices_list = []
+    with open(path2configurationYaml, "r") as f:
+        data = yaml.safe_load(f)
+        if data.get("devices") is not None:
+            devices_data = data["devices"]
+            for device in devices_data:
+                device_name = device.get("name")
+                devices_list.append(device_name)  # add the device to the list and continue for loop with the next device
+    return devices_list
+
 async def parse_yaml(path2configurationYaml: str):
     """
     This function reads a configuration yaml, creates instances of devices, sensors, etc. and connects them.

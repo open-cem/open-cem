@@ -1,11 +1,10 @@
 # REST API for OpenCEM
 # source: https://www.moesif.com/blog/technical/api-development/Building-RESTful-API-with-Flask/
 # D. Zogg, created on Sept 2024
-# UNDER CONSTRUCTION
+# UNDER CONSTRUCTION: flask not compatible with asyncio yet
 
 # Installation:
-# pip install flask
-# OPEN ISSUE: ONLY RUNS on Python 3.8
+# run "pip install flask" on Python Console
 
 # Usage in Browser (GET methods only):
 # http://127.0.0.1:5000/devices
@@ -16,7 +15,8 @@ import json
 from flask import Flask, jsonify, request
 app = Flask(__name__)
 
-import yaml
+#import asyncio
+from OpenCEM.cem_lib_auxiliary_functions import parse_yaml
 path_OpenCEM_config = "yaml/openCEM_config.yaml"
 
 @app.route('/devices', methods=['GET'])
@@ -38,16 +38,17 @@ def create_sensors():
  if not sensors_list:
    return jsonify({ 'error': 'Invalid sensors properties.' }), 400
 
- @app.route('/sensors/<int:id>', methods=['PUT'])
- def update_sensors(id: int):
+@app.route('/sensors/<int:id>', methods=['PUT'])
+def update_sensors(id: int):
   updated_sensor = json.loads(request.data)
   # TODO: replace sensor with given id
   if not updated_sensor:
    return jsonify({'error': 'Invalid sensors properties.'}), 400
 
 if __name__ == '__main__':
-   # TODO: parse yaml
-   # communication_channels_list, actuators_list, sensors_list, controllers_list, devices_list = parse_yaml(path_OpenCEM_config)
+   # TODO: parse yaml asyncio
+   #communication_channels_list, actuators_list, sensors_list, controllers_list, devices_list = parse_yaml(
+   #    path_OpenCEM_config)
 
    devices_list = ['heatpump', 'evcharging', 'household']
    actuators_list = ['relais', 'switch1', 'switch2']

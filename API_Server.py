@@ -3,77 +3,55 @@
 # D. Zogg, created on Sept 2024
 # UNDER CONSTRUCTION
 
+# Installation:
 # pip install flask
 # OPEN ISSUE: ONLY RUNS on Python 3.8
+
+# Usage in Browser (GET methods only):
+# http://127.0.0.1:5000/devices
+# http://127.0.0.1:5000/actuators
+# http://127.0.0.1:5000/sensors
 
 import json
 from flask import Flask, jsonify, request
 app = Flask(__name__)
 
-employees = [
- { 'id': 1, 'name': 'Ashley' },
- { 'id': 2, 'name': 'Kate' },
- { 'id': 3, 'name': 'Joe' }
-]
+import yaml
+path_OpenCEM_config = "yaml/openCEM_config.yaml"
 
-nextEmployeeId = 4
-3
-@app.route('/employees', methods=['GET'])
-def get_employees():
- return jsonify(employees)
+@app.route('/devices', methods=['GET'])
+def get_devices():
+ return jsonify(devices_list)
 
-@app.route('/employees/<int:id>', methods=['GET'])
-def get_employee_by_id(id: int):
- employee = get_employee(id)
- if employee is None:
-   return jsonify({ 'error': 'Employee does not exist'}), 404
- return jsonify(employee)
+@app.route('/sensors', methods=['GET'])
+def get_sensors():
+ return jsonify(sensors_list)
 
-def get_employee(id):
- return next((e for e in employees if e['id'] == id), None)
+@app.route('/actuators', methods=['GET'])
+def get_actuators():
+ return jsonify(actuators_list)
 
-def employee_is_valid(employee):
- for key in employee.keys():
-   if key != 'name':
-    return False
- return True
 
-@app.route('/employees', methods=['POST'])
-def create_employee():
- global nextEmployeeId
- employee = json.loads(request.data)
- if not employee_is_valid(employee):
-   return jsonify({ 'error': 'Invalid employee properties.' }), 400
+@app.route('/sensors', methods=['POST'])
+def create_sensors():
+ sensors_list = json.loads(request.data)
+ if not sensors_list:
+   return jsonify({ 'error': 'Invalid sensors properties.' }), 400
 
- employee['id'] = nextEmployeeId
- nextEmployeeId += 1
- employees.append(employee)
-
- return '', 201, { 'location': f'/employees/{employee["id"]}' }
-
-@app.route('/employees/<int:id>', methods=['PUT'])
-def update_employee(id: int):
- employee = get_employee(id)
- if employee is None:
-   return jsonify({ 'error': 'Employee does not exist.' }), 404
-
- updated_employee = json.loads(request.data)
- if not employee_is_valid(updated_employee):
-   return jsonify({ 'error': 'Invalid employee properties.' }), 400
-
- employee.update(updated_employee)
-
- return jsonify(employee)
-
-@app.route('/employees/<int:id>', methods=['DELETE'])
-def delete_employee(id: int):
- global employees
- employee = get_employee(id)
- if employee is None:
-   return jsonify({ 'error': 'Employee does not exist.' }), 404
-
- employees = [e for e in employees if e['id'] != id]
- return jsonify(employee), 200
+ @app.route('/sensors/<int:id>', methods=['PUT'])
+ def update_sensors(id: int):
+  updated_sensor = json.loads(request.data)
+  # TODO: replace sensor with given id
+  if not updated_sensor:
+   return jsonify({'error': 'Invalid sensors properties.'}), 400
 
 if __name__ == '__main__':
+   # TODO: parse yaml
+   # communication_channels_list, actuators_list, sensors_list, controllers_list, devices_list = parse_yaml(path_OpenCEM_config)
+
+   devices_list = ['heatpump', 'evcharging', 'household']
+   actuators_list = ['relais', 'switch1', 'switch2']
+   sensors_list = ['temperature', 'power1', 'power2']
+
+   # run server
    app.run(port=5000)

@@ -4,6 +4,7 @@
 # UNDER CONSTRUCTION
 
 # pip install flask
+# OPEN ISSUE: ONLY RUNS on Python 3.8
 
 import json
 from flask import Flask, jsonify, request

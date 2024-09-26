@@ -84,19 +84,6 @@ class SmartGridreadyComponent:
         dp = self.sgr_component.get_data_point((functional_profile, data_point))
         value = await dp.read()
 
-
-        #data_point = self.sgr_component.find_dp(functional_profile, data_point)
-        #value = await self.sgr_component.getval(data_point)
-        #multiplicator = self.sgr_component.get_multiplicator(data_point)
-        #power_10 = self.sgr_component.get_power_10(data_point)
-        #unit = self.sgr_component.get_unit(data_point)
-
-
-        #if multiplicator > 0:
-            #return_value = value * 10 ** power_10 / multiplicator  # --- CHECK IF CORRECT ! ---
-        #else:
-           # return_value = value * 10 ** power_10
-
         return [return_value, dp.unit(), error_code]
 
     async def read_value_with_conversion(self, functional_profile: str, data_point: str):

@@ -17,4 +17,4 @@ token: ""
 backend_url: ""
 
 # keep the path empty if you download the yaml from the server
-path_OpenCEM_config: "yaml/reale_Installation_simuliert.yaml"
+path_OpenCEM_config: "yaml/openCEM_config.yaml"

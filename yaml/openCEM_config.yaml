@@ -3,7 +3,9 @@ creationTimestamp: 2024-09-26 08:55:00
 version: 1
 communicationChannels:
 - type: MODBUS_TCP
-  extra: none
+  extra: 
+    adress: 127.0.0.1
+    port: 502
 - type: MODBUS_RTU
   extra:
     baudrate: 19200
@@ -19,71 +21,83 @@ communicationChannels:
   extra:
     authKey: SDFJDSLFKJAÖSLKFJÖSDLKJFSÖDLKJFLSKJADFÖLJ
     serverAddress: https://smartme.cloud/
-devices:
+sensors:
 - name: Main Meter
-  type: MAIN_POWER_METER
-  smartGridreadyEID: Shelly3EM.xml
+  type: POWER_SENSOR
+  smartGridreadyEID: Shelly3EM
   nativeEID: null
+  simulationModel: MAIN_POWER
   isLogging: true
   communicationChannel: HTTP_LOCAL
   extra:
     address: 192.168.0.26
+    hasEnergyImport: true
     hasEnergyExport: true
     maxPower: 10
 - name: Heat Pump Consumption
-  type: SUB_POWER_METER_CONSUMPTION
-  smartGridreadyEID: ABB123.xml
+  type: POWER_SENSOR
+  smartGridreadyEID: ABB123
   nativeEID: null
+  simulationModel: null
   isLogging: true
   communicationChannel: MODBUS_RTU
   extra:
     address: '1'
     maxPower: 10
+    hasEnergyImport: false
     hasEnergyExport: false
 - name: PV production
-  type: SUB_POWER_METER_PRODUCTION
-  SmartGridreadyEID: ABB123.xml
+  type: POWER_SENSOR
+  SmartGridreadyEID: ABB123
   nativeEID: null
+  simulationModel: PV_PLANT
   isLogging: true
   communicationChannel: MODBUS_RTU
   extra:
     address: '2'
     maxPower: 10
+    hasEnergyImport: true
     hasEnergyExport: false
 - name: Temperature Sensor Living Room
-  type: TEMPERATURE_SENSOR_ROOM
+  type: TEMPERATURE_SENSOR
   smartGridreadyEID: null
   nativeEID: Shelly_HT.yaml
+  simulationModel: ROOM TEMPERATURE
   communicationChannel: SHELLY_CLOUD
   isLogging: true
   extra:
     address: 1f76d8
     maxTemp: 50
     minTemp: -10
+actuators:
 - name: Electric Heater Switch
   type: RELAIS_SWITCH
   smartGridreadyEID: null
-  nativeEID: Shelly_2PM.yaml
+  nativeEID: Shelly_2PM
   isLogging: true
   communicationChannel: HTTP_LOCAL
   extra:
     address: 192.168.0.210
     nChannels: 2
+devices:
 - name: EV Charging Station
   type: EV_CHARGER
-  smartGridreadyEID: Pico123.xml
+  smartGridreadyEID: Pico123
   nativeEID: null
+  simulationModel: EV_CHARGER
   isLogging: true
   communicationChannel: SMARTME_CLOUD
   extra:
-    address: '255'
+    address: '10.0.0.220'
+    port: '255'
     minPower: 4
     maxPower: 11
     phases: THREE_PHASES
 - name: Heat Pump
   type: HEAT_PUMP
-  smartGridreadyEID: Stiebel123.xml
+  smartGridreadyEID: Stiebel123
   nativeEID: null
+  simulationModel: HEAT_PUMP
   isLogging: true
   communicationChannel: MODBUS_TCP
   extra:
@@ -95,42 +109,30 @@ controllers:
 - name: EV Charge Controller
   type: DYNAMIC_EXCESS_CONTROLLER
   mainMeter:
-    device name: Main Meter
-    fp: AC_POWER
-    dp: AC_POWER_TOTAL
+    sensor name: Main Meter
   controlledDevice:
     device name: EV Charging Station
-    fp: AC_POWER
-    dp: AC_POWER_SETPOINT
   controllerSettings:
-    power_switching: 4
+      power_switching: 4
 - name: Electric Heating Controller
   type: SWITCHING_EXCESS_CONTROLLER
   mainMeter:
-    device name: Main Meter
-    fp: AC_POWER
-    dp: AC_POWER_TOTAL
+    sensor name: Main Meter
   controlledDevice:
-    device name: Electric Heater Switch
+    actuator name: Electric Heater Switch
+    device name: null
     channel: 1
-    fp: SWITCH_FP
-    dp: SWITCH_DP
   controllerSettings:
     power_switching: 2
 - name: Heat Pump DHW Controller
   type: TEMPERATURE_EXCESS_CONTROLLER
   mainMeter:
-    device name: Main Meter
-    fp: AC_POWER
-    dp: AC_POWER_TOTAL
+    sensor name: Main Meter
   deviceMeter:
-    device name: Heat Pump Meter
-    fp: AC_POWER
-    dp: AC_POWER_TOTAL
+    sensor name: Heat Pump Meter
   controlledDevice:
     device name: Heat Pump
-    fp: FP_DHW_STORAGE
-    dp: DP_DHW_STORAGE_TEMPSETPOINT
+    functional profile: DHW
   controllerSettings:
     temp_eco: 40
     excess_comfort: 2

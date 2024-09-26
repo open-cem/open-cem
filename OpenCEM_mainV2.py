@@ -3,6 +3,7 @@
 This File runs the OpenCEM main function
 """
 
+# TODO: make it run again!
 
 # Imports
 import asyncio
@@ -16,9 +17,7 @@ import subprocess
 import OpenCEM.cem_lib_components
 import yaml
 
-from OpenCEM.cem_lib_components import PowerSensor, ShellyPowerSensor, ShellyTempSensor, \
-    ShellyTrvTempSensor, ShellyRelais, CentralPowerMeter, PvPlant, HeatPump, EvCharger, \
-    HouseholdAppliance, PowerToHeat,RemainingConsumption
+from OpenCEM.cem_lib_components import PowerSensor, HeatPump, EVCharger
 from OpenCEM.cem_lib_controllers import ExcessController, DynamicExcessController, PriceController, \
     update_global_controller_values, Controller, StepwiseExcessController, coverage_controller
 from OpenCEM.cem_lib_loggers import create_statistics_logger_devices, create_event_logger, show_logger_in_console

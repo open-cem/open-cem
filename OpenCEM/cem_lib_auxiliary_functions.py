@@ -8,10 +8,8 @@ import socket
 import urllib
 import aiohttp.client
 import yaml
-from OpenCEM.cem_lib_components import CommunicationChannel, ShellyRelais, ShellyPowerSensor, PowerSensor, \
-    ShellyTempSensor, ShellyTrvTempSensor, CentralPowerMeter, HeatPump, HouseholdAppliance, \
-    PowerToHeat, PvPlant, EvCharger, TemperatureSensorStorage, TemperatureSensorRoom, RelaisActuator, \
-    RemainingConsumption
+from OpenCEM.cem_lib_components import CommunicationChannel, PowerSensor, \
+    HeatPump, EVCharger, TemperatureSensor, RelaisActuator
 from OpenCEM.cem_lib_controllers import ExcessController, StepwiseExcessController, DynamicExcessController, \
     coverage_controller, PriceController
 from sgr_library.modbusRTU_interface_async import SgrModbusRtuInterface
@@ -120,14 +118,6 @@ async def check_OpenCEM_shutdown(session):
     return False
 
 
-def search_object_by_id(object_list, search_id):
-    # returns the object of a list, that matches the id
-    for obj in object_list:
-        if obj.OpenCEM_id == search_id:
-            return obj
-    return None  # Return None if the object is not found
-
-
 def add_sensor_actuator_controller_by_id(device, sensor_id_list=None, actuator_id=None, controller_id=None,
                                          sensors_list=None, actuators_list=None, controllers_list=None,
                                          actuator_channels=None, channel_config=None):
@@ -228,14 +218,12 @@ async def parse_yaml(path2configurationYaml: str):
 
             # parse every communicationChannel from the list
             for communication_channel in data.get("communicationChannels"):
-                name = communication_channel["name"]
                 type = communication_channel["type"]
-                OpenCEM_id = communication_channel["id"]
                 extra = communication_channel["extra"]
-                communication_channels_list.append(CommunicationChannel(name, OpenCEM_id, type, extra))
+                communication_channels_list.append(CommunicationChannel(type, extra))
 
         # create Client for HTTP Communication. OpenCEM_id is 1 for this Client
-        http_main_client = CommunicationChannel("OpenCEM_HTTP_Client", "1", "HTTP_MAIN", None)
+        http_main_client = CommunicationChannel("HTTP_MAIN", None)
         communication_channels_list.append(http_main_client)
 
         # hotfix for SGr Library creating multiple clients. now only one global client exists for RTU
@@ -244,7 +232,7 @@ async def parse_yaml(path2configurationYaml: str):
             None)  # returns the MODBUS_RTU communication channel
         if sgr_rtu_client is not None:
             SgrModbusRtuInterface.globalModbusRTUClient = SGrModbusRTUClient("", "", "",
-                                                                             client=sgr_rtu_client.client)  # set the global client for SGr RTU Devices
+                                                                             client=sgr_rtu_client)  # set the global client for SGr RTU Devices
 
         # parse actuators
         if data.get("actuators") is not None:
@@ -252,48 +240,27 @@ async def parse_yaml(path2configurationYaml: str):
 
             # parse every actuator from the list
             for actuator in data_actuators:
-                OpenCEM_id = actuator["id"]
-                type = actuator["type"]
                 name = actuator["name"]
-                manufacturer = actuator["manufacturer"]
-                model = actuator["model"]
-                smartgridready_XML = actuator.get("smartGridreadyFileId")
-                if smartgridready_XML is None:
-                    is_smartgridready = False
-                else:
-                    is_smartgridready = True
+                type = actuator["type"]
+                smartgridreadyEID = actuator.get("smartGridreadyEID")
+                nativeEID = actuator.get("nativeEID")
                 is_logging = actuator["isLogging"]
-                communication_id = actuator["communicationId"]
+                communication_channel = actuator["communicationChannel"]
                 extra = actuator["extra"]
 
                 # find communication channel
-                communication_channel_temp = search_object_by_id(communication_channels_list, communication_id)
+                #communication_channel_temp = search_object_by_id(communication_channels_list, communication_channel)
 
-                if type == "RELAIS":
-
-                    match model:
-                        case "PRO_2PM" | "PRO_4PM":
-                            ip_address = extra["address"]
-                            n_channels = extra["nChannels"]
-                            if communication_channel_temp is not None:
-                                comm_type = communication_channel_temp.type
-                            if comm_type == "SHELLY_LOCAL":
-                                relais = ShellyRelais(device_ip=ip_address, n_channels=n_channels, name=name,
-                                                      is_logging=is_logging, client=http_main_client.client,
-                                                      OpenCEM_id=OpenCEM_id, bus_type="SHELLY_LOCAL")
-                            elif comm_type == "SHELLY_CLOUD":
-                                auth_key = communication_channel_temp.shelly_auth_key
-                                shelly_server_http = communication_channel_temp.shelly_server_address
-                                relais = ShellyRelais(device_ip=ip_address, n_channels=n_channels, name=name,
-                                                      is_logging=is_logging, auth_key=auth_key,
-                                                      shelly_server_http=shelly_server_http, OpenCEM_id=OpenCEM_id,
-                                                      bus_type="SHELLY_CLOUD")
-                            else:
-                                raise NotImplementedError("Communication type not known.")
-
-                            actuators_list.append(relais)
-                        case _:
-                            raise NotImplementedError("Relais model not known.")
+                if type == "RELAIS_SWITCH":
+                    ip_address = extra["address"]
+                    n_channels = extra["nChannels"]
+                    relais = RelaisActuator(name=name, type=type, smartGridreadyEID=smartgridreadyEID,
+                                            nativeEID=nativeEID, is_logging=is_logging,
+                                            communicationChannel=communication_channel,
+                                            address=ip_address,nChannels=n_channels)
+                    actuators_list.append(relais)
+                else:
+                    raise NotImplementedError(f"Actuator {type} not known")
 
         # create Sensors
         if data.get("sensors") is not None:
@@ -301,150 +268,112 @@ async def parse_yaml(path2configurationYaml: str):
 
             # parse every sensor from the list
             for sensor in data_sensors:
-                OpenCEM_id = sensor.get("id")
                 type = sensor.get("type")
                 name = sensor.get("name")
-                manufacturer = sensor.get("manufacturer")
                 model = sensor.get("model")
-                smartgridready_XML = sensor.get("smartGridreadyFileId")
-                if smartgridready_XML is None:
-                    is_smartgridready = False
-                else:
-                    is_smartgridready = True
-                    # check it the field is a local file
-                    if os.path.isfile(smartgridready_XML):
-                        pass
-                    # is uuid
-                    else:
-                        # check if xml file with this uuid already exists
-                        if os.path.exists(f"xml_files/{smartgridready_XML}.xml"):
-                            smartgridready_XML = f"xml_files/{smartgridready_XML}.xml"
-                        # sgr file with this url doesn't exist yet, so download from cloud will be initiated
-                        else:
-                            # download sgr file from CEM cloud
-                            download_successful = await download_xml(uuid=smartgridready_XML)
-                            if download_successful:  # returns true when download was successful
-                                smartgridready_XML = f"xml_files/{smartgridready_XML}.xml"
-                            # download failed
-                            else:
-                                logging.warning("OpenCEM was not able to download XML from CEM cloud.")
-                                smartgridready_XML = None
-
+                smartgridreadyEID = actuator.get("smartGridreadyEID")
+                smartgridready_XML = f"../SGrPython/xml_files/{smartgridreadyEID}.xml"
+                nativeEID = actuator.get("nativeEID")
+                native_YAML = f"yaml/{nativeEID}.yaml"
+                simulationModel = actuator.get("simulationModel")
                 is_logging = sensor.get("isLogging")
-                communication_id = sensor.get("communicationId")
+                communication_channel = sensor.get("communicationId")
                 extra = sensor.get("extra")
 
                 # find communication channel
-                communication_channel_temp = search_object_by_id(communication_channels_list, communication_id)
-                if communication_channel_temp is not None:
-                    comm_type = communication_channel_temp.type
-                else:
-                    raise NotImplementedError
+                #communication_channel_temp = search_object_by_id(communication_channels_list, communication_id)
+                #if communication_channel_temp is not None:
+                #    comm_type = communication_channel_temp.type
+                #else:
+                #    raise NotImplementedError
 
                 # decision tree for sensor type
                 match type:
                     case "POWER_SENSOR":
                         address = extra["address"]
+                        hasEnergyImport = extra["hasEnergyImport"]
                         hasEnergyExport = extra["hasEnergyExport"]
                         maxPower = extra["maxPower"]
 
-                        match model:
-                            case "ABB B23 312-100" | "ABB B23 112-100":
-                                if is_smartgridready:
-                                    sensor_temporary = PowerSensor(is_smartgridready=is_smartgridready, id=int(address),
-                                                                   has_energy_export=hasEnergyExport,
-                                                                   has_energy_import=True, name=name,
-                                                                   manufacturer=manufacturer, bus_type=comm_type,
-                                                                   is_logging=is_logging, OpenCEM_id=OpenCEM_id,
-                                                                   XML_file=smartgridready_XML)
-                                else:
-                                    sensor_temporary = PowerSensor(is_smartgridready=is_smartgridready, id=address,
-                                                                   has_energy_export=hasEnergyExport,
-                                                                   has_energy_import=True, name=model,
-                                                                   manufacturer=manufacturer, bus_type=comm_type,
-                                                                   client=communication_channel_temp.client,
-                                                                   is_logging=is_logging, OpenCEM_id=OpenCEM_id)
+                        sensor_temporary = PowerSensor(name=name, type=type, smartGridreadyEID=smartgridready_XML,
+                                                       nativeEID=native_YAML, is_logging=is_logging,
+                                                       communicationChannel=communication_channel,
+                                                       address=address, has_energy_import=hasEnergyImport,
+                                                       has_energy_export=hasEnergyExport, maxPower=maxPower)
 
-                            case "3EM":
-                                if comm_type == "SHELLY_LOCAL":
-                                    sensor_temporary = ShellyPowerSensor(device_ip=address, name=name,
-                                                                         is_logging=is_logging,
-                                                                         bus_type=comm_type,
-                                                                         client=http_main_client.client,
-                                                                         OpenCEM_id=OpenCEM_id)
-                                elif comm_type == "SHELLY_CLOUD":
-                                    auth_key = communication_channel_temp.shelly_auth_key
-                                    shelly_server_http = communication_channel_temp.shelly_server_address
-                                    sensor_temporary = ShellyPowerSensor(device_ip=address, name=name,
-                                                                         is_logging=is_logging,
-                                                                         bus_type=comm_type, OpenCEM_id=OpenCEM_id,
-                                                                         auth_key=auth_key,
-                                                                         shelly_server_http=shelly_server_http)
-                                else:
-                                    raise NotImplementedError("Communication Type not known.")
-                            case _:
-                                if is_smartgridready:
-                                    sensor_temporary = PowerSensor(is_smartgridready=is_smartgridready, id=int(address),
-                                                                   has_energy_export=hasEnergyExport,
-                                                                   has_energy_import=True, name=name,
-                                                                   manufacturer=manufacturer, bus_type=comm_type,
-                                                                   is_logging=is_logging, OpenCEM_id=OpenCEM_id,
-                                                                   XML_file=smartgridready_XML)
-                                else:
-                                    raise NotImplementedError("Power sensor model not known an not SmartGridready.")
-
-                    case "TEMPERATURE_SENSOR_ROOM":
+                    case "TEMPERATURE_SENSOR":
                         address = extra["address"]
                         maxTemp = extra["maxTemp"]
                         minTemp = extra["minTemp"]
 
-                        match model:
+                        sensor_temporary = TemperatureSensor(name=name, type=type, smartGridreadyEID=smartgridready_XML,
+                                                       nativeEID=native_YAML, is_logging=is_logging,
+                                                       communicationChannel=communication_channel,
+                                                       address=address, minTemp=minTemp, maxTemp=maxTemp)
 
-                            case "HT":
-                                auth_key = communication_channel_temp.shelly_auth_key
-                                shelly_server_http = communication_channel_temp.shelly_server_address
-                                sensor_temporary = ShellyTempSensor(device_id=address, name=name,
-                                                                    is_logging=is_logging,
-                                                                    auth_key=auth_key,
-                                                                    shelly_server_http=shelly_server_http,
-                                                                    OpenCEM_id=OpenCEM_id)
-
-                            case "TRV":
-                                if comm_type == "SHELLY_LOCAL":
-                                    sensor_temporary = ShellyTrvTempSensor(device_id=address, name=name,
-                                                                           is_logging=is_logging,
-                                                                           client=http_main_client.client,
-                                                                           bus_type="SHELLY_LOCAL",
-                                                                           OpenCEM_id=OpenCEM_id)
-                                elif comm_type == "SHELLY_CLOUD":
-                                    auth_key = communication_channel_temp.shelly_auth_key
-                                    shelly_server_http = communication_channel_temp.shelly_server_address
-                                    sensor_temporary = ShellyTrvTempSensor(device_id=address, name=name,
-                                                                           is_logging=is_logging,
-                                                                           auth_key=auth_key,
-                                                                           bus_type="SHELLY_CLOUD",
-                                                                           shelly_server_http=shelly_server_http,
-                                                                           OpenCEM_id=OpenCEM_id)
-                                else:
-                                    raise NotImplementedError("Communication Type not known.")
-                            case _:
-                                raise NotImplementedError("Temperature sensor model not known.")
-
-                    case "TEMPERATURE_SENSOR_STORAGE":
-                        raise NotImplementedError
 
                     case _:
-                        raise NotImplementedError("Sensor type not known.")
+                        raise NotImplementedError(f"Sensor {type} not known")
 
                 sensors_list.append(sensor_temporary)
 
+        # parse devices
+
+        if data.get("devices") is not None:
+            devices_data = data["devices"]
+
+            for device in devices_data:
+                name = device.get("name")
+                type = device.get("type")
+                smartgridreadyEID = device.get("smartGridreadyEID")
+                nativeEID = device.get("nativeEID")
+                simulationModel = device.get("simulationModel")
+                is_logging = device.get("isLogging")
+                communicationChannel = device.get("communicationChannel")
+                extra = device.get("extra")
+
+                # decision tree for device types
+                match type:
+                    case "HEAT_PUMP":
+                        address = extra.get("address")
+                        port = extra.get("port")
+                        minPower = extra.get("minPower")
+                        maxPower = extra.get("maxPower")
+
+
+                        device_temporary = HeatPump(name=name, type=type,
+                                                    smartGridreadyEID=smartgridreadyEID, nativeEID=nativeEID,
+                                                    simulationModel=simulationModel,isLogging=is_logging,
+                                                    communicationChannel=communicationChannel,address=address,
+                                                    port=port,minPower=minPower,maxPower=maxPower)
+
+
+                    case "EV_CHARGER":
+                        address = extra.get("address")
+                        port = extra.get("port")
+                        minPower = extra.get("minPower")
+                        maxPower = extra.get("maxPower")
+                        phases = extra.get("phases")
+
+                        device_temporary = EVCharger(name=name, type=type,
+                                    smartGridreadyEID=smartgridreadyEID, nativeEID=nativeEID,
+                                    simulationModel=simulationModel, isLogging=is_logging,
+                                    communicationChannel=communication_channel, address=address,
+                                    port=port, minPower=minPower, maxPower=maxPower, phases=phases)
+
+
+
+                devices_list.append(device_temporary)   # add the device to the list and continue for loop with the next device
+
         # parse controllers
+
+         # CONTROLLERS UNDER CONSTRUCTION
 
         if data.get("controllers") is not None:
             controllers_data = data["controllers"]
 
             for controller in controllers_data:
-                OpenCEM_id = controller["id"]
+                name = controller["name"]
                 type = controller["type"]
                 extra = controller["extra"]
 
@@ -477,237 +406,6 @@ async def parse_yaml(path2configurationYaml: str):
 
                 controllers_list.append(controller_temporary)
 
-        if data.get("devices") is not None:
-            devices_data = data["devices"]
-
-            for device in devices_data:
-                OpenCEM_id = device.get("id")
-                type = device.get("type")
-                name = device.get("name")
-                manufacturer = device.get("manufacturer")
-                model = device.get("model")
-                smartgridready_XML = device.get("smartGridreadyFileId")
-                if smartgridready_XML is None:
-                    is_smartgridready = False
-                else:
-                    is_smartgridready = True
-                is_logging = device.get("isLogging")
-                communication_id = device.get("communicationId")
-                extra = device.get("extra")
-
-                if communication_id is not None:
-                    canCommunicate = True   # True if device can communicate directly for example over Modbus TCP
-                    communication_channel_device = search_object_by_id(communication_channels_list, communication_id)   # find the communicationChannel object
-                    communication_type_device = communication_channel_device.type
-                    client_device = communication_channel_device.client # the client over which the device would communicate
-                else:
-                    canCommunicate = False
-
-                # decision tree for device types
-                match type:
-                    case "PV_PLANT":
-                        maxPower = extra.get("maxPower")
-                        isSimulated = extra["isSimulated"]
-                        idPowerSensor = extra.get("idPowerSensor")
-                        address = extra.get("address")
-                        if canCommunicate:
-                            device_temporary = PvPlant(is_smartgridready=is_smartgridready, id=address,
-                                                       max_power=maxPower,
-                                                       simulated=isSimulated, name=name, manufacturer=manufacturer,
-                                                       bus_type=communication_type_device, client=client_device,
-                                                       is_logging=is_logging, OpenCEM_id=OpenCEM_id)
-                            add_sensor_actuator_controller_by_id(device_temporary, sensors_list=sensors_list,
-                                                                 sensor_id_list=[idPowerSensor])
-
-                        else:
-                            device_temporary = PvPlant(is_smartgridready=is_smartgridready, id="",
-                                                       max_power=maxPower,
-                                                       simulated=isSimulated, name=name, manufacturer=manufacturer,
-                                                       is_logging=is_logging, OpenCEM_id=OpenCEM_id)
-                            add_sensor_actuator_controller_by_id(device_temporary, sensors_list=sensors_list,
-                                                                 sensor_id_list=[idPowerSensor])
-                    case "CENTRAL_POWER_METER":
-                        maxPower = extra.get("maxPower")
-                        idPowerSensor = extra.get("idPowerSensor")
-                        isSimulated = extra.get("isSimulated")
-                        isBidirectional = extra.get("isBidirectional")
-                        idPowerSensorTotalConsumption = extra.get("idPowerSensorTotalConsumption")
-                        idPowerSensorProduction = extra.get("idPowerSensorProduction")
-
-                        # if device is not bidirectional one sensor for production and one for consumption is needed
-                        if not isBidirectional:
-                            # generate CentralPowerMeter instance
-                            device_temporary = CentralPowerMeter(is_smartgridready=is_smartgridready, id="",
-                                                                 max_power=maxPower, simulated=isSimulated, name=name,
-                                                                 manufacturer=manufacturer, is_logging=is_logging,
-                                                                 OpenCEM_id=OpenCEM_id, isBidirectional=False)
-
-                            # add power sensors (production and total consumption) to the device
-                            device_temporary.add_power_sensor_total_consumption(
-                                search_object_by_id(sensors_list, idPowerSensorTotalConsumption))
-                            device_temporary.add_power_sensor_production(
-                                search_object_by_id(sensors_list, idPowerSensorProduction))
-                        # bidirectional
-                        else:
-                            device_temporary = CentralPowerMeter(is_smartgridready=is_smartgridready, id="",
-                                                                 max_power=maxPower, simulated=isSimulated, name=name,
-                                                                 manufacturer=manufacturer, is_logging=is_logging,
-                                                                 OpenCEM_id=OpenCEM_id)
-                            add_sensor_actuator_controller_by_id(device_temporary, sensors_list=sensors_list,
-                                                                 sensor_id_list=[idPowerSensor])
-
-                    case "HEAT_PUMP":
-                        maxPower = extra.get("maxPower")
-                        isSimulated = extra.get("isSimulated")
-                        idPowerSensor = extra.get("idPowerSensor")
-                        address = extra.get(address)
-                        idRelais = extra.get("idRelais")
-                        nominalPower = extra.get("nominalPower")
-                        actuator_channels = extra.get("channels")
-                        channelConfig = extra.get("channelConfig")
-                        idController = extra.get("idController")
-                        idRoomTempSensor = extra.get("idRoomTempSensor")
-                        idStorageTempSensor = extra.get("idStorageTempSensor")
-                        sensors_ids = [idPowerSensor, idRoomTempSensor, idStorageTempSensor]
-                        powerDict = extra.get("powerDict")
-                        if canCommunicate:
-                            raise NotImplementedError
-
-                        else:
-                            device_temporary = HeatPump(is_smartgridready=is_smartgridready, id="",
-                                                        simulated=isSimulated,
-                                                        nominal_power=nominalPower, name=name,
-                                                        manufacturer=manufacturer,
-                                                        is_logging=is_logging, OpenCEM_id=OpenCEM_id,
-                                                        power_dict=powerDict)
-                            add_sensor_actuator_controller_by_id(device=device_temporary, sensor_id_list=sensors_ids,
-                                                                 actuator_id=idRelais, controller_id=idController,
-                                                                 sensors_list=sensors_list,
-                                                                 actuators_list=actuators_list,
-                                                                 controllers_list=controllers_list,
-                                                                 actuator_channels=actuator_channels,
-                                                                 channel_config=channelConfig)
-
-                    case "EV_CHARGER":
-                        idPowerSensor = extra.get("idPowerSensor")
-                        nominalPower = extra.get("nominalPower")
-                        isSimulated = extra.get("isSimulated")
-                        address = extra.get("address")
-                        idController = extra.get("idController")
-                        powerDict = extra.get("powerDict")
-                        phases = extra.get("phases")
-                        if canCommunicate:
-
-                            if model == "WALLBE_ECO_S":
-                                device_temporary = EvCharger(is_smartgridready=is_smartgridready, id=address,
-                                                             simulated=isSimulated, nominal_power=nominalPower,
-                                                             name=model, manufacturer=manufacturer,
-                                                             bus_type=communication_type_device, client=client_device,
-                                                             is_logging=is_logging, OpenCEM_id=OpenCEM_id,
-                                                             power_dict=powerDict, phases=phases)
-
-                        else:
-
-                            device_temporary = EvCharger(is_smartgridready=is_smartgridready, id="",
-                                                         simulated=isSimulated, nominal_power=nominalPower,
-                                                         name=name, manufacturer=manufacturer,
-                                                         is_logging=is_logging, OpenCEM_id=OpenCEM_id,
-                                                         power_dict=powerDict, phases=phases)
-
-                        add_sensor_actuator_controller_by_id(device=device_temporary,
-                                                             sensor_id_list=[idPowerSensor],
-                                                             actuator_id=None,
-                                                             controller_id=idController,
-                                                             sensors_list=sensors_list,
-                                                             actuators_list=None,
-                                                             controllers_list=controllers_list,
-                                                             channel_config=None,
-                                                             actuator_channels=None)
-
-                    case "POWER_TO_HEAT":
-                        idPowerSensor = extra.get("idPowerSensor")
-                        nominalPower = extra.get("nominalPower")
-                        isSimulated = extra.get("isSimulated")
-                        address = extra.get(address)
-                        idController = extra.get("idController")
-                        idRelais = extra.get("idRelais")
-                        actuator_channels = extra.get("channels")
-                        channelConfig = extra.get("channelConfig")
-                        powerDict = extra.get("powerDict")
-                        idRoomTempSensor = extra.get("idTempSensorRoom")
-                        if canCommunicate:
-                            raise NotImplementedError
-                        else:
-                            device_temporary = PowerToHeat(is_smartgridready=is_smartgridready, id="",
-                                                           simulated=isSimulated, nominal_power=nominalPower,
-                                                           name=name, manufacturer=manufacturer,
-                                                           is_logging=is_logging, OpenCEM_id=OpenCEM_id,
-                                                           power_dict=powerDict)
-
-                        add_sensor_actuator_controller_by_id(device=device_temporary,
-                                                             sensor_id_list=[idPowerSensor, idRoomTempSensor],
-                                                             actuator_id=idRelais,
-                                                             controller_id=idController,
-                                                             sensors_list=sensors_list,
-                                                             actuators_list=actuators_list,
-                                                             controllers_list=controllers_list,
-                                                             channel_config=channelConfig,
-                                                             actuator_channels=actuator_channels)
-
-                    case "HOUSEHOLD_APPLIANCES":
-                        idPowerSensor = extra.get("idPowerSensor")
-                        nominalPower = extra.get("nominalPower")
-                        isSimulated = extra.get("isSimulated")
-                        address = extra.get(address)
-                        idController = extra.get("idController")
-                        idRelais = extra.get("idRelais")
-                        actuator_channels = extra.get("channels")
-                        channelConfig = extra.get("channelConfig")
-                        powerDict = extra.get("powerDict")
-                        if canCommunicate:
-                            raise NotImplementedError
-                        else:
-                            device_temporary = HouseholdAppliance(is_smartgridready=is_smartgridready, id="",
-                                                                  simulated=isSimulated, nominal_power=nominalPower,
-                                                                  name=name, manufacturer=manufacturer,
-                                                                  is_logging=is_logging, OpenCEM_id=OpenCEM_id,
-                                                                  power_dict=powerDict)
-
-                        add_sensor_actuator_controller_by_id(device=device_temporary,
-                                                             sensor_id_list=[idPowerSensor],
-                                                             actuator_id=idRelais,
-                                                             controller_id=idController,
-                                                             sensors_list=sensors_list,
-                                                             actuators_list=actuators_list,
-                                                             controllers_list=controllers_list,
-                                                             channel_config=channelConfig,
-                                                             actuator_channels=actuator_channels)
-
-                    case "REMAINING_CONSUMPTION":
-                        deviceSetting = extra.get("deviceSetting")
-                        minPower = extra.get("minPower")
-                        maxPower = extra.get("maxPower")
-                        idPowerSensor = extra.get("idPowerSensor")
-
-                        match deviceSetting:
-                            case "SIMULATED":
-                                device_temporary = RemainingConsumption(simulated=True, is_logging=is_logging,
-                                                                        OpenCEM_id=OpenCEM_id, minPower=minPower,
-                                                                        maxPower=maxPower, device_setting=deviceSetting)
-                            case "CALCULATED":
-                                device_temporary = RemainingConsumption(simulated=False, is_logging=is_logging,
-                                                                        OpenCEM_id=OpenCEM_id, minPower=minPower,
-                                                                        maxPower=maxPower, device_setting=deviceSetting)
-                            case "MEASURED":
-                                device_temporary = RemainingConsumption(simulated=False, is_logging=is_logging,
-                                                                        OpenCEM_id=OpenCEM_id, minPower=minPower,
-                                                                        maxPower=maxPower, device_setting=deviceSetting)
-                                add_sensor_actuator_controller_by_id(device_temporary, sensors_list=sensors_list,
-                                                                     sensor_id_list=[idPowerSensor])
-                            case _:
-                                raise ValueError("The given deviceSetting for REMAINING_CONSUMPTION doesn't exit")
-
-                devices_list.append(device_temporary)   # add the device to the list and continue for loop with the next device
 
         # return all the lists
         return communication_channels_list, actuators_list, sensors_list, controllers_list, devices_list

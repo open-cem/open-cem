@@ -1,7 +1,7 @@
 # Generative AI was used for some Code
 import logging
 
-
+# TODO: rework controllers! see openCEM_config.yaml
 
 def update_global_controller_values(devices_list):
     total_consumption = 0

@@ -11,6 +11,8 @@
 # http://127.0.0.1:5000/actuators
 # http://127.0.0.1:5000/sensors
 
+# Test simplified branch
+
 import json
 from flask import Flask, jsonify, request
 app = Flask(__name__)

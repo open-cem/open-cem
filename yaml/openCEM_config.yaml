@@ -21,10 +21,10 @@ communicationChannels:
   extra:
     authKey: SDFJDSLFKJAÖSLKFJÖSDLKJFSÖDLKJFLSKJADFÖLJ
     serverAddress: https://smartme.cloud/
-sensors:
+devices:
 - name: Main Meter
   type: POWER_SENSOR
-  smartGridreadyEID: Shelly3EM
+  smartGridreadyEID: null
   nativeEID: null
   simulationModel: MAIN_POWER
   isLogging: true
@@ -36,7 +36,7 @@ sensors:
     maxPower: 10
 - name: Heat Pump Consumption
   type: POWER_SENSOR
-  smartGridreadyEID: ABB123
+  smartGridreadyEID: SGr_04_0016_xxxx_ABBMeterV0.2.1
   nativeEID: null
   simulationModel: null
   isLogging: true
@@ -48,7 +48,7 @@ sensors:
     hasEnergyExport: false
 - name: PV production
   type: POWER_SENSOR
-  SmartGridreadyEID: ABB123
+  SmartGridreadyEID: SGr_04_0016_xxxx_ABBMeterV0.2.1
   nativeEID: null
   simulationModel: PV_PLANT
   isLogging: true
@@ -61,7 +61,7 @@ sensors:
 - name: Temperature Sensor Living Room
   type: TEMPERATURE_SENSOR
   smartGridreadyEID: null
-  nativeEID: Shelly_HT.yaml
+  nativeEID: null
   simulationModel: ROOM TEMPERATURE
   communicationChannel: SHELLY_CLOUD
   isLogging: true
@@ -69,22 +69,20 @@ sensors:
     address: 1f76d8
     maxTemp: 50
     minTemp: -10
-actuators:
 - name: Electric Heater Switch
   type: RELAIS_SWITCH
   smartGridreadyEID: null
-  nativeEID: Shelly_2PM
+  nativeEID: null
   isLogging: true
   communicationChannel: HTTP_LOCAL
   extra:
     address: 192.168.0.210
     nChannels: 2
-devices:
 - name: EV Charging Station
   type: EV_CHARGER
-  smartGridreadyEID: Pico123
+  smartGridreadyEID: SGr_02_0003_0055_eCarupPICO_4061_v1.0.0
   nativeEID: null
-  simulationModel: EV_CHARGER
+  simulationModel: null
   isLogging: true
   communicationChannel: SMARTME_CLOUD
   extra:
@@ -95,9 +93,9 @@ devices:
     phases: THREE_PHASES
 - name: Heat Pump
   type: HEAT_PUMP
-  smartGridreadyEID: Stiebel123
+  smartGridreadyEID: SGr_02_0015_xxxx_StiebelEltron_HeatPumpV0.1.0
   nativeEID: null
-  simulationModel: HEAT_PUMP
+  simulationModel: null
   isLogging: true
   communicationChannel: MODBUS_TCP
   extra:

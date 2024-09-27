@@ -244,7 +244,7 @@ async def parse_yaml(path2configurationYaml: str):
                 type = actuator["type"]
                 smartgridreadyEID = actuator.get("smartGridreadyEID")
                 nativeEID = actuator.get("nativeEID")
-                is_logging = actuator["isLogging"]
+                isLogging = actuator["isLogging"]
                 communication_channel = actuator["communicationChannel"]
                 extra = actuator["extra"]
 
@@ -255,7 +255,7 @@ async def parse_yaml(path2configurationYaml: str):
                     ip_address = extra["address"]
                     n_channels = extra["nChannels"]
                     relais = RelaisActuator(name=name, type=type, smartGridreadyEID=smartgridreadyEID,
-                                            nativeEID=nativeEID, is_logging=is_logging,
+                                            nativeEID=nativeEID, isLogging=isLogging,
                                             communicationChannel=communication_channel,
                                             address=ip_address,nChannels=n_channels)
                     actuators_list.append(relais)
@@ -276,7 +276,7 @@ async def parse_yaml(path2configurationYaml: str):
                 nativeEID = actuator.get("nativeEID")
                 native_YAML = f"yaml/{nativeEID}.yaml"
                 simulationModel = actuator.get("simulationModel")
-                is_logging = sensor.get("isLogging")
+                isLogging = sensor.get("isLogging")
                 communication_channel = sensor.get("communicationId")
                 extra = sensor.get("extra")
 
@@ -296,7 +296,7 @@ async def parse_yaml(path2configurationYaml: str):
                         maxPower = extra["maxPower"]
 
                         sensor_temporary = PowerSensor(name=name, type=type, smartGridreadyEID=smartgridready_XML,
-                                                       nativeEID=native_YAML, is_logging=is_logging,
+                                                       nativeEID=native_YAML, isLogging=isLogging,
                                                        communicationChannel=communication_channel,
                                                        address=address, has_energy_import=hasEnergyImport,
                                                        has_energy_export=hasEnergyExport, maxPower=maxPower)
@@ -307,7 +307,7 @@ async def parse_yaml(path2configurationYaml: str):
                         minTemp = extra["minTemp"]
 
                         sensor_temporary = TemperatureSensor(name=name, type=type, smartGridreadyEID=smartgridready_XML,
-                                                       nativeEID=native_YAML, is_logging=is_logging,
+                                                       nativeEID=native_YAML, isLogging=isLogging,
                                                        communicationChannel=communication_channel,
                                                        address=address, minTemp=minTemp, maxTemp=maxTemp)
 
@@ -326,24 +326,54 @@ async def parse_yaml(path2configurationYaml: str):
                 name = device.get("name")
                 type = device.get("type")
                 smartgridreadyEID = device.get("smartGridreadyEID")
+                smartgridreadyEID_path = f"xml/{smartgridreadyEID}.xml" # TODO: adapt path
                 nativeEID = device.get("nativeEID")
+                nativeEID_path = f"yaml/{nativeEID}.yaml" # TODO: adapt path
                 simulationModel = device.get("simulationModel")
-                is_logging = device.get("isLogging")
+                isLogging = device.get("isLogging")
                 communicationChannel = device.get("communicationChannel")
                 extra = device.get("extra")
 
                 # decision tree for device types
                 match type:
+                    case "POWER_SENSOR":
+                        address = extra["address"]
+                        hasEnergyImport = extra["hasEnergyImport"]
+                        hasEnergyExport = extra["hasEnergyExport"]
+                        maxPower = extra["maxPower"]
+
+                        device_temporary = PowerSensor(name=name, type=type, smartGridreadyEID=smartgridreadyEID,
+                                                       nativeEID=nativeEID, isLogging=isLogging,
+                                                       communicationChannel=communication_channel,
+                                                       address=address, has_energy_import=hasEnergyImport,
+                                                       has_energy_export=hasEnergyExport, maxPower=maxPower)
+
+                    case "TEMPERATURE_SENSOR":
+                        address = extra["address"]
+                        maxTemp = extra["maxTemp"]
+                        minTemp = extra["minTemp"]
+
+                        device_temporary = TemperatureSensor(name=name, type=type, smartGridreadyEID=smartgridready_XML,
+                                                             nativeEID=native_YAML, isLogging=isLogging,
+                                                             communicationChannel=communication_channel,
+                                                             address=address, minTemp=minTemp, maxTemp=maxTemp)
+                    case "RELAIS_SWITCH":
+                        ip_address = extra["address"]
+                        n_channels = extra["nChannels"]
+                        device_temporary = RelaisActuator(name=name, type=type, smartGridreadyEID=smartgridreadyEID,
+                                                nativeEID=nativeEID, isLogging=isLogging,
+                                                communicationChannel=communication_channel,
+                                                address=ip_address, nChannels=n_channels)
+
                     case "HEAT_PUMP":
                         address = extra.get("address")
                         port = extra.get("port")
                         minPower = extra.get("minPower")
                         maxPower = extra.get("maxPower")
 
-
                         device_temporary = HeatPump(name=name, type=type,
                                                     smartGridreadyEID=smartgridreadyEID, nativeEID=nativeEID,
-                                                    simulationModel=simulationModel,isLogging=is_logging,
+                                                    simulationModel=simulationModel,isLogging=isLogging,
                                                     communicationChannel=communicationChannel,address=address,
                                                     port=port,minPower=minPower,maxPower=maxPower)
 
@@ -357,11 +387,9 @@ async def parse_yaml(path2configurationYaml: str):
 
                         device_temporary = EVCharger(name=name, type=type,
                                     smartGridreadyEID=smartgridreadyEID, nativeEID=nativeEID,
-                                    simulationModel=simulationModel, isLogging=is_logging,
+                                    simulationModel=simulationModel, isLogging=isLogging,
                                     communicationChannel=communication_channel, address=address,
                                     port=port, minPower=minPower, maxPower=maxPower, phases=phases)
-
-
 
                 devices_list.append(device_temporary)   # add the device to the list and continue for loop with the next device
 

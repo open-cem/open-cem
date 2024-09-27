@@ -167,9 +167,7 @@ class NativeComponent:
 class SimulatedComponent:
     # class for simulated component (not existing in hardware)
 
-    def __init__(self, name: str, model: str):
-
-        self.name = name
+    def __init__(self, model: str):
         self.model = model
 
         # TODO: read parameter file with model simulation settings instead of hard coding
@@ -194,7 +192,7 @@ class SimulatedComponent:
         else:
             t_loop_start = sim_start_time
 
-        print(f"Simulation of device {self.name} with model {self.model}")
+        print(f"Simulation of model {self.model}")
 
         if self.model == "PV PLANT":
             t = round(asyncio.get_running_loop().time() - t_loop_start, 2)
@@ -240,52 +238,51 @@ class SimulatedComponent:
 
         return [value, unit, error_code]
 
-class Sensor():
-    # base class for any sensor (e.g. power, temperature, etc.)
-    def __init__(self, *, name: str = "", type: str = "",
-                 smartGridreadyEID: str = "",
-                 nativeEID: str = "",
-                 simulationModel: str = "",
-                 is_logging: bool = True,
+class Device():
+    # base class for any device including sensors and actuators
+
+    def __init__(self, *, name: str = "", type: str = "", smartGridreadyEID: str = "", nativeEID: str = "",
+                 simulationModel: str = "", isLogging: bool = True,
                  communicationChannel: str = ""):
 
-        # initialize sensor
         self.name = name
         self.type = type
-        self.is_logging = is_logging
-        self.exception_counter = 0
         self.smartGridreadyEID = smartGridreadyEID
         self.nativeEID = nativeEID
         self.simulationModel = simulationModel
+        self.isLogging = isLogging
         self.communicationChannel = communicationChannel
 
-        # if smartgridready
-        if self.smartGridreadyEID != "":
-            self.smartgridready = SmartGridreadyComponent(smartGridreadyEID)  # add smartgridready component to sensor
-            #self.smartgridready.sgr_component.set_slave_id(address)
+        if smartGridreadyEID != None:
+            self.smartgridready = SmartGridreadyComponent(smartGridreadyEID)
 
-        if self.nativeEID != "":
-            self.native = NativeComponent(nativeEID)  # add native component to sensor
+        if nativeEID != None:
+            self.native = NativeComponent(nativeEID)
 
-        if self.simulationModel != "":
-            self.simulation = SimulatedComponent(name=name, model=simulationModel)  # add native component to sensor
+        if simulationModel != None:
+            self.simulation = SimulatedComponent(simulationModel)
+
+    # abstract methodes
+    def write(self, state: str):
+        pass
 
     def read(self):
-        # --- add code for reading from hardware here
-        raise NotImplementedError
-        return [None, error_code]  # value = None
+        pass
 
     def log_values(self):
-        raise NotImplementedError
+        # logs the value of a device. Log depends on what device it is
+        logger = logging.getLogger("device_logger")
+        logger.info(
+            f"{self.name};{self.type}")
 
-class PowerSensor(Sensor):
+class PowerSensor(Device):
     # derived class for power sensor
     sleep_between_requests = 0.05  # TODO: Time the program will wait after a RTU request in seconds -> move to extra properties
 
     def __init__(self, *, name: str = "", type: str = "",
                  smartGridreadyEID: str = "",
                  nativeEID: str = "",
-                 is_logging: bool = True,
+                 isLogging: bool = True,
                  communicationChannel: str = "",
                  address: str ="",
                  has_energy_import: bool = False,
@@ -294,7 +291,7 @@ class PowerSensor(Sensor):
 
         # initialize sensor
         super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, nativeEID=nativeEID,
-                         is_logging=is_logging, communicationChannel=communicationChannel)
+                         isLogging=isLogging, communicationChannel=communicationChannel)
 
         self.address = address
         self.has_energy_import = has_energy_import
@@ -348,7 +345,7 @@ class PowerSensor(Sensor):
 
         if error_code == 0:
             self.energy_value_import = value
-        elif self.is_logging:
+        elif self.isLogging:
             self.log_values()
 
         return self.energy_value_import, unit, error_code
@@ -372,7 +369,7 @@ class PowerSensor(Sensor):
 
         if error_code == 0:
             self.energy_value_export = value
-        elif self.is_logging:
+        elif self.isLogging:
             self.log_values()
 
         return self.energy_value_export, unit, error_code
@@ -397,20 +394,20 @@ class PowerSensor(Sensor):
                     f"{self.name};{str(self.address)};{self.energy_value_export};KILOWATT_HOURS")
 
 
-class TemperatureSensor(Sensor):
+class TemperatureSensor(Device):
     # derived class for temperature sensor
 
     def __init__(self, *, name: str = "", type: str = "",
                  smartGridreadyEID: str = "",
                  nativeEID: str = "",
-                 is_logging: bool = True,
+                 isLogging: bool = True,
                  communicationChannel: str = "",
                  address: str = "",
                  maxTemp: int, minTemp: int):
 
         # initialize sensor
         super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, nativeEID=nativeEID,
-                         is_logging=is_logging, communicationChannel=communicationChannel)
+                         isLogging=isLogging, communicationChannel=communicationChannel)
         self.address = address
         self.maxTemp = maxTemp
         self.minTemp = minTemp
@@ -435,7 +432,7 @@ class TemperatureSensor(Sensor):
         if error_code == 0:
             if (value >= self.minTemp) and (value <= self.maxTemp):
                 self.value = value
-        elif self.is_logging:
+        elif self.isLogging:
             self.log_values()
 
         return self.value, unit, error_code
@@ -446,57 +443,21 @@ class TemperatureSensor(Sensor):
             logger.info(
                 f"{self.name};TEMPERATURE;{self.value};CELSIUS")
 
-class Actuator():
-    # base class for any actuator (e.g. relais, switch box, drive, etc.)
 
-    def __init__(self, *, name: str = "", type: str = "",
-                 smartGridreadyEID: str = "",
-                 nativeEID: str = "",
-                 is_logging: bool = True,
-                 communicationChannel: str = ""):
-
-        # initialize sensor
-        self.name = name
-        self.type = type
-        self.smartGridreadyEID = smartGridreadyEID
-        self.nativeEID = nativeEID
-        self.is_logging = is_logging
-        self.communicationChannel = communicationChannel
-
-        if self.smartGridreadyEID != None:
-            self.smartgridready = SmartGridreadyComponent(smartGridreadyEID)  # create smartgridready component
-
-        if self.nativeEID != None:
-            self.native = NativeComponent(nativeEID)  # create native component
-
-    # abstract methodes
-    def write_channel(self, channel: int, state: str):
-        pass
-
-    def read_channel(self, channel):
-        pass
-
-    def read_all_channels(self):
-        pass
-
-    def log_values(self):
-        raise NotImplementedError
-
-
-class RelaisActuator(Actuator):
+class RelaisActuator(Device):
     # derived class for relais switch
 
     def __init__(self, *, name: str = "", type: str = "",
                  smartGridreadyEID: str = "",
                  nativeEID: str = "",
-                 is_logging: bool = True,
+                 isLogging: bool = True,
                  communicationChannel: str = "",
                  address: str = "",
                  nChannels: int = 1):
 
         # initialize actuator
         super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, nativeEID=nativeEID,
-                         is_logging=is_logging, communicationChannel=communicationChannel)
+                         isLogging=isLogging, communicationChannel=communicationChannel)
         self.address = address
         self.nChannels = nChannels
 
@@ -518,7 +479,7 @@ class RelaisActuator(Actuator):
 
         if error_code == 0:
             self.value = value
-        elif self.is_logging:
+        elif self.isLogging:
             self.log_values()
 
         return self.value, error_code
@@ -537,7 +498,7 @@ class RelaisActuator(Actuator):
 
         if error_code == 0:
             self.value = state
-        elif self.is_logging:
+        elif self.isLogging:
             self.log_values()
 
         return self.value, unit, error_code
@@ -548,43 +509,7 @@ class RelaisActuator(Actuator):
             logger.info(
                 f"{self.name};RELAIS;{self.value};STATE")
 
-class Device():
-    # base class for any device (e.g. heat pump, solar plant, etc.)
 
-    def __init__(self, *, name: str = "", type: str = "", smartGridreadyEID: str = "", nativeEID: str = "",
-                 simulationModel: str = "", isLogging: bool = True,
-                 communicationChannel: str = ""):
-
-        self.name = name
-        self.type = type
-        self.smartGridreadyEID = smartGridreadyEID
-        self.nativeEID = nativeEID
-        self.simulationModel = simulationModel
-        self.isLogging = isLogging
-        self.isSimulated = isSimulated
-        self.communicationChannel = communicationChannel
-
-        if smartGridreadyEID != None:
-            self.smartgridready = SmartGridreadyComponent(smartGridreadyEID)
-
-        if nativeEID != None:
-            self.native = NativeComponent(nativeEID)
-
-        if simulationModel != None:
-            self.simulation = SimulatedComponent(simulationModel)
-
-    # abstract methodes
-    def write_device(self, state: str):
-        pass
-
-    def read_device(self):
-        pass
-
-    def log_values(self):
-        # logs the value of a device. Log depends on what device it is
-        logger = logging.getLogger("device_logger")
-        logger.info(
-            f"{self.name};{self.type}")
 
 class HeatPump(Device):
     # class for heat pump devices
@@ -609,6 +534,8 @@ class HeatPump(Device):
     async def read_device(self, functional_profile):
         value = 0
         error_code = 0
+        fp_str = ""
+        dp_str = ""
 
         # TODO: specify fp and dp names
         if functional_profile == "DHW":
@@ -630,13 +557,15 @@ class HeatPump(Device):
 
         if error_code == 0:
             self.value = value
-        elif self.is_logging:
+        elif self.isLogging:
             self.log_values()
 
         return self.value, error_code
 
     def write_device(self, functional_profile, state: str):
         error_code = 0
+        fp_str = ""
+        dp_str = ""
 
         # TODO: specify fp and dp names
         if functional_profile == "DHW":
@@ -656,13 +585,15 @@ class HeatPump(Device):
 
         if error_code == 0:
             self.value = state
-        elif self.is_logging:
+        elif self.isLogging:
             self.log_values()
 
         return self.value, unit, error_code
 
     def switch_device(self, functional_profile, state: str):
         error_code = 0
+        fp_str = ""
+        dp_str = ""
 
         # TODO: specify fp and dp names
         if functional_profile == "BASE":
@@ -682,7 +613,7 @@ class HeatPump(Device):
 
         if error_code == 0:
             self.value = state
-        elif self.is_logging:
+        elif self.isLogging:
             self.log_values()
 
         return self.value, unit, error_code
@@ -737,6 +668,7 @@ class EVCharger(Device):
 
     def write_charging_power(self, power: float):
         error_code = 0
+        value = 0
 
         # TODO: specify fp and dp names
         fp_str = "PowerCtrl"
@@ -773,7 +705,7 @@ class EVCharger(Device):
 
         if error_code == 0:
             self.value = state
-        elif self.is_logging:
+        elif self.isLogging:
             self.log_values()
 
         return self.value, unit, error_code

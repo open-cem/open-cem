@@ -17,9 +17,8 @@ import subprocess
 import OpenCEM.cem_lib_components
 import yaml
 
-from OpenCEM.cem_lib_components import PowerSensor, HeatPump, EVCharger
-from OpenCEM.cem_lib_controllers import ExcessController, DynamicExcessController, PriceController, \
-    update_global_controller_values, Controller, StepwiseExcessController, coverage_controller
+from OpenCEM.cem_lib_components import Device, PowerSensor, TemperatureSensor, RelaisActuator, HeatPump, EVCharger
+from OpenCEM.cem_lib_controllers import Controller, SwitchingExcessController, DynamicExcessController, TemperatureExcessController
 from OpenCEM.cem_lib_loggers import create_statistics_logger_devices, create_event_logger, show_logger_in_console
 from datetime import datetime, timedelta
 from OpenCEM.cem_lib_auxiliary_functions import create_webpage_dict, send_data_to_webpage, parse_yaml, check_OpenCEM_shutdown
@@ -27,45 +26,20 @@ from sgr_library.modbusRTU_interface_async import SgrModbusRtuInterface
 
 
 # devices loop
-async def calculation_loop(devices: list, period_fast: int, period_slow: int, HTTP_client):
-    OpenCEM_speed_up_factor = OpenCEM.cem_lib_components.OpenCEM_speed_up_factor
-    time_slow_loop = datetime.now() + timedelta(seconds=period_slow / OpenCEM_speed_up_factor)
-    do_slow_loop = True
+async def calculation_loop(devices_list: list, controllers_list: list, period: int, HTTP_client):
+    simulation_speed_up_factor = OpenCEM.cem_lib_components.simulation_speed_up_factor
     while True:
 
-        if datetime.now() > time_slow_loop:
-            time_slow_loop = datetime.now() + timedelta(seconds=period_slow / OpenCEM_speed_up_factor)  # reset time
-            do_slow_loop = True
-
-        for index, device in enumerate(devices):
-            if isinstance(device, RemainingConsumption):
-                continue
-            response = await device.read_power_sensor()
-            error_code = response[3]
-
-
-            if do_slow_loop and isinstance(device, (HeatPump, PowerToHeat)):  # read aux sensors for these device types
-                await device.read_aux_sensors()
-
-        do_slow_loop = False  # reset variable
-
-        update_global_controller_values(devices)  # calculates total consumption and production
-
-        for index, device in enumerate(devices):
-            if device.controller is not None:
-                await device.calc_controller()
-            device.log_values()
-
-        # log global values (eg. total consumption)
-        Controller.log_global_power_values()
+        for controller in controllers_list:
+            error_code = await controller.calc_controller()
 
         # update webpage
-        webpage_dict = create_webpage_dict(devices)
+        webpage_dict = create_webpage_dict(devices_list)
         await send_data_to_webpage(webpage_dict, HTTP_client)
 
         # reset reserved power before the next iteration
-        Controller.global_power_reserved = 0
-        await asyncio.sleep(period_fast / OpenCEM_speed_up_factor)  # repeat loop every (period_fast) seconds
+        await asyncio.sleep(period / simulation_speed_up_factor
+)  # repeat loop every (period) seconds
 
         # check if a restart is requested
         restart_requested = await check_OpenCEM_shutdown(HTTP_client)
@@ -73,22 +47,13 @@ async def calculation_loop(devices: list, period_fast: int, period_slow: int, HT
             print("OpenCEM is restarting soon")
             return
 
-
-async def start_simulations(device_list: list):
-    for device in device_list:
-        if device.simulated:
-            device.simulation_task = asyncio.create_task(device.simulate_device())
-
-
 async def main():
 
     # load OpenCEM settings
     with open("yaml/OpenCEM_settings.yaml", "r") as f:
         settings = yaml.safe_load(f)
-        OpenCEM_speed_up = settings.get("OpenCEM_speed_up")
-        fast_loop_time = settings.get("fast_loop_time")
-        slow_loop_time = settings.get("slow_loop_time")
-        simulation_loop_time = settings.get("simulation_loop_time")
+        loop_time = settings.get("loop_time")
+        simulation_speed_up = settings.get("simulation_speed_up")
         duration = settings.get("duration")
         log_events = settings.get("log_events")
         log_stats = settings.get("log_stats")
@@ -100,8 +65,7 @@ async def main():
         path_OpenCEM_config = settings.get("path_OpenCEM_config")
 
     # set variables for the library
-    OpenCEM.cem_lib_components.OpenCEM_speed_up_factor = OpenCEM_speed_up
-    OpenCEM.cem_lib_components.simulation_loop_time = simulation_loop_time
+    OpenCEM.cem_lib_components.simulation_speed_up_factor = simulation_speed_up
 
     # start logging
     if log_stats:
@@ -139,7 +103,7 @@ async def main():
             return  # OpenCEM gets stopped
 
     # parse yaml
-    communication_channels_list, actuators_list, sensors_list, controllers_list, devices_list = await parse_yaml(path_OpenCEM_config)
+    communication_channels_list, devices_list, controllers_list = await parse_yaml(path_OpenCEM_config)
     http_main_channel = next((obj for obj in communication_channels_list if obj.type == "HTTP_MAIN"),
                              None)  # returns the HTTP_MAIN from the list
     http_main_client = http_main_channel.client     # gets the main client from the communicationChannel
@@ -150,9 +114,8 @@ async def main():
             await channel.client.connect()
 
     # start calculation loop
-    await start_simulations(devices_list)
     task_calculation_loop = asyncio.create_task(
-        calculation_loop(devices_list, fast_loop_time, slow_loop_time, http_main_client))
+        calculation_loop(devices_list, controllers_list, loop_time, http_main_client))
 
     # run main for given duration
     if duration != 0:

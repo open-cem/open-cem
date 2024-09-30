@@ -1,26 +1,7 @@
-installationName: Test
+installationName: SimTest
 creationTimestamp: 2024-09-26 08:55:00
 version: 1
-communicationChannels:
-- type: MODBUS_TCP
-  extra: 
-    adress: 127.0.0.1
-    port: 502
-- type: MODBUS_RTU
-  extra:
-    baudrate: 19200
-    parity: EVEN
-    port: /dev/ttyUSB0
-- type: HTTP_LOCAL
-  extra: none
-- type: SHELLY_CLOUD
-  extra:
-    authKey: MTUyNjU5dWlk6D393AB193944CE2B1D84E0B573EAB1271DA6F2AF2BC54F67779F5BC27C31E90AD7C7075E0F813D8
-    serverAddress: https://shelly-54-eu.shelly.cloud/
-- type: SMARTME_CLOUD
-  extra:
-    authKey: SDFJDSLFKJAÖSLKFJÖSDLKJFSÖDLKJFLSKJADFÖLJ
-    serverAddress: https://smartme.cloud/
+communicationChannels: null
 devices:
 - name: Main Meter
   type: POWER_SENSOR
@@ -28,33 +9,21 @@ devices:
   nativeEID: null
   simulationModel: MAIN_POWER
   isLogging: true
-  communicationChannel: HTTP_LOCAL
+  communicationChannel: none
   extra:
-    address: 192.168.0.26
+    address: null
     hasEnergyImport: true
     hasEnergyExport: true
     maxPower: 10
-- name: Heat Pump Consumption
-  type: POWER_SENSOR
-  smartGridreadyEID: SGr_04_0016_xxxx_ABBMeterV0.2.1
-  nativeEID: null
-  simulationModel: null
-  isLogging: true
-  communicationChannel: MODBUS_RTU
-  extra:
-    address: '1'
-    maxPower: 10
-    hasEnergyImport: false
-    hasEnergyExport: false
 - name: PV production
   type: POWER_SENSOR
-  SmartGridreadyEID: SGr_04_0016_xxxx_ABBMeterV0.2.1
+  SmartGridreadyEID: none
   nativeEID: null
   simulationModel: PV_PLANT
   isLogging: true
-  communicationChannel: MODBUS_RTU
+  communicationChannel: none
   extra:
-    address: '2'
+    address: null
     maxPower: 10
     hasEnergyImport: true
     hasEnergyExport: false
@@ -62,79 +31,77 @@ devices:
   type: TEMPERATURE_SENSOR
   smartGridreadyEID: null
   nativeEID: null
-  simulationModel: ROOM TEMPERATURE
-  communicationChannel: SHELLY_CLOUD
+  simulationModel: ROOM_TEMPERATURE
+  communicationChannel: null
   isLogging: true
   extra:
-    address: 1f76d8
+    address: null
     maxTemp: 50
     minTemp: -10
 - name: Electric Heater Switch
   type: RELAIS_SWITCH
   smartGridreadyEID: null
   nativeEID: null
+  simulationModel: ELECTRIC_HEATER
   isLogging: true
-  communicationChannel: HTTP_LOCAL
+  communicationChannel: null
   extra:
-    address: 192.168.0.210
-    nChannels: 2
+    address: null
+    nChannels: 1
 - name: EV Charging Station
   type: EV_CHARGER
-  smartGridreadyEID: SGr_02_0003_0055_eCarupPICO_4061_v1.0.0
+  smartGridreadyEID: null
   nativeEID: null
-  simulationModel: null
+  simulationModel: EV_CHARGER
   isLogging: true
-  communicationChannel: SMARTME_CLOUD
+  communicationChannel: null
   extra:
-    address: '10.0.0.220'
-    port: '255'
+    address: null
+    port: null
     minPower: 4
     maxPower: 11
     phases: THREE_PHASES
 - name: Heat Pump
   type: HEAT_PUMP
-  smartGridreadyEID: SGr_02_0015_xxxx_StiebelEltron_HeatPumpV0.1.0
+  smartGridreadyEID: null
   nativeEID: null
-  simulationModel: null
+  simulationModel: HEAT_PUMP
   isLogging: true
-  communicationChannel: MODBUS_TCP
+  communicationChannel: null
   extra:
-    address: '10.1.1.200'
-    port: '502'
+    address: null
+    port: null
     minPower: 3
     maxPower: 5
 controllers:
 - name: EV Charge Controller
   type: DYNAMIC_EXCESS_CONTROLLER
-  mainMeter:
-    sensor name: Main Meter
-  controlledDevice:
-    device name: EV Charging Station
+  mainMeter: Main Meter
+  deviceMeter: null
+  controlledDevice: EV Charging Station
+  functionalProfile: null
   controllerSettings:
-      power_switching: 4
+      powerLimit: 4
+      powerHysteresis: 0.5
 - name: Electric Heating Controller
   type: SWITCHING_EXCESS_CONTROLLER
-  mainMeter:
-    sensor name: Main Meter
-  controlledDevice:
-    actuator name: Electric Heater Switch
-    device name: null
-    channel: 1
+  mainMeter: Main Meter
+  deviceMeter: null
+  controlledDevice: Electric Heater Switch
+  functionalProfile: null
   controllerSettings:
-    power_switching: 2
+    powerLimit: 2
+    powerHysteresis: 0.5
 - name: Heat Pump DHW Controller
   type: TEMPERATURE_EXCESS_CONTROLLER
-  mainMeter:
-    sensor name: Main Meter
-  deviceMeter:
-    sensor name: Heat Pump Meter
-  controlledDevice:
-    device name: Heat Pump
-    functional profile: DHW
+  mainMeter: Main Meter
+  deviceMeter: Heat Pump Meter
+  controlledDevice: Heat Pump
+  functionalProfile: DHW
   controllerSettings:
-    temp_eco: 40
-    excess_comfort: 2
-    temp_comfort: 50
-    excess_max: 10
-    temp_max: 60
+    tempEco: 40
+    excessComfort: 2
+    tempComfort: 50
+    excessMax: 10
+    tempMax: 60
 

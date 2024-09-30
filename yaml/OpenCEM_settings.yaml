@@ -1,8 +1,5 @@
-OpenCEM_speed_up: 288 # put 1 here if system is not simulated
-# time for the loops in seconds
-fast_loop_time: 300
-slow_loop_time: 600
-simulation_loop_time: 75
+loop_time: 300  # time for the loops in seconds
+simulation_speed_up: 1 # put 1 here if system is not simulated
 duration: 0 # in seconds (0 means will run forever)
 
 # settings for logging

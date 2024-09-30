@@ -60,7 +60,7 @@ def get_local_ip():
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
         # Use a dummy address to get the local IP address
-        s.connect(("8.8.8.8", 80))
+        #s.connect(("8.8.8.8", 80))
 
         # Get the local IP address
         local_ip = s.getsockname()[0]

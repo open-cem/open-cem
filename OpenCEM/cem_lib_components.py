@@ -12,7 +12,6 @@ from pprint import pprint
 from pymodbus.constants import Endian
 from sgr_library import SGrDevice
 
-import OpenCEM.cem_lib_controllers as controllers
 import random
 import sys, os
 from datetime import datetime, timedelta
@@ -32,9 +31,9 @@ shelly_auth_key = "MTUyNjU5dWlk6D393AB193944CE2B1D84E0B573EAB1271DA6F2AF2BC54F67
 shelly_server_address = "https://shelly-54-eu.shelly.cloud/"
 
 # Simulation parameters:
-OpenCEM_speed_up_factor = 1  # will be overwritten by setting yaml
+simulation_speed_up_factor = 1  # will be overwritten by setting yaml
 sim_start_time = None
-simulation_loop_time = 1  # loop time in seconds for simulated devices, will be overwritten by setting yaml
+
 
 
 class OpenCEM_RTU_client: # TODO: remove or integrate in native implementation
@@ -182,7 +181,7 @@ class SimulatedComponent:
             self.max_temperature = 22
 
         self.value = 0
-    async def run_simulation_step(self, state: str = ""):
+    async def run_simulation_step(self, state: str = "", setpoint: float = 0):
         value = 0
         unit = None
         error_code = 0
@@ -194,47 +193,57 @@ class SimulatedComponent:
 
         print(f"Simulation of model {self.model}")
 
-        if self.model == "PV PLANT":
+        if self.model == "PV_PLANT":
             t = round(asyncio.get_running_loop().time() - t_loop_start, 2)
-            t_shifted = t - (6 * 60 * 60 / OpenCEM_speed_up_factor)  # Subtracting 6 hours in seconds
+            t_shifted = t - (6 * 60 * 60 / simulation_speed_up_factor)  # Subtracting 6 hours in seconds
 
             # power_max is amplitude of the sine function
             self.value = round(
-                self.max_power * math.sin(OpenCEM_speed_up_factor * 2 * math.pi * (t_shifted / 86400)), 2)
+                self.max_power * math.sin(simulation_speed_up_factor * 2 * math.pi * (t_shifted / 86400)), 2)
             if self.value <= 0:
                 self.value = 0
 
-            if self.model == "MAIN POWER":
+            if self.model == "MAIN_POWER":
                 t = round(asyncio.get_running_loop().time() - t_loop_start, 2)
-                t_shifted = t - (6 * 60 * 60 / OpenCEM_speed_up_factor)  # Subtracting 6 hours in seconds
+                t_shifted = t - (6 * 60 * 60 / simulation_speed_up_factor)  # Subtracting 6 hours in seconds
 
                 # power_max is amplitude of the sine function
                 production = round(
-                    self.max_power * math.sin(OpenCEM_speed_up_factor * 2 * math.pi * (t_shifted / 86400)), 2)
+                    self.max_power * math.sin(simulation_speed_up_factor * 2 * math.pi * (t_shifted / 86400)), 2)
                 consumption = random.uniform(0, self.max_power)
                 self.value = production - consumption
 
-            if self.model == "HEAT PUMP":
+            if self.model == "HEAT_PUMP":
                 if state == "ON":
                     self.value = self.nominal_power
                 else:
                     self.value = 0
 
-            if self.model == "ROOM TEMPERATURE":
+            if self.model == "ELECTRIC_HEATER":
+                if state == "ON":
+                    self.value = self.nominal_power
+                else:
+                    self.value = 0
+
+            if self.model == "EV_CHARGER":
+                if state == "ON":
+                    self.value = setpoint
+                else:
+                    self.value = 0
+
+            if self.model == "ROOM_TEMPERATURE":
                 t = round(asyncio.get_running_loop().time() - t_loop_start, 2)
-                t_shifted = t - (2 * 60 * 60 / OpenCEM_speed_up_factor)  # Subtracting 3 hours in seconds
+                t_shifted = t - (2 * 60 * 60 / simulation_speed_up_factor)  # Subtracting 3 hours in seconds
 
                 # temperature is amplitude of the sine function
                 amplitude = self.max_temperature - self.min_temperature
                 self.value = self.min_temperature + round(
-                    amplitude * math.sin(OpenCEM_speed_up_factor * 2 * math.pi * (t_shifted / 86400)), 2)
+                    amplitude * math.sin(simulation_speed_up_factor * 2 * math.pi * (t_shifted / 86400)), 2)
 
             # define return values
             value = self.value
             unit = "KILOWATTS"
             error_code = 0
-
-            await asyncio.sleep(simulation_loop_time / OpenCEM_speed_up_factor)
 
         return [value, unit, error_code]
 
@@ -252,6 +261,8 @@ class Device():
         self.simulationModel = simulationModel
         self.isLogging = isLogging
         self.communicationChannel = communicationChannel
+        self.nominalPower = 0
+        self.state = 0
 
         if smartGridreadyEID != None:
             self.smartgridready = SmartGridreadyComponent(smartGridreadyEID)
@@ -263,11 +274,15 @@ class Device():
             self.simulation = SimulatedComponent(simulationModel)
 
     # abstract methodes
-    def write(self, state: str):
-        pass
 
     def read(self):
         pass
+
+    def switch_device(self, functional_profile: str, state: str):
+        return 0        # error code
+
+    def write_device_setpoint(self, functional_profile: str, setpoint: float):
+        return 0        # error code
 
     def log_values(self):
         # logs the value of a device. Log depends on what device it is
@@ -321,7 +336,7 @@ class PowerSensor(Device):
         if error_code == 0:
             if value <= self.maxPower:
                 self.power_value = value
-        elif self.is_logging:
+        elif self.isLogging:
             self.log_values()
 
         return self.power_value, unit, error_code
@@ -501,7 +516,7 @@ class RelaisActuator(Device):
         elif self.isLogging:
             self.log_values()
 
-        return self.value, unit, error_code
+        return error_code
 
     def log_values(self):
         if "OpenCEM_statistics" in logging.Logger.manager.loggerDict.keys():
@@ -562,7 +577,7 @@ class HeatPump(Device):
 
         return self.value, error_code
 
-    def write_device(self, functional_profile, state: str):
+    def write_device_setpoint(self, functional_profile, setpoint: float):
         error_code = 0
         fp_str = ""
         dp_str = ""
@@ -579,18 +594,18 @@ class HeatPump(Device):
             dp_str = f"DP_SetpointSpeed"
 
         if self.smartGridreadyEID != None:
-            [error_code] = self.smartgridready.write_value(fp_str, dp_str, state)
+            [error_code] = self.smartgridready.write_value(fp_str, dp_str, setpoint)
         if self.nativeEID != None:
-            [error_code] = self.native.write_value(fp_str, dp_str, state)
+            [error_code] = self.native.write_value(fp_str, dp_str, setpoint)
 
         if error_code == 0:
-            self.value = state
+            self.value = setpoint
         elif self.isLogging:
             self.log_values()
 
-        return self.value, unit, error_code
+        return error_code
 
-    def switch_device(self, functional_profile, state: str):
+    def switch_device(self, functional_profile: str, state: str):
         error_code = 0
         fp_str = ""
         dp_str = ""
@@ -616,7 +631,7 @@ class HeatPump(Device):
         elif self.isLogging:
             self.log_values()
 
-        return self.value, unit, error_code
+        return error_code
 
 class EVCharger(Device):
     # class for heat pump devices
@@ -639,7 +654,7 @@ class EVCharger(Device):
 
         self.state = "OFF"
 
-    async def read_charging_power(self):
+    async def read_power(self):
         value = 0
         error_code = 0
 
@@ -666,7 +681,7 @@ class EVCharger(Device):
 
         return self.value, error_code
 
-    def write_charging_power(self, power: float):
+    def write_device_setpoint(self, functional_profile: str, setpoint: float):
         error_code = 0
         value = 0
 
@@ -675,9 +690,9 @@ class EVCharger(Device):
         dp_str = "SetChargingCurrentAC"
 
         if self.phases == "ONE_PHASE":
-            value = power / 230   # I = P/U
+            value = setpoint / 230   # I = P/U
         elif self.phases == "THREE_PHASES":
-            value = power / (3*230)  # I = P/(3*U)
+            value = setpoint / (3*230)  # I = P/(3*U)
 
         if self.smartGridreadyEID != None:
             [error_code] = self.smartgridready.write_value(fp_str, dp_str, value)
@@ -689,9 +704,9 @@ class EVCharger(Device):
         elif self.isLogging:
             self.log_values()
 
-        return self.value, error_code
+        return error_code
 
-    def switch_device(self, state: str):
+    def switch_device(self, functional_profile: str, state: str):
         error_code = 0
 
         # TODO: specify fp and dp names
@@ -708,7 +723,7 @@ class EVCharger(Device):
         elif self.isLogging:
             self.log_values()
 
-        return self.value, unit, error_code
+        return error_code
 
 
 

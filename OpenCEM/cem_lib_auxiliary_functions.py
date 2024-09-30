@@ -10,8 +10,7 @@ import aiohttp.client
 import yaml
 from OpenCEM.cem_lib_components import CommunicationChannel, PowerSensor, \
     HeatPump, EVCharger, TemperatureSensor, RelaisActuator
-from OpenCEM.cem_lib_controllers import ExcessController, StepwiseExcessController, DynamicExcessController, \
-    coverage_controller, PriceController
+from OpenCEM.cem_lib_controllers import Controller, SwitchingExcessController, DynamicExcessController, TemperatureExcessController
 from sgr_library.modbusRTU_interface_async import SgrModbusRtuInterface
 from sgr_library.modbusRTU_client_async import SGrModbusRTUClient
 
@@ -51,18 +50,12 @@ def create_webpage_dict(devices_list: list) -> dict:
         device_dict = {}
         try:
             device_dict["name"] = device.name
-            device_dict["power"] = device.power_sensor_power
-            device_dict["type"] = device.device_type
+            device_dict["type"] = device.type
             device_dict["status"] = device.state
-            if device.room_temperature_sensor is not None:
-                device_dict["room_temperature"] = device.room_temperature
-            if device.storage_temperature_sensor is not None:
-                device_dict["storage_temperature"] = device.storage_temperature
             devices_dict_list.append(device_dict)
-            if isinstance(device, EvCharger):
-                device_dict["ev_state"] = device.ev_state
+
         except Exception:
-            raise NotImplementedError("Error building the dictionary")
+            raise NotImplementedError("Error building the device dictionary")
 
     return_dict["devices_list"] = devices_dict_list
 
@@ -117,43 +110,6 @@ async def check_OpenCEM_shutdown(session):
     # return false when request failed
     return False
 
-
-def add_sensor_actuator_controller_by_id(device, sensor_id_list=None, actuator_id=None, controller_id=None,
-                                         sensors_list=None, actuators_list=None, controllers_list=None,
-                                         actuator_channels=None, channel_config=None):
-    """
-    This function adds sensors, actuators or a controller to device
-    :param actuator_channels: the channel numbers of the actuator that the device uses
-    :param channel_config: the configuration of the actuator channels to get a certain mode
-    :return:
-    """
-
-    # add all the sensors
-    for sensor_id in sensor_id_list:
-
-        if sensor_id is not None and sensors_list is not None:
-            sensor = search_object_by_id(sensors_list, sensor_id)
-            if isinstance(sensor, PowerSensor):
-                device.add_power_sensor(sensor)
-            if isinstance(sensor, TemperatureSensorRoom):
-                device.add_room_temperature_sensor(sensor)
-            if isinstance(sensor, TemperatureSensorStorage):
-                device.add_storage_temperature_sensor(sensor)
-
-    # add an actuator
-    if actuator_id is not None and actuators_list is not None and actuator_channels is not None:
-        actuator = search_object_by_id(actuators_list, actuator_id)
-        if isinstance(actuator, RelaisActuator):
-            device.add_actuator(actuator, actuator_channels)
-            if channel_config is not None:
-                device.set_mode_config(channel_config)
-
-    # add a controller
-    if controller_id is not None and controllers_list is not None:
-        controller = search_object_by_id(controllers_list, controller_id)
-        device.add_controller(controller)
-
-
 async def download_xml(uuid):
     """
     This function will download the XML for a SGr Device from the CEM-Cloud and save it as uuid.xml
@@ -197,21 +153,30 @@ def parse_yaml_devices(path2configurationYaml: str):
                 devices_list.append(device_name)  # add the device to the list and continue for loop with the next device
     return devices_list
 
+def find_device(devices_list: list, name: str):
+
+    device_found = None
+
+    for device in devices_list:
+        if device.name == name:
+            device_found = device
+
+    return device_found
+
+
 async def parse_yaml(path2configurationYaml: str):
     """
     This function reads a configuration yaml, creates instances of devices, sensors, etc. and connects them.
     :param path2configurationYaml: The YAML configuration that should get parsed
-    :return: lists for devices, communicationChannels, sensors, actuators, controllers
+    :return: lists for communicationChannels, devices and controllers
     """
     with open(path2configurationYaml, "r") as f:
         data = yaml.safe_load(f)
 
         #vdefine empty lists
         communication_channels_list = []
-        actuators_list = []
-        sensors_list = []
-        controllers_list = []
         devices_list = []
+        controllers_list = []
 
         # parse communication channels
         if data.get("communicationChannels") is not None:
@@ -233,89 +198,6 @@ async def parse_yaml(path2configurationYaml: str):
         if sgr_rtu_client is not None:
             SgrModbusRtuInterface.globalModbusRTUClient = SGrModbusRTUClient("", "", "",
                                                                              client=sgr_rtu_client)  # set the global client for SGr RTU Devices
-
-        # parse actuators
-        if data.get("actuators") is not None:
-            data_actuators = data["actuators"]
-
-            # parse every actuator from the list
-            for actuator in data_actuators:
-                name = actuator["name"]
-                type = actuator["type"]
-                smartgridreadyEID = actuator.get("smartGridreadyEID")
-                nativeEID = actuator.get("nativeEID")
-                isLogging = actuator["isLogging"]
-                communication_channel = actuator["communicationChannel"]
-                extra = actuator["extra"]
-
-                # find communication channel
-                #communication_channel_temp = search_object_by_id(communication_channels_list, communication_channel)
-
-                if type == "RELAIS_SWITCH":
-                    ip_address = extra["address"]
-                    n_channels = extra["nChannels"]
-                    relais = RelaisActuator(name=name, type=type, smartGridreadyEID=smartgridreadyEID,
-                                            nativeEID=nativeEID, isLogging=isLogging,
-                                            communicationChannel=communication_channel,
-                                            address=ip_address,nChannels=n_channels)
-                    actuators_list.append(relais)
-                else:
-                    raise NotImplementedError(f"Actuator {type} not known")
-
-        # create Sensors
-        if data.get("sensors") is not None:
-            data_sensors = data["sensors"]
-
-            # parse every sensor from the list
-            for sensor in data_sensors:
-                type = sensor.get("type")
-                name = sensor.get("name")
-                model = sensor.get("model")
-                smartgridreadyEID = actuator.get("smartGridreadyEID")
-                smartgridready_XML = f"../SGrPython/xml_files/{smartgridreadyEID}.xml"
-                nativeEID = actuator.get("nativeEID")
-                native_YAML = f"yaml/{nativeEID}.yaml"
-                simulationModel = actuator.get("simulationModel")
-                isLogging = sensor.get("isLogging")
-                communication_channel = sensor.get("communicationId")
-                extra = sensor.get("extra")
-
-                # find communication channel
-                #communication_channel_temp = search_object_by_id(communication_channels_list, communication_id)
-                #if communication_channel_temp is not None:
-                #    comm_type = communication_channel_temp.type
-                #else:
-                #    raise NotImplementedError
-
-                # decision tree for sensor type
-                match type:
-                    case "POWER_SENSOR":
-                        address = extra["address"]
-                        hasEnergyImport = extra["hasEnergyImport"]
-                        hasEnergyExport = extra["hasEnergyExport"]
-                        maxPower = extra["maxPower"]
-
-                        sensor_temporary = PowerSensor(name=name, type=type, smartGridreadyEID=smartgridready_XML,
-                                                       nativeEID=native_YAML, isLogging=isLogging,
-                                                       communicationChannel=communication_channel,
-                                                       address=address, has_energy_import=hasEnergyImport,
-                                                       has_energy_export=hasEnergyExport, maxPower=maxPower)
-
-                    case "TEMPERATURE_SENSOR":
-                        address = extra["address"]
-                        maxTemp = extra["maxTemp"]
-                        minTemp = extra["minTemp"]
-
-                        sensor_temporary = TemperatureSensor(name=name, type=type, smartGridreadyEID=smartgridready_XML,
-                                                       nativeEID=native_YAML, isLogging=isLogging,
-                                                       communicationChannel=communication_channel,
-                                                       address=address, minTemp=minTemp, maxTemp=maxTemp)
-
-
-                    case _:
-                        raise NotImplementedError(f"Sensor {type} not known")
-
-                sensors_list.append(sensor_temporary)
 
         # parse devices
 
@@ -344,7 +226,7 @@ async def parse_yaml(path2configurationYaml: str):
 
                         device_temporary = PowerSensor(name=name, type=type, smartGridreadyEID=smartgridreadyEID,
                                                        nativeEID=nativeEID, isLogging=isLogging,
-                                                       communicationChannel=communication_channel,
+                                                       communicationChannel=communicationChannel,
                                                        address=address, has_energy_import=hasEnergyImport,
                                                        has_energy_export=hasEnergyExport, maxPower=maxPower)
 
@@ -353,16 +235,16 @@ async def parse_yaml(path2configurationYaml: str):
                         maxTemp = extra["maxTemp"]
                         minTemp = extra["minTemp"]
 
-                        device_temporary = TemperatureSensor(name=name, type=type, smartGridreadyEID=smartgridready_XML,
-                                                             nativeEID=native_YAML, isLogging=isLogging,
-                                                             communicationChannel=communication_channel,
+                        device_temporary = TemperatureSensor(name=name, type=type, smartGridreadyEID=smartgridreadyEID,
+                                                             nativeEID=nativeEID, isLogging=isLogging,
+                                                             communicationChannel=communicationChannel,
                                                              address=address, minTemp=minTemp, maxTemp=maxTemp)
                     case "RELAIS_SWITCH":
                         ip_address = extra["address"]
                         n_channels = extra["nChannels"]
                         device_temporary = RelaisActuator(name=name, type=type, smartGridreadyEID=smartgridreadyEID,
                                                 nativeEID=nativeEID, isLogging=isLogging,
-                                                communicationChannel=communication_channel,
+                                                communicationChannel=communicationChannel,
                                                 address=ip_address, nChannels=n_channels)
 
                     case "HEAT_PUMP":
@@ -388,14 +270,12 @@ async def parse_yaml(path2configurationYaml: str):
                         device_temporary = EVCharger(name=name, type=type,
                                     smartGridreadyEID=smartgridreadyEID, nativeEID=nativeEID,
                                     simulationModel=simulationModel, isLogging=isLogging,
-                                    communicationChannel=communication_channel, address=address,
+                                    communicationChannel=communicationChannel, address=address,
                                     port=port, minPower=minPower, maxPower=maxPower, phases=phases)
 
                 devices_list.append(device_temporary)   # add the device to the list and continue for loop with the next device
 
         # parse controllers
-
-         # CONTROLLERS UNDER CONSTRUCTION
 
         if data.get("controllers") is not None:
             controllers_data = data["controllers"]
@@ -403,32 +283,34 @@ async def parse_yaml(path2configurationYaml: str):
             for controller in controllers_data:
                 name = controller["name"]
                 type = controller["type"]
-                extra = controller["extra"]
+                mainMeterStr = controller["mainMeter"]
+                mainMeter = find_device(devices_list,mainMeterStr)
+                deviceMeterStr = controller["deviceMeter"]
+                deviceMeter = find_device(devices_list,deviceMeterStr)
+                controlledDeviceStr = controller["controlledDevice"]
+                controlledDevice = find_device(devices_list,controlledDeviceStr)
+                functionalProfile = controller["functionalProfile"]
+                controllerSettings = controller["controllerSettings"]
+
 
                 # decision tree for controller type
                 match type:
-                    case "EXCESS_CONTROLLER":
-                        limit = int(extra["limit"])
-                        controller_temporary = ExcessController(limit=limit, OpenCEM_id=OpenCEM_id)
-                    case "STEPWISE_EXCESS_CONTROLLER":
-                        limits = extra["limits"]
-                        controller_temporary = StepwiseExcessController(limits=limits, OpenCEM_id=OpenCEM_id)
+                    case "SWITCHING_EXCESS_CONTROLLER":
+                        controller_temporary = SwitchingExcessController(name=name, mainMeter=mainMeter,
+                                                                         deviceMeter=deviceMeter, controlledDevice=controlledDevice,
+                                                                         controllerSettings=controllerSettings)
                     case "DYNAMIC_EXCESS_CONTROLLER":
-                        min_limit = extra["limitMin"]
-                        max_limit = extra["limitMax"]
-                        controller_temporary = DynamicExcessController(min_limit=min_limit, max_limit=max_limit,
-                                                                       OpenCEM_id=OpenCEM_id)
-                    case "COVERAGE_CONTROLLER":
-                        limit = int(extra["limit"])
-                        controller_temporary = coverage_controller(limit=limit, OpenCEM_id=OpenCEM_id)
-                    case "PRICE_CONTROLLER":
-                        gridTarif = extra["gridTarif"]
-                        solarTarif = extra["solarTarif"]
-                        minState = extra["minState"]
-                        maxState = extra["maxState"]
-                        controller_temporary = PriceController(min_state=minState, max_state=maxState,
-                                                               solar_tarif=solarTarif, grid_tarif=gridTarif,
-                                                               OpenCEM_id=OpenCEM_id)
+                        controller_temporary = DynamicExcessController(name=name, mainMeter=mainMeter,
+                                                                        deviceMeter=deviceMeter,
+                                                                        controlledDevice=controlledDevice,
+                                                                        controllerSettings=controllerSettings)
+                    case "TEMPERATURE_EXCESS_CONTROLLER":
+                        controller_temporary = TemperatureExcessController(name=name, mainMeter=mainMeter,
+                                                                        deviceMeter=deviceMeter,
+                                                                        controlledDevice=controlledDevice,
+                                                                        functionalProfile=functionalProfile,
+                                                                        controllerSettings=controllerSettings)
+
                     case _:
                         raise NotImplementedError("Controller type not known.")
 
@@ -436,4 +318,4 @@ async def parse_yaml(path2configurationYaml: str):
 
 
         # return all the lists
-        return communication_channels_list, actuators_list, sensors_list, controllers_list, devices_list
+        return communication_channels_list, devices_list, controllers_list

@@ -76,13 +76,18 @@ class SmartGridreadyComponent:
         self.sgr_component.build()
         self.sgr_component.connect()
 
+        print(f"SmartGridready Component created: {XML_file}")
+
+
     async def read_value(self, functional_profile: str, data_point: str):
         # read one value from a given data point within a functional profile
         error_code = 0
         dp = self.sgr_component.get_data_point((functional_profile, data_point))
         value = await dp.read()
 
-        return [return_value, dp.unit(), error_code]
+        print(f"SmartGridready Component read value: {functional_profile, data_point, value}")
+
+        return [value, dp.unit(), error_code]
 
     async def read_value_with_conversion(self, functional_profile: str, data_point: str):
         # read a power or energy value with unit conversion to kW, kWh
@@ -103,6 +108,8 @@ class SmartGridreadyComponent:
         error_code = 0
 
         self.sgr_component.setval(functional_profile, data_point, value)
+
+        print(f"SmartGridready Component write value: {functional_profile, data_point, value}")
 
         return error_code
 
@@ -129,15 +136,20 @@ class NativeComponent:
         # TODO: add code here - read YAML file and store functional profiles / data points
         #                       connect to device
 
+        print(f"Native Component created: {YAML_file}")
+
+
     async def read_value(self, functional_profile: str, data_point: str):
         # read one value from a given data point within a functional profile
         error_code = 0
 
         # TODO: add code here - read value from data_point
-        return_value = 0
+        value = 0
         unit = None
 
-        return [return_value, unit, error_code]
+        print(f"Native Component value read: {value}")
+
+        return [value, unit, error_code]
 
     async def read_value_with_conversion(self, functional_profile: str, data_point: str):
         # read a power or energy value with unit conversion to kW, kWh
@@ -158,8 +170,10 @@ class NativeComponent:
         error_code = 0
 
         # TODO: add code here - write value to data point
-        return_value = 0
+        value = 0
         unit = None
+
+        print(f"Native Component value write: {value} unit {unit}")
 
         return error_code
 
@@ -168,6 +182,11 @@ class SimulatedComponent:
 
     def __init__(self, model: str):
         self.model = model
+        self.max_power = 0
+        self.min_power = 0
+        self.nominal_power = 0
+        self.min_temperature = 0
+        self.max_temperature = 0
 
         # TODO: read parameter file with model simulation settings instead of hard coding
         if self.model == "PV PLANT":
@@ -179,22 +198,26 @@ class SimulatedComponent:
         if self.model == "ROOM TEMPERATURE":
             self.min_temperature = 18
             self.max_temperature = 22
-
         self.value = 0
+        self.unit = ''
+
+        print(f"Simulated Component created: {self.model}")
+
+
     async def run_simulation_step(self, state: str = "", setpoint: float = 0):
-        value = 0
-        unit = None
-        error_code = 0
+        self.value = 0
+        self.unit = 'KILOWATTS'
 
         if sim_start_time is None:  # check if there already exists a start_time
             t_loop_start = round(asyncio.get_running_loop().time(), 2)
         else:
             t_loop_start = sim_start_time
 
-        print(f"Simulation of model {self.model}")
+        t = round(asyncio.get_running_loop().time() - t_loop_start, 2)
+
+        print(f"Simulated Component {self.model} run simulation step at time {t}")
 
         if self.model == "PV_PLANT":
-            t = round(asyncio.get_running_loop().time() - t_loop_start, 2)
             t_shifted = t - (6 * 60 * 60 / simulation_speed_up_factor)  # Subtracting 6 hours in seconds
 
             # power_max is amplitude of the sine function
@@ -203,49 +226,46 @@ class SimulatedComponent:
             if self.value <= 0:
                 self.value = 0
 
-            if self.model == "MAIN_POWER":
-                t = round(asyncio.get_running_loop().time() - t_loop_start, 2)
-                t_shifted = t - (6 * 60 * 60 / simulation_speed_up_factor)  # Subtracting 6 hours in seconds
+        if self.model == "MAIN_POWER":
+            t_shifted = t - (6 * 60 * 60 / simulation_speed_up_factor)  # Subtracting 6 hours in seconds
 
-                # power_max is amplitude of the sine function
-                production = round(
-                    self.max_power * math.sin(simulation_speed_up_factor * 2 * math.pi * (t_shifted / 86400)), 2)
-                consumption = random.uniform(0, self.max_power)
-                self.value = production - consumption
+            # power_max is amplitude of the sine function
+            production = round(
+                self.max_power * math.sin(simulation_speed_up_factor * 2 * math.pi * (t_shifted / 86400)), 2)
+            consumption = random.uniform(0, self.max_power)
+            self.value = production - consumption
 
-            if self.model == "HEAT_PUMP":
-                if state == "ON":
-                    self.value = self.nominal_power
-                else:
-                    self.value = 0
+        if self.model == "HEAT_PUMP":
+            if state == "ON":
+                self.value = self.nominal_power
+            else:
+                self.value = 0
 
-            if self.model == "ELECTRIC_HEATER":
-                if state == "ON":
-                    self.value = self.nominal_power
-                else:
-                    self.value = 0
+        if self.model == "ELECTRIC_HEATER":
+            if state == "ON":
+                self.value = self.nominal_power
+            else:
+                self.value = 0
 
-            if self.model == "EV_CHARGER":
-                if state == "ON":
-                    self.value = setpoint
-                else:
-                    self.value = 0
+        if self.model == "EV_CHARGER":
+            if state == "ON":
+                self.value = setpoint
+            else:
+                self.value = 0
 
-            if self.model == "ROOM_TEMPERATURE":
-                t = round(asyncio.get_running_loop().time() - t_loop_start, 2)
-                t_shifted = t - (2 * 60 * 60 / simulation_speed_up_factor)  # Subtracting 3 hours in seconds
+        if self.model == "ROOM_TEMPERATURE":
+            t_shifted = t - (2 * 60 * 60 / simulation_speed_up_factor)  # Subtracting 3 hours in seconds
 
-                # temperature is amplitude of the sine function
-                amplitude = self.max_temperature - self.min_temperature
-                self.value = self.min_temperature + round(
-                    amplitude * math.sin(simulation_speed_up_factor * 2 * math.pi * (t_shifted / 86400)), 2)
+            # temperature is amplitude of the sine function
+            amplitude = self.max_temperature - self.min_temperature
+            self.value = self.min_temperature + round(
+                amplitude * math.sin(simulation_speed_up_factor * 2 * math.pi * (t_shifted / 86400)), 2)
+            self.unit = 'CELSIUS'
 
-            # define return values
-            value = self.value
-            unit = "KILOWATTS"
-            error_code = 0
+        print(f"Simulated value {self.value} unit {self.unit}")
 
-        return [value, unit, error_code]
+        error_code = 0
+        return [self.value, self.unit, error_code]
 
 class Device():
     # base class for any device including sensors and actuators
@@ -263,6 +283,7 @@ class Device():
         self.communicationChannel = communicationChannel
         self.nominalPower = 0
         self.state = 0
+        self.value = 0
 
         if smartGridreadyEID != None:
             self.smartgridready = SmartGridreadyComponent(smartGridreadyEID)
@@ -272,6 +293,8 @@ class Device():
 
         if simulationModel != None:
             self.simulation = SimulatedComponent(simulationModel)
+
+        print(f"Device created: {self.name} type {self.type}")
 
     # abstract methodes
 
@@ -284,11 +307,12 @@ class Device():
     def write_device_setpoint(self, functional_profile: str, setpoint: float):
         return 0        # error code
 
-    def log_values(self):
+    def log_value_state(self):
         # logs the value of a device. Log depends on what device it is
         logger = logging.getLogger("device_logger")
         logger.info(
-            f"{self.name};{self.type}")
+            f"{self.name};{self.type};{self.value};{self.state}")
+        
 
 class PowerSensor(Device):
     # derived class for power sensor
@@ -297,6 +321,7 @@ class PowerSensor(Device):
     def __init__(self, *, name: str = "", type: str = "",
                  smartGridreadyEID: str = "",
                  nativeEID: str = "",
+                 simulationModel: str = "",
                  isLogging: bool = True,
                  communicationChannel: str = "",
                  address: str ="",
@@ -306,12 +331,14 @@ class PowerSensor(Device):
 
         # initialize sensor
         super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, nativeEID=nativeEID,
-                         isLogging=isLogging, communicationChannel=communicationChannel)
+                         simulationModel=simulationModel, isLogging=isLogging, communicationChannel=communicationChannel)
 
         self.address = address
         self.has_energy_import = has_energy_import
         self.has_energy_export = has_energy_export
         self.maxPower = maxPower
+        self.energy_value_import = 0
+        self.energy_value_export = 0
 
     async def read_power(self):
         """
@@ -335,11 +362,13 @@ class PowerSensor(Device):
 
         if error_code == 0:
             if value <= self.maxPower:
-                self.power_value = value
+                self.value = value
         elif self.isLogging:
-            self.log_values()
+            self.log_value_state()
 
-        return self.power_value, unit, error_code
+        print(f"Power sensor read power: {self.name} value {self.value} unit {unit} error code {error_code}")
+
+        return self.value, unit, error_code
 
     async def read_energy_import(self):
         """
@@ -361,7 +390,10 @@ class PowerSensor(Device):
         if error_code == 0:
             self.energy_value_import = value
         elif self.isLogging:
-            self.log_values()
+            self.log_value_state()
+
+        print(f"Power sensor read energy import: {self.name} value {self.energy_value_import} unit {unit} "
+              f"error code {error_code}")
 
         return self.energy_value_import, unit, error_code
 
@@ -385,7 +417,10 @@ class PowerSensor(Device):
         if error_code == 0:
             self.energy_value_export = value
         elif self.isLogging:
-            self.log_values()
+            self.log_value_state()
+
+        print(f"Power sensor read energy export: {self.name} value {self.energy_value_export} unit {unit} "
+              f"error code {error_code}")
 
         return self.energy_value_export, unit, error_code
 
@@ -395,12 +430,12 @@ class PowerSensor(Device):
         energy_value_export = await self.read_energy_export()
         return power_value, energy_value_import, energy_value_export
 
-    def log_values(self):
+    def log_value_state(self):
 
         if "OpenCEM_statistics" in logging.Logger.manager.loggerDict.keys():
             logger = logging.getLogger("OpenCEM_statistics")
             logger.info(
-                f"{self.name};{str(self.address)};{self.power_value};KILOWATT")
+                f"{self.name};{str(self.address)};{self.value};KILOWATT")
             if self.has_energy_import:
                 logger.info(
                     f"{self.name};{str(self.address)};{self.energy_value_import};KILOWATT_HOURS")
@@ -415,6 +450,7 @@ class TemperatureSensor(Device):
     def __init__(self, *, name: str = "", type: str = "",
                  smartGridreadyEID: str = "",
                  nativeEID: str = "",
+                 simulationModel: str = "",
                  isLogging: bool = True,
                  communicationChannel: str = "",
                  address: str = "",
@@ -422,7 +458,7 @@ class TemperatureSensor(Device):
 
         # initialize sensor
         super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, nativeEID=nativeEID,
-                         isLogging=isLogging, communicationChannel=communicationChannel)
+                         simulationModel=simulationModel, isLogging=isLogging, communicationChannel=communicationChannel)
         self.address = address
         self.maxTemp = maxTemp
         self.minTemp = minTemp
@@ -448,11 +484,14 @@ class TemperatureSensor(Device):
             if (value >= self.minTemp) and (value <= self.maxTemp):
                 self.value = value
         elif self.isLogging:
-            self.log_values()
+            self.log_value_state()
+
+        print(f"Temperature sensor read temperature: {self.name} value {self.value} unit {unit} "
+              f"error code {error_code}")
 
         return self.value, unit, error_code
 
-    def log_values(self):
+    def log_value_state(self):
         if "OpenCEM_statistics" in logging.Logger.manager.loggerDict.keys():
             logger = logging.getLogger("OpenCEM_statistics")
             logger.info(
@@ -465,6 +504,7 @@ class RelaisActuator(Device):
     def __init__(self, *, name: str = "", type: str = "",
                  smartGridreadyEID: str = "",
                  nativeEID: str = "",
+                 simulationModel: str = "",
                  isLogging: bool = True,
                  communicationChannel: str = "",
                  address: str = "",
@@ -472,15 +512,14 @@ class RelaisActuator(Device):
 
         # initialize actuator
         super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, nativeEID=nativeEID,
-                         isLogging=isLogging, communicationChannel=communicationChannel)
+                         simulationModel=simulationModel, isLogging=isLogging, communicationChannel=communicationChannel)
         self.address = address
         self.nChannels = nChannels
 
-        self.values = [0] * self.nChannels # initialize values to 0 for each channel
-
+        #self.values = [0] * self.nChannels # initialize values to 0 for each channel
 
     async def read_channel(self, channel: int):
-        value = 0
+        state = 0
         error_code = 0
 
         # TODO: specify fp and dp names
@@ -488,14 +527,17 @@ class RelaisActuator(Device):
         dp_str = f"CHANNEL{channel}"
 
         if self.smartGridreadyEID != None:
-            [value, error_code] = await self.smartgridready.read_value(fp_str, dp_str)
+            [state, error_code] = await self.smartgridready.read_value(fp_str, dp_str)
         if self.nativeEID != None:
-            [value, error_code] = await self.native.read_value(fp_str, dp_str)
+            [state, error_code] = await self.native.read_value(fp_str, dp_str)
 
         if error_code == 0:
-            self.value = value
+            self.state = state
         elif self.isLogging:
-            self.log_values()
+            self.log_value_state()
+
+        print(f"Relais actuator read channel: {self.name} state {self.state} "
+              f"error code {error_code}")
 
         return self.value, error_code
 
@@ -512,17 +554,20 @@ class RelaisActuator(Device):
             [error_code] = self.native.write_value(fp_str, dp_str, state)
 
         if error_code == 0:
-            self.value = state
+            self.state = state
         elif self.isLogging:
-            self.log_values()
+            self.log_value_state()
+
+        print(f"Relais actuator write channel: {self.name} state {self.state} "
+              f"error code {error_code}")
 
         return error_code
 
-    def log_values(self):
+    def log_value_state(self):
         if "OpenCEM_statistics" in logging.Logger.manager.loggerDict.keys():
             logger = logging.getLogger("OpenCEM_statistics")
             logger.info(
-                f"{self.name};RELAIS;{self.value};STATE")
+                f"{self.name};RELAIS;{self.state};STATE")
 
 
 
@@ -543,7 +588,6 @@ class HeatPump(Device):
         self.port = port
         self.minPower = minPower
         self.maxPower = maxPower
-
         self.state = "OFF"
 
     async def read_device(self, functional_profile):
@@ -573,7 +617,11 @@ class HeatPump(Device):
         if error_code == 0:
             self.value = value
         elif self.isLogging:
-            self.log_values()
+            self.log_value_state()
+
+        print(f"Heat pump read device: {self.name} functional_profile {functional_profile}"
+              f"fp_str {fp_str} dp_str {dp_str} state {self.state} value {self.value} "
+              f"error code {error_code}")
 
         return self.value, error_code
 
@@ -601,7 +649,11 @@ class HeatPump(Device):
         if error_code == 0:
             self.value = setpoint
         elif self.isLogging:
-            self.log_values()
+            self.log_value_state()
+
+        print(f"Heat pump write device setpoint: {self.name} functional_profile {functional_profile}"
+              f"fp_str {fp_str} dp_str {dp_str} state {self.state} value {self.value} "
+              f"error code {error_code}")
 
         return error_code
 
@@ -627,9 +679,13 @@ class HeatPump(Device):
             [error_code] = self.native.write_value(fp_str, dp_str, state)
 
         if error_code == 0:
-            self.value = state
+            self.state = state
         elif self.isLogging:
-            self.log_values()
+            self.log_value_state()
+
+        print(f"Heat pump switch device: {self.name} functional_profile {functional_profile}"
+              f"fp_str {fp_str} dp_str {dp_str} state {self.state} value {self.value} "
+              f"error code {error_code}")
 
         return error_code
 
@@ -651,7 +707,6 @@ class EVCharger(Device):
         self.minPower = minPower
         self.maxPower = maxPower
         self.phases = phases
-
         self.state = "OFF"
 
     async def read_power(self):
@@ -677,7 +732,11 @@ class EVCharger(Device):
         if error_code == 0:
             self.value = value
         elif self.isLogging:
-            self.log_values()
+            self.log_value_state()
+
+        print(f"EV Charger read power: {self.name} "
+              f"fp_str {fp_str} dp_str {dp_str} state {self.state} value {self.value} "
+              f"error code {error_code}")
 
         return self.value, error_code
 
@@ -700,9 +759,13 @@ class EVCharger(Device):
             [error_code] = self.native.write_value(fp_str, dp_str, value)
 
         if error_code == 0:
-            self.value = power
+            self.value = value
         elif self.isLogging:
-            self.log_values()
+            self.log_value_state()
+
+        print(f"EV Charger write device setpoint: {self.name} "
+              f"fp_str {fp_str} dp_str {dp_str} state {self.state} value {self.value} "
+              f"error code {error_code}")
 
         return error_code
 
@@ -719,13 +782,16 @@ class EVCharger(Device):
             [error_code] = self.native.write_value(fp_str, dp_str, state)
 
         if error_code == 0:
-            self.value = state
+            self.state = state
         elif self.isLogging:
-            self.log_values()
+            self.log_value_state()
+
+        print(f"EV Charger switch device: {self.name} "
+              f"fp_str {fp_str} dp_str {dp_str} state {self.state} value {self.value} "
+              f"error code {error_code}")
+
 
         return error_code
-
-
 
 
 class CommunicationChannel: # TODO: adapt - still necessary?

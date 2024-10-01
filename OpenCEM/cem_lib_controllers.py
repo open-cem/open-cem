@@ -36,6 +36,10 @@ class SwitchingExcessController(Controller):
         self.mode = 0  # controller mode (0 = off, 1 = on, 2 = high, etc.)
         self.excess = 0 # actual pv excess in kW
 
+        print(f"Controller created: {self.name} type {self.type} "
+              f"settings {controllerSettings}")
+
+
     def set_controllerSettings(self, controllerSettings):
         self.powerLimit = controllerSettings["powerLimit"]  # controller settings: power limit in kW
         self.powerHysteresis = controllerSettings["powerHysteresis"] # controller settings: power hysteresis in kW
@@ -57,6 +61,9 @@ class SwitchingExcessController(Controller):
             ownConsumption = self.controlledDevice.nominalPower
 
         self.excess = excess - ownConsumption    # subtract own consumption in order to eliminate continuous cycling
+
+        print(f"Controller calculated: {self.name} type {self.type} "
+              f"mainPower {mainPower} ownConsumption {ownConsumption} excess {self.excess}")
 
         old_mode = self.mode
 
@@ -84,6 +91,10 @@ class DynamicExcessController(SwitchingExcessController):
                          controllerSettings=controllerSettings)
         self.type = "DYANMIC_EXCESS_CONTROLLER"  # type of controller
         self.power = 0
+
+        print(f"Controller created: {self.name} type {self.type} "
+              f"settings {controllerSettings}")
+
 
     async def calc_controller(self):
         # output mode: on(1) or off(0)
@@ -119,6 +130,9 @@ class TemperatureExcessController(Controller):
         self.excess = 0 # actual pv excess in kW
         self.tempSetpoint = self.tempEco    # starting value for temperature setpoint
 
+        print(f"Controller created: {self.name} type {self.type} "
+              f"settings {controllerSettings}")
+
     def set_controllerSettings(self, controllerSettings):
         self.tempEco = controllerSettings["tempEco"] # eco temperature (lowered)
         self.tempComfort = controllerSettings["tempComfort"] # comfort temperature (normal)
@@ -149,6 +163,10 @@ class TemperatureExcessController(Controller):
             self.tempSetpoint = (self.excess-self.excessComfort)*(self.tempMax-self.tempComfort)/(self.excessMax-self.excessComfort)+self.tempComfort
         else:
             self.tempSetpoint = self.tempEco
+
+        print(f"Controller calculated: {self.name} type {self.type} "
+              f"mainPower {mainPower} ownConsumption {ownConsumption} excess {self.excess}"
+              f"tempSetpoint {self.tempSetpoint}")
 
         error_code = self.controlledDevice.write_device_setpoint(functional_profile=self.functionalProfile, setpoint=self.tempSetpoint)
 

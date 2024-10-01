@@ -225,7 +225,8 @@ async def parse_yaml(path2configurationYaml: str):
                         maxPower = extra["maxPower"]
 
                         device_temporary = PowerSensor(name=name, type=type, smartGridreadyEID=smartgridreadyEID,
-                                                       nativeEID=nativeEID, isLogging=isLogging,
+                                                       nativeEID=nativeEID, simulationModel=simulationModel,
+                                                       isLogging=isLogging,
                                                        communicationChannel=communicationChannel,
                                                        address=address, has_energy_import=hasEnergyImport,
                                                        has_energy_export=hasEnergyExport, maxPower=maxPower)
@@ -236,14 +237,16 @@ async def parse_yaml(path2configurationYaml: str):
                         minTemp = extra["minTemp"]
 
                         device_temporary = TemperatureSensor(name=name, type=type, smartGridreadyEID=smartgridreadyEID,
-                                                             nativeEID=nativeEID, isLogging=isLogging,
+                                                             nativeEID=nativeEID, simulationModel=simulationModel,
+                                                             isLogging=isLogging,
                                                              communicationChannel=communicationChannel,
                                                              address=address, minTemp=minTemp, maxTemp=maxTemp)
                     case "RELAIS_SWITCH":
                         ip_address = extra["address"]
                         n_channels = extra["nChannels"]
                         device_temporary = RelaisActuator(name=name, type=type, smartGridreadyEID=smartgridreadyEID,
-                                                nativeEID=nativeEID, isLogging=isLogging,
+                                                nativeEID=nativeEID, simulationModel=simulationModel,
+                                                isLogging=isLogging,
                                                 communicationChannel=communicationChannel,
                                                 address=ip_address, nChannels=n_channels)
 

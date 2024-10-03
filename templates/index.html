@@ -35,12 +35,14 @@
                 var deviceType = $('<p>').text('Type: ' + device.type);
                 var deviceState = $('<p>').text('State: ' + device.state);
                 var deviceValue = $('<p>').text('Value: ' + device.value);
-                $('#data-container').append(deviceName, deviceType, deviceState, deviceValue, '<hr>');
+                var deviceUnit = $('<p>').text('Unit: ' + device.unit);
+                var deviceErrorCode = $('<p>').text('Error code: ' + device.error_code);
+                $('#data-container').append(deviceName, deviceType, deviceState, deviceValue, deviceUnit, deviceErrorCode, '<hr>');
             }
         }
 
-        // Fetch data every 5 seconds
-        setInterval(fetchData, 5000);
+        // Fetch data every 3 seconds
+        setInterval(fetchData, 3000);
 
         // Attach a click event listener to the shutdown button
         $(document).ready(function() {

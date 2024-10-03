@@ -89,3 +89,37 @@ client_session: <aiohttp.client.ClientSession object at 0x000002150D01AB60> // F
 2024-10-03 11:57:39,486 INFO: OpenCEM started // File"C:\DATA\Spinoff\Software\Github\SmartGridReady\SGrPythonSamples\OpenCEM_main.py", function main, line 74
 2024-10-03 11:57:46,716 ERROR: Unclosed client session
 client_session: <aiohttp.client.ClientSession object at 0x000001F96B495030> // File"C:\Users\david.zogg\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", function default_exception_handler, line 1744
+2024-10-03 12:04:30,672 INFO: OpenCEM started // File"C:\DATA\Spinoff\Software\Github\SmartGridReady\SGrPythonSamples\OpenCEM_main.py", function main, line 74
+2024-10-03 12:04:47,872 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x0000021CD1E00190> // File"C:\Users\david.zogg\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", function default_exception_handler, line 1744
+2024-10-03 13:39:06,621 INFO: OpenCEM started // File"C:\DATA\Spinoff\Software\Github\SmartGridReady\SGrPythonSamples\OpenCEM_main.py", function main, line 74
+2024-10-03 13:49:54,052 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x0000023D48E30070> // File"C:\Users\david.zogg\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", function default_exception_handler, line 1744
+2024-10-03 13:49:57,836 INFO: OpenCEM started // File"C:\DATA\Spinoff\Software\Github\SmartGridReady\SGrPythonSamples\OpenCEM_main.py", function main, line 74
+2024-10-03 13:50:06,794 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x00000281DCF60070> // File"C:\Users\david.zogg\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", function default_exception_handler, line 1744
+2024-10-03 13:50:12,520 INFO: OpenCEM started // File"C:/DATA/Spinoff/Software/Github/SmartGridReady/SGrPythonSamples/OpenCEM_main.py", function main, line 74
+2024-10-03 14:01:53,706 INFO: OpenCEM started // File"C:\DATA\Spinoff\Software\Github\SmartGridReady\SGrPythonSamples\OpenCEM_main.py", function main, line 74
+2024-10-03 14:02:22,580 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000002DE9FEB7910> // File"C:\Users\david.zogg\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", function default_exception_handler, line 1744
+2024-10-03 14:04:34,126 INFO: OpenCEM started // File"C:\DATA\Spinoff\Software\Github\SmartGridReady\SGrPythonSamples\OpenCEM_main.py", function main, line 74
+2024-10-03 14:04:49,809 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000001DDB765C160> // File"C:\Users\david.zogg\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", function default_exception_handler, line 1744
+2024-10-03 14:06:43,308 INFO: OpenCEM started // File"C:\DATA\Spinoff\Software\Github\SmartGridReady\SGrPythonSamples\OpenCEM_main.py", function main, line 74
+2024-10-03 14:06:59,158 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000001951045C160> // File"C:\Users\david.zogg\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", function default_exception_handler, line 1744
+2024-10-03 14:07:05,781 INFO: OpenCEM started // File"C:\DATA\Spinoff\Software\Github\SmartGridReady\SGrPythonSamples\OpenCEM_main.py", function main, line 74
+2024-10-03 14:08:08,326 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000001C10880C190> // File"C:\Users\david.zogg\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", function default_exception_handler, line 1744
+2024-10-03 14:10:46,627 INFO: OpenCEM started // File"C:\DATA\Spinoff\Software\Github\SmartGridReady\SGrPythonSamples\OpenCEM_main.py", function main, line 74
+2024-10-03 14:19:57,430 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000001F794F2C040> // File"C:\Users\david.zogg\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", function default_exception_handler, line 1744
+2024-10-03 14:32:18,623 INFO: OpenCEM started // File"C:\DATA\Spinoff\Software\Github\SmartGridReady\SGrPythonSamples\OpenCEM_main.py", function main, line 78
+2024-10-03 14:32:20,774 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000002AD8EE1A6E0> // File"C:\Users\david.zogg\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", function default_exception_handler, line 1744
+2024-10-03 14:32:45,530 INFO: OpenCEM started // File"C:\DATA\Spinoff\Software\Github\SmartGridReady\SGrPythonSamples\OpenCEM_main.py", function main, line 78
+2024-10-03 14:32:47,611 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x00000138E2D2A6E0> // File"C:\Users\david.zogg\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", function default_exception_handler, line 1744
+2024-10-03 14:34:23,692 INFO: OpenCEM started // File"C:\DATA\Spinoff\Software\Github\SmartGridReady\SGrPythonSamples\OpenCEM_main.py", function main, line 78
+2024-10-03 14:36:56,289 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000001AE761BA620> // File"C:\Users\david.zogg\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", function default_exception_handler, line 1744

@@ -33,7 +33,8 @@ def get_local_ip():
         return None
 
 
-IP_address = get_local_ip()     # get the local ip
+#IP_address = get_local_ip()     # get the local ip - TODO: activate this again
+IP_address = "192.168.0.76"
 
 
 def create_webpage_dict(devices_list: list) -> dict:
@@ -51,7 +52,11 @@ def create_webpage_dict(devices_list: list) -> dict:
         try:
             device_dict["name"] = device.name
             device_dict["type"] = device.type
-            device_dict["status"] = device.state
+            device_dict["state"] = device.state
+            device_dict["value"] = device.value
+            device_dict["unit"] = device.unit
+            device_dict["error_code"] = device.error_code
+
             devices_dict_list.append(device_dict)
 
         except Exception:

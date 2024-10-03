@@ -2,6 +2,7 @@
 
 from aiohttp import web
 import socket
+from OpenCEM.cem_lib_auxiliary_functions import get_local_ip
 
 # Global variable to store the latest data
 latest_data = {}
@@ -47,30 +48,12 @@ def start_GUI_server():
     app.router.add_post('/shutdown', shutdown)
     app.router.add_get('/shutdown_requested', shutdown_requested_function)
 
-    #IP_address = get_local_ip() # get local ip
+    #IP_address = get_local_ip() # get local ip - TODO: activate this again
     IP_address = '192.168.0.76'
     host = IP_address
     port = 8000
 
     web.run_app(app, host=host, port=port)
-
-
-def get_local_ip():
-    try:
-        # Create a socket object
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-        # Use a dummy address to get the local IP address
-        s.connect(("8.8.8.8", 80))
-
-        # Get the local IP address
-        local_ip = s.getsockname()[0]
-
-        return local_ip
-    except Exception as e:
-        print("Error:", e)
-        return None
-
 
 if __name__ == "__main__":
     start_GUI_server()

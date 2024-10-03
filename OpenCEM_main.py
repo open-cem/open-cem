@@ -28,6 +28,10 @@ async def calculation_loop(devices_list: list, controllers_list: list, period: i
     simulation_speed_up_factor = OpenCEM.cem_lib_components.simulation_speed_up_factor
     while True:
 
+        # read all devices
+        for device in devices_list:
+            error_code = await device.read()
+
         # calculate all controllers
         for controller in controllers_list:
             error_code = await controller.calc_controller()

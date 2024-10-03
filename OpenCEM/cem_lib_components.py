@@ -289,7 +289,7 @@ class Device():
 
     # abstract methodes
 
-    def read(self):
+    async def read(self):
         pass
 
     def switch_device(self, functional_profile: str, state: str):
@@ -364,6 +364,9 @@ class PowerSensor(Device):
         print(f"Power sensor read power: {self.name} value {self.value:.2f} unit {self.unit} error code {self.error_code}")
 
         return self.value, self.unit, self.error_code
+
+    async def read(self):
+        await self.read_power()
 
     async def read_energy_import(self):
         """
@@ -461,7 +464,7 @@ class TemperatureSensor(Device):
 
         #await asyncio.sleep(PowerSensor.sleep_between_requests)
 
-        if error_code == 0:
+        if self.error_code == 0:
             if self.value > self.maxTemp:
                 self.value = self.maxTemp
             if self.value < self.minTemp:
@@ -474,6 +477,8 @@ class TemperatureSensor(Device):
 
         return self.value, self.unit, self.error_code
 
+    async def read(self):
+        await self.read_temperature()
 
 class RelaisActuator(Device):
     # derived class for relais switch
@@ -517,6 +522,10 @@ class RelaisActuator(Device):
               f"error code {self.error_code}")
 
         return self.state, self.error_code
+
+    async def read(self):
+        for i in range(self.nChannels):
+            await self.read_channel(i)
 
     def write_channel(self, channel: int, state: str):
         self.state = state

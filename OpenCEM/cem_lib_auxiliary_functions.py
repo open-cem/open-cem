@@ -53,7 +53,7 @@ def create_webpage_dict(devices_list: list) -> dict:
             device_dict["name"] = device.name
             device_dict["type"] = device.type
             device_dict["state"] = device.state
-            device_dict["value"] = device.value
+            device_dict["value"] = f"{device.value:.2f}"
             device_dict["unit"] = device.unit
             device_dict["error_code"] = device.error_code
 

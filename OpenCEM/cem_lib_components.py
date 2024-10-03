@@ -195,7 +195,7 @@ class SimulatedComponent:
         print(f"Simulated Component created: {self.model}")
 
 
-    async def run_simulation_step(self, state: str = "", setpoint: float = 0):
+    async def run_simulation_step(self, state: str = "", setpoint: float = 0):  # TODO: make simulation more realistic
         self.value = 0
         self.unit = 'KILOWATTS'
 
@@ -209,20 +209,20 @@ class SimulatedComponent:
         print(f"Simulated Component {self.model} run simulation step at time {t}")
 
         if self.model == "PV_PLANT":
-            t_shifted = t - (6 * 60 * 60 / simulation_speed_up_factor)  # Subtracting 6 hours in seconds
-
+            #t_shifted = t - (6 * 60 * 60 / simulation_speed_up_factor)  # Subtracting 6 hours in seconds
             # power_max is amplitude of the sine function
-            self.value = round(
-                self.max_power * math.sin(simulation_speed_up_factor * 2 * math.pi * (t_shifted / 86400)), 2)
+            #self.value = round(
+            #    self.max_power * math.sin(simulation_speed_up_factor * 2 * math.pi * (t_shifted / 86400)), 2)
+            self.value = random.uniform(0, self.max_power)
             if self.value <= 0:
                 self.value = 0
 
         if self.model == "MAIN_POWER":
-            t_shifted = t - (6 * 60 * 60 / simulation_speed_up_factor)  # Subtracting 6 hours in seconds
-
+            #t_shifted = t - (6 * 60 * 60 / simulation_speed_up_factor)  # Subtracting 6 hours in seconds
             # power_max is amplitude of the sine function
-            production = round(
-                self.max_power * math.sin(simulation_speed_up_factor * 2 * math.pi * (t_shifted / 86400)), 2)
+            #production = round(
+            #    self.max_power * math.sin(simulation_speed_up_factor * 2 * math.pi * (t_shifted / 86400)), 2)
+            production = random.uniform(0, self.max_power)
             consumption = random.uniform(0, self.max_power)
             self.value = production - consumption
 
@@ -245,12 +245,12 @@ class SimulatedComponent:
                 self.value = 0
 
         if self.model == "ROOM_TEMPERATURE":
-            t_shifted = t - (2 * 60 * 60 / simulation_speed_up_factor)  # Subtracting 3 hours in seconds
-
+            #t_shifted = t - (2 * 60 * 60 / simulation_speed_up_factor)  # Subtracting 3 hours in seconds
             # temperature is amplitude of the sine function
-            amplitude = self.max_temperature - self.min_temperature
-            self.value = self.min_temperature + round(
-                amplitude * math.sin(simulation_speed_up_factor * 2 * math.pi * (t_shifted / 86400)), 2)
+            #amplitude = self.max_temperature - self.min_temperature
+            #self.value = self.min_temperature + round(
+            #    amplitude * math.sin(simulation_speed_up_factor * 2 * math.pi * (t_shifted / 86400)), 2)
+            self.value = random.uniform(18, 22)
             self.unit = 'CELSIUS'
 
         print(f"Simulated value {self.value:.2f} unit {self.unit}")
@@ -365,64 +365,76 @@ class PowerSensor(Device):
 
         return self.value, self.unit, self.error_code
 
-    async def read(self):
-        await self.read_power()
+    async def get_power(self):
+        return self.value, self.unit, self.error_code
 
     async def read_energy_import(self):
         """
         returns the energy import of a powersensor in kW. For not SmartGridReady devices you need to add_RTU_EnergyImport_entry() first.
         :returns: the energy import value, the unit, and error code. Has_energy_import has to be set to True in the power_sensor init
         """
-        value = 0
-        unit = 0
-        error_code = 0
+        if self.has_energy_import:
+            value = 0
+            unit = 0
+            error_code = 0
 
-        if self.smartGridreadyEID != None and self.has_energy_import:
-            [value, unit, error_code] = await self.smartgridready.read_value_with_conversion('ActiveEnerBalanceAC',
+            if self.smartGridreadyEID != None:
+                [value, unit, error_code] = await self.smartgridready.read_value_with_conversion('ActiveEnerBalanceAC',
+                                                                                                 'ActiveImportAC')
+            if self.nativeEID != None:
+                [value, unit, error_code] = await self.native.read_value_with_conversion('ActiveEnerBalanceAC',
                                                                                              'ActiveImportAC')
-        if self.nativeEID != None and self.has_energy_import:
-            [value, unit, error_code] = await self.native.read_value_with_conversion('ActiveEnerBalanceAC',
-                                                                                         'ActiveImportAC')
-        #await asyncio.sleep(PowerSensor.sleep_between_requests)
+            #await asyncio.sleep(PowerSensor.sleep_between_requests)
 
-        if error_code == 0:
-            self.energy_value_import = value
+            if error_code == 0:
+                self.energy_value_import = value
 
-        #if self.isLogging:
-        #    self.log_value_state('read_energy_import')
+            #if self.isLogging:
+            #    self.log_value_state('read_energy_import')
 
-        print(f"Power sensor read energy import: {self.name} value {self.energy_value_import:.2f} unit {unit} "
-              f"error code {error_code}")
+            print(f"Power sensor read energy import: {self.name} value {self.energy_value_import:.2f} unit {unit} "
+                  f"error code {error_code}")
 
-        return self.energy_value_import, unit, error_code
+        return self.energy_value_import
+
+    async def get_energy_import(self):
+        self.energy_value_import
 
     async def read_energy_export(self):
         """
         returns the energy export of a powersensor in kW. For not SmartGridReady devices you need to add_RTU_EnergyExport_entry() first.
         :returns: the energy export value, the unit, and error code. Has_energy_export has to be set to True in the power_sensor init
         """
-        value = 0
-        unit = 0
-        error_code = 0
+        if self.has_energy_export:
+            value = 0
+            unit = 0
+            error_code = 0
 
-        if self.smartGridreadyEID != None and self.has_energy_export:
-            [value, unit, error_code] = await self.smartgridready.read_value_with_conversion('ActiveEnerBalanceAC',
-                                                                                             'ActiveExportAC')
-        if self.nativeEID != None and self.has_energy_export:
-            [value, unit, error_code] = await self.native.read_value_with_conversion('ActiveEnerBalanceAC',
+            if self.smartGridreadyEID != None:
+                [value, unit, error_code] = await self.smartgridready.read_value_with_conversion('ActiveEnerBalanceAC',
                                                                                                  'ActiveExportAC')
-        #await asyncio.sleep(PowerSensor.sleep_between_requests)
+            if self.nativeEID != None:
+                [value, unit, error_code] = await self.native.read_value_with_conversion('ActiveEnerBalanceAC',
+                                                                                                     'ActiveExportAC')
+            #await asyncio.sleep(PowerSensor.sleep_between_requests)
 
-        if error_code == 0:
-            self.energy_value_export = value
-        #if self.isLogging:
-        #    self.log_value_state('read_energy_export')
+            if error_code == 0:
+                self.energy_value_export = value
+            #if self.isLogging:
+            #    self.log_value_state('read_energy_export')
 
-        print(f"Power sensor read energy export: {self.name} value {self.energy_value_export:.2f} unit {unit} "
-              f"error code {error_code}")
+            print(f"Power sensor read energy export: {self.name} value {self.energy_value_export:.2f} unit {unit} "
+                  f"error code {error_code}")
 
-        return self.energy_value_export, unit, error_code
+        return self.energy_value_export
 
+    async def get_energy_export(self):
+        return self.energy_value_export
+
+    async def read(self):
+        await self.read_power()
+        await self.read_energy_import()
+        await self.read_energy_export()
 
 class TemperatureSensor(Device):
     # derived class for temperature sensor
@@ -477,6 +489,9 @@ class TemperatureSensor(Device):
 
         return self.value, self.unit, self.error_code
 
+    async def get_temperature(self):
+        return self.value, self.unit, self.error_code
+
     async def read(self):
         await self.read_temperature()
 
@@ -523,6 +538,9 @@ class RelaisActuator(Device):
 
         return self.state, self.error_code
 
+    async def get_channel(self, channel: int):
+        return self.state, self.error_code
+
     async def read(self):
         for i in range(self.nChannels):
             await self.read_channel(i)
@@ -548,6 +566,10 @@ class RelaisActuator(Device):
 
         return self.error_code
 
+    def switch_device(self, functional_profile: str, state: str):
+        for i in range(self.nChannels):
+            self.error_code = self.write_channel(i,state)   # write same state to all channels
+        return self.error_code
 
 class HeatPump(Device):
     # class for heat pump devices
@@ -605,6 +627,7 @@ class HeatPump(Device):
               f"error code {self.error_code}")
 
         return self.value, self.error_code
+
 
     def write_device_setpoint(self, functional_profile, setpoint: float):
         self.value = setpoint

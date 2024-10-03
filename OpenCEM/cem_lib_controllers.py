@@ -49,14 +49,14 @@ class SwitchingExcessController(Controller):
         # output output: continuous controller output = excess (kW) 
 
         # calculate pv excess
-        mainPower, unit, error_code  = await self.mainMeter.read_power() # get main power (positive: import from grid, negative: export to grid)
+        mainPower, unit, error_code  = await self.mainMeter.get_power() # get main power (positive: import from grid, negative: export to grid)
         if mainPower < 0:   # negative: export to grid
             excess = 0 - mainPower    # positive pv excess
         else:
             excess = 0
 
         if self.deviceMeter != None:    # device meter available
-            ownConsumption, unit, error_code = await self.deviceMeter.read_power()      # get own consumption from device meter
+            ownConsumption, unit, error_code = await self.deviceMeter.get_power()      # get own consumption from device meter
         else:
             ownConsumption = self.controlledDevice.nominalPower
 
@@ -129,6 +129,7 @@ class TemperatureExcessController(Controller):
 
         self.excess = 0 # actual pv excess in kW
         self.tempSetpoint = self.tempEco    # starting value for temperature setpoint
+        self.mode = 0   # OFF at initialisation
 
         print(f"Controller created: {self.name} type {self.type} "
               f"settings {controllerSettings}")
@@ -145,14 +146,14 @@ class TemperatureExcessController(Controller):
         # output output: continuous controller output = excess (kW)
 
         # calculate pv excess
-        mainPower, unit, error_code = await self.mainMeter.read_power() # get main power (positive: import from grid, negative: export to grid)
+        mainPower, unit, error_code = await self.mainMeter.get_power() # get main power (positive: import from grid, negative: export to grid)
         if mainPower < 0:   # negative: export to grid
             excess = 0 - mainPower    # positive pv excess
         else:
             excess = 0
 
         if self.deviceMeter != None:    # device meter available
-            ownConsumption, unit, error_code = await self.deviceMeter.read_power()      # get own consumption from device meter
+            ownConsumption, unit, error_code = await self.deviceMeter.get_power()      # get own consumption from device meter
         else:
             ownConsumption = self.controlledDevice.nominalPower
 
@@ -172,6 +173,10 @@ class TemperatureExcessController(Controller):
         print(f"Controller calculated: {self.name} type {self.type} "
               f"mainPower {mainPower:.2f} ownConsumption {ownConsumption:.2f} excess {self.excess:.2f} "
               f"tempSetpoint {self.tempSetpoint:.2f}")
+
+        if self.mode == 0:
+            self.mode = 1       # always ON
+            self.controlledDevice.switch_device(functional_profile=self.functionalProfile,state="ON")
 
         error_code = self.controlledDevice.write_device_setpoint(functional_profile=self.functionalProfile, setpoint=self.tempSetpoint)
 

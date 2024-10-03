@@ -40,6 +40,8 @@ async def calculation_loop(devices_list: list, controllers_list: list, period: i
         webpage_dict = create_webpage_dict(devices_list)
         await send_data_to_webpage(webpage_dict, HTTP_client)
 
+        print("-----------------------------------------------")
+
         # sleep for a defined period (other tasks may run)
         await asyncio.sleep(period / simulation_speed_up_factor)
 

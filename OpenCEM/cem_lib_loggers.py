@@ -1,16 +1,5 @@
 # Generative AI was used for some Code
 
-"""
-Author: Sergio Ferreira
-V1. 5.11.2022, initial
-V2 27.12.2022, final version P5 with debug, event and statistics logger.
-
-sources: Bachelorarbeit Felix Bögli, FHNW, customLogger.py
-Some useful pieces got copied
-
-This script includes all the custom loggers used in the OpenCEM Project.
-Logs are saved every day at midnight to the _logFiles folder.
-"""
 import logging
 import os
 from logging.handlers import TimedRotatingFileHandler
@@ -117,40 +106,10 @@ class MyTimedRotatingFileHandler(TimedRotatingFileHandler):
             stream.flush()
         return stream
 
-#Todo: Singleton noch anschauen https://www.geeksforgeeks.org/singleton-pattern-in-python-a-complete-guide/#:~:text=A%20Singleton%20pattern%20in%20python,access%20to%20a%20shared%20resource.
-def create_statistics_logger() -> logging.Logger:
+def create_device_logger() -> logging.Logger:
     """
-    This methode creates the statistic logger that logs values that get read by a sensor or actuator.
+    This methode creates the device logger to log the data from the devices.
 
-    The logs ar in this format:
-    timestamp;actuator/sensor-type;name;bus-type;is_smartgridready;id;value_name/channel;value;unit;last_updated
-    :returns: the OpenCEM statistic logger
-    """
-
-    stats_logger = logging.getLogger("OpenCEM_statistics")
-    stats_logger.setLevel(logging.INFO)
-    stats_logger.propagate = False #stats won't be showing in root logger
-
-    path = os.path.join(os.getcwd(), "_logFiles", "Statistics.log")
-    statistics_header = "timestamp;actuator/sensor-type;name;bus-type;is_smartgridready;id;value_name/channel;value;unit;last_updated"
-
-    file_handler = MyTimedRotatingFileHandler(path, when='midnight', interval=1, backupCount=0, header=statistics_header)
-    file_handler.setLevel(logging.INFO)
-
-    formatter = logging.Formatter('%(asctime)s;%(message)s')
-    file_handler.setFormatter(formatter)
-
-    stats_logger.addHandler(file_handler)
-
-    return stats_logger
-
-def create_statistics_logger_devices() -> logging.Logger:
-    """
-    This methode creates the statistic logger to log the data from the devices.
-
-    The logs ar in this format:
-    timestamp;actuator/sensor-type;name;bus-type;is_smartgridready;id;value_name/channel;value;unit;last_updated
-    :returns: the OpenCEM statistic logger
     """
 
     device_logger = logging.getLogger("device_logger")
@@ -158,7 +117,7 @@ def create_statistics_logger_devices() -> logging.Logger:
     device_logger.propagate = False  # stats won't be showing in root logger
 
     path = os.path.join(os.getcwd(), "_logFiles", "DeviceLog.log")
-    device_values_header = "timestamp;OpenCEM-id;name;connected;power;energy_import;energy_export;room_temp;storage_temp;mode;channel_values;consumption_price;production_price;scaled_output"
+    device_values_header = "timestamp;name;type;info;state;value;unit;error_code"
 
     # rollback once a day
     file_handler = MyTimedRotatingFileHandler(path, when='midnight', interval=1, backupCount=0, header=device_values_header)

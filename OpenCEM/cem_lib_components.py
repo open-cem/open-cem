@@ -36,7 +36,7 @@ sim_start_time = None
 
 
 
-class OpenCEM_RTU_client: # TODO: remove or integrate in native implementation
+class OpenCEM_RTU_client: # TODO: check this (still required?)
     """
     creates a global RTU Client for OpenCEM. There can only be one client globally.
     If there already exist a smartGridready, put it as keyword argument global_client = client.
@@ -65,7 +65,7 @@ class OpenCEM_RTU_client: # TODO: remove or integrate in native implementation
             raise NotImplementedError
 
 
-class SmartGridreadyComponent:
+class SmartGridreadyComponent:  # TODO: check with new sgr_library
     # class for component with smartgridready compatibility
 
     def __init__(self, XML_file: str):
@@ -126,7 +126,7 @@ class SmartGridreadyComponent:
 
         return name, manufacturer, bus_type
 
-class NativeComponent:
+class NativeComponent:  # TODO: implement this
     # class for component with native implementation
 
     def __init__(self, YAML_file: str):
@@ -180,24 +180,15 @@ class NativeComponent:
 class SimulatedComponent:
     # class for simulated component (not existing in hardware)
 
-    def __init__(self, model: str):
+    def __init__(self, model: str, max_power: float, min_power: float, nominal_power: float,
+                 min_temperature: float, max_temperature: float):
         self.model = model
-        self.max_power = 0
-        self.min_power = 0
-        self.nominal_power = 0
-        self.min_temperature = 0
-        self.max_temperature = 0
+        self.max_power = max_power
+        self.min_power = min_power
+        self.nominal_power = nominal_power
+        self.min_temperature = min_temperature
+        self.max_temperature = max_temperature
 
-        # TODO: read parameter file with model simulation settings instead of hard coding
-        if self.model == "PV PLANT":
-            self.max_power = 10
-        if self.model == "MAIN POWER":
-            self.max_power = 10
-        if self.model == "HEAT PUMP":
-            self.nominal_power = 3
-        if self.model == "ROOM TEMPERATURE":
-            self.min_temperature = 18
-            self.max_temperature = 22
         self.value = 0
         self.unit = ''
 
@@ -262,7 +253,7 @@ class SimulatedComponent:
                 amplitude * math.sin(simulation_speed_up_factor * 2 * math.pi * (t_shifted / 86400)), 2)
             self.unit = 'CELSIUS'
 
-        print(f"Simulated value {self.value} unit {self.unit}")
+        print(f"Simulated value {self.value:.2f} unit {self.unit}")
 
         error_code = 0
         return [self.value, self.unit, error_code]
@@ -282,17 +273,17 @@ class Device():
         self.isLogging = isLogging
         self.communicationChannel = communicationChannel
         self.nominalPower = 0
+
         self.state = 0
         self.value = 0
+        self.unit = None
+        self.error_code = 0
 
         if smartGridreadyEID != None:
             self.smartgridready = SmartGridreadyComponent(smartGridreadyEID)
 
         if nativeEID != None:
             self.native = NativeComponent(nativeEID)
-
-        if simulationModel != None:
-            self.simulation = SimulatedComponent(simulationModel)
 
         print(f"Device created: {self.name} type {self.type}")
 
@@ -307,16 +298,16 @@ class Device():
     def write_device_setpoint(self, functional_profile: str, setpoint: float):
         return 0        # error code
 
-    def log_value_state(self):
-        # logs the value of a device. Log depends on what device it is
+    def log_value_state(self, info: str = ""):
+        # logs the data of a device.
         logger = logging.getLogger("device_logger")
         logger.info(
-            f"{self.name};{self.type};{self.value};{self.state}")
-        
+            f"{self.name};{self.type};{info};{self.state};{self.value:.2f};{self.unit};{self.error_code}")
+
 
 class PowerSensor(Device):
     # derived class for power sensor
-    sleep_between_requests = 0.05  # TODO: Time the program will wait after a RTU request in seconds -> move to extra properties
+    #sleep_between_requests = 0.05
 
     def __init__(self, *, name: str = "", type: str = "",
                  smartGridreadyEID: str = "",
@@ -340,35 +331,39 @@ class PowerSensor(Device):
         self.energy_value_import = 0
         self.energy_value_export = 0
 
+        if simulationModel != None:
+            self.simulation = SimulatedComponent(simulationModel,max_power=maxPower,min_power=0,nominal_power=maxPower,
+                                                 min_temperature=None,max_temperature=None)
+
     async def read_power(self):
         """
         returns the total power of a powersensor in kW. For not SmartGridReady devices you need to add_RTU_Power_entry() first.
         :returns: the power value, the unit, and error code
         """
-        value = 0
-        unit = 0
-        error_code = 0
+        self.value = 0
+        self.unit = 0
+        self.error_code = 0
 
         if self.smartGridreadyEID != None:
-            [value, unit, error_code] = await self.smartgridready.read_value_with_conversion('ActivePowerAC',
+            [self.value, self.unit, self.error_code] = await self.smartgridready.read_value_with_conversion('ActivePowerAC',
                                                                                      'ActivePowerACtot')
         if self.nativeEID != None:
-            [value, unit, error_code] = await self.native.read_value_with_conversion('ActivePowerAC',
+            [self.value, self.unit, self.error_code] = await self.native.read_value_with_conversion('ActivePowerAC',
                                                                                      'ActivePowerACtot')
         if self.simulationModel != None:
-            [value, unit, error_code] = await self.simulation.run_simulation_step()
+            [self.value, self.unit, self.error_code] = await self.simulation.run_simulation_step()
 
-        await asyncio.sleep(PowerSensor.sleep_between_requests)
+        #await asyncio.sleep(PowerSensor.sleep_between_requests)
 
-        if error_code == 0:
-            if value <= self.maxPower:
-                self.value = value
-        elif self.isLogging:
-            self.log_value_state()
+        if self.error_code == 0:
+            if self.value > self.maxPower:
+                self.value = self.maxPower
+        if self.isLogging:
+            self.log_value_state('read_power')
 
-        print(f"Power sensor read power: {self.name} value {self.value} unit {unit} error code {error_code}")
+        print(f"Power sensor read power: {self.name} value {self.value:.2f} unit {self.unit} error code {self.error_code}")
 
-        return self.value, unit, error_code
+        return self.value, self.unit, self.error_code
 
     async def read_energy_import(self):
         """
@@ -385,14 +380,15 @@ class PowerSensor(Device):
         if self.nativeEID != None and self.has_energy_import:
             [value, unit, error_code] = await self.native.read_value_with_conversion('ActiveEnerBalanceAC',
                                                                                          'ActiveImportAC')
-        await asyncio.sleep(PowerSensor.sleep_between_requests)
+        #await asyncio.sleep(PowerSensor.sleep_between_requests)
 
         if error_code == 0:
             self.energy_value_import = value
-        elif self.isLogging:
-            self.log_value_state()
 
-        print(f"Power sensor read energy import: {self.name} value {self.energy_value_import} unit {unit} "
+        #if self.isLogging:
+        #    self.log_value_state('read_energy_import')
+
+        print(f"Power sensor read energy import: {self.name} value {self.energy_value_import:.2f} unit {unit} "
               f"error code {error_code}")
 
         return self.energy_value_import, unit, error_code
@@ -412,36 +408,17 @@ class PowerSensor(Device):
         if self.nativeEID != None and self.has_energy_export:
             [value, unit, error_code] = await self.native.read_value_with_conversion('ActiveEnerBalanceAC',
                                                                                                  'ActiveExportAC')
-        await asyncio.sleep(PowerSensor.sleep_between_requests)
+        #await asyncio.sleep(PowerSensor.sleep_between_requests)
 
         if error_code == 0:
             self.energy_value_export = value
-        elif self.isLogging:
-            self.log_value_state()
+        #if self.isLogging:
+        #    self.log_value_state('read_energy_export')
 
-        print(f"Power sensor read energy export: {self.name} value {self.energy_value_export} unit {unit} "
+        print(f"Power sensor read energy export: {self.name} value {self.energy_value_export:.2f} unit {unit} "
               f"error code {error_code}")
 
         return self.energy_value_export, unit, error_code
-
-    async def read_all(self):
-        power_value = await self.read_power()
-        energy_value_import = await self.read_energy_import()
-        energy_value_export = await self.read_energy_export()
-        return power_value, energy_value_import, energy_value_export
-
-    def log_value_state(self):
-
-        if "OpenCEM_statistics" in logging.Logger.manager.loggerDict.keys():
-            logger = logging.getLogger("OpenCEM_statistics")
-            logger.info(
-                f"{self.name};{str(self.address)};{self.value};KILOWATT")
-            if self.has_energy_import:
-                logger.info(
-                    f"{self.name};{str(self.address)};{self.energy_value_import};KILOWATT_HOURS")
-            if self.has_energy_export:
-                logger.info(
-                    f"{self.name};{str(self.address)};{self.energy_value_export};KILOWATT_HOURS")
 
 
 class TemperatureSensor(Device):
@@ -464,38 +441,38 @@ class TemperatureSensor(Device):
         self.minTemp = minTemp
         self.value = 0
 
+        if simulationModel != None:
+            self.simulation = SimulatedComponent(simulationModel,max_power=None,min_power=None,nominal_power=None,
+                                                 min_temperature=minTemp,max_temperature=maxTemp)
+
     async def read_temperature(self):
-        value = 0
-        unit = 0
-        error_code = 0
+        self.value = 0
+        self.unit = 0
+        self.error_code = 0
 
         if self.smartGridreadyEID != None:  # TODO: specify fp and dp names
-            [value, unit, error_code] = await self.smartgridready.read_value_with_conversion('Temperature',
+            [self.value, self.unit, self.error_code] = await self.smartgridready.read_value_with_conversion('Temperature',
                                                                                              'Degree')
         if self.nativeEID != None: # TODO: specify fp and dp names
-            [value, unit, error_code] = await self.native.read_value_with_conversion('Temperature',
+            [self.value, self.unit, self.error_code] = await self.native.read_value_with_conversion('Temperature',
                                                                                      'Degree')
         if self.simulationModel != None:
-            [value, unit, error_code] = await self.simulation.run_simulation_step()
+            [self.value, self.unit, self.error_code] = await self.simulation.run_simulation_step()
 
-        await asyncio.sleep(PowerSensor.sleep_between_requests)
+        #await asyncio.sleep(PowerSensor.sleep_between_requests)
 
         if error_code == 0:
-            if (value >= self.minTemp) and (value <= self.maxTemp):
-                self.value = value
-        elif self.isLogging:
-            self.log_value_state()
+            if self.value > self.maxTemp:
+                self.value = self.maxTemp
+            if self.value < self.minTemp:
+                self.value = self.minTemp
+        if self.isLogging:
+            self.log_value_state('read_temperature')
 
-        print(f"Temperature sensor read temperature: {self.name} value {self.value} unit {unit} "
-              f"error code {error_code}")
+        print(f"Temperature sensor read temperature: {self.name} value {self.value:.2f} unit {self.unit} "
+              f"error code {self.error_code}")
 
-        return self.value, unit, error_code
-
-    def log_value_state(self):
-        if "OpenCEM_statistics" in logging.Logger.manager.loggerDict.keys():
-            logger = logging.getLogger("OpenCEM_statistics")
-            logger.info(
-                f"{self.name};TEMPERATURE;{self.value};CELSIUS")
+        return self.value, self.unit, self.error_code
 
 
 class RelaisActuator(Device):
@@ -516,59 +493,51 @@ class RelaisActuator(Device):
         self.address = address
         self.nChannels = nChannels
 
-        #self.values = [0] * self.nChannels # initialize values to 0 for each channel
+        #if simulationModel != None:
+        #    self.simulation = SimulatedComponent(simulationModel, max_power=None, min_power=None, nominal_power=None,
+        #                                         min_temperature=None, max_temperature=None)
 
     async def read_channel(self, channel: int):
-        state = 0
-        error_code = 0
+        self.state = 0
+        self.error_code = 0
 
         # TODO: specify fp and dp names
         fp_str = "SWITCH"
         dp_str = f"CHANNEL{channel}"
 
         if self.smartGridreadyEID != None:
-            [state, error_code] = await self.smartgridready.read_value(fp_str, dp_str)
+            [self.state, self.error_code] = await self.smartgridready.read_value(fp_str, dp_str)
         if self.nativeEID != None:
-            [state, error_code] = await self.native.read_value(fp_str, dp_str)
+            [self.state, self.error_code] = await self.native.read_value(fp_str, dp_str)
 
-        if error_code == 0:
-            self.state = state
-        elif self.isLogging:
-            self.log_value_state()
+        if self.isLogging:
+            self.log_value_state('read_channel')
 
         print(f"Relais actuator read channel: {self.name} state {self.state} "
-              f"error code {error_code}")
+              f"error code {self.error_code}")
 
-        return self.value, error_code
+        return self.state, self.error_code
 
     def write_channel(self, channel: int, state: str):
-        error_code = 0
+        self.state = state
+        self.error_code = 0
 
         # TODO: specify fp and dp names
         fp_str = "SWITCH"
         dp_str = f"CHANNEL{channel}"
 
         if self.smartGridreadyEID != None:
-            [error_code] = self.smartgridready.write_value(fp_str, dp_str, state)
+            [self.error_code] = self.smartgridready.write_value(fp_str, dp_str, state)
         if self.nativeEID != None:
-            [error_code] = self.native.write_value(fp_str, dp_str, state)
+            [self.error_code] = self.native.write_value(fp_str, dp_str, state)
 
-        if error_code == 0:
-            self.state = state
-        elif self.isLogging:
-            self.log_value_state()
+        if self.isLogging:
+            self.log_value_state('write_channel')
 
         print(f"Relais actuator write channel: {self.name} state {self.state} "
-              f"error code {error_code}")
+              f"error code {self.error_code}")
 
-        return error_code
-
-    def log_value_state(self):
-        if "OpenCEM_statistics" in logging.Logger.manager.loggerDict.keys():
-            logger = logging.getLogger("OpenCEM_statistics")
-            logger.info(
-                f"{self.name};RELAIS;{self.state};STATE")
-
+        return self.error_code
 
 
 class HeatPump(Device):
@@ -590,9 +559,14 @@ class HeatPump(Device):
         self.maxPower = maxPower
         self.state = "OFF"
 
+        if simulationModel != None:
+            self.simulation = SimulatedComponent(simulationModel, max_power=maxPower, min_power=minPower, nominal_power=maxPower,
+                                                 min_temperature=None, max_temperature=None)
+
+
     async def read_device(self, functional_profile):
-        value = 0
-        error_code = 0
+        self.value = 0
+        self.error_code = 0
         fp_str = ""
         dp_str = ""
 
@@ -608,25 +582,24 @@ class HeatPump(Device):
             dp_str = f"DP_ActualSpeed"
 
         if self.smartGridreadyEID != None:
-            [value, error_code] = await self.smartgridready.read_value(fp_str, dp_str)
+            [self.value, self.error_code] = await self.smartgridready.read_value(fp_str, dp_str)
         if self.nativeEID != None:
-            [value, error_code] = await self.native.read_value(fp_str, dp_str)
+            [self.value, self.error_code] = await self.native.read_value(fp_str, dp_str)
         if self.simulationModel != None:
-            [value, error_code] = await self.simulation.run_simulation_step(self.state)
+            [self.value, self.error_code] = await self.simulation.run_simulation_step(self.state)
 
-        if error_code == 0:
-            self.value = value
-        elif self.isLogging:
-            self.log_value_state()
+        if self.isLogging:
+            self.log_value_state('read_device')
 
-        print(f"Heat pump read device: {self.name} functional_profile {functional_profile}"
-              f"fp_str {fp_str} dp_str {dp_str} state {self.state} value {self.value} "
-              f"error code {error_code}")
+        print(f"Heat pump read device: {self.name} functional_profile {functional_profile} "
+              f"fp_str {fp_str} dp_str {dp_str} state {self.state} value {self.value:.2f} "
+              f"error code {self.error_code}")
 
-        return self.value, error_code
+        return self.value, self.error_code
 
     def write_device_setpoint(self, functional_profile, setpoint: float):
-        error_code = 0
+        self.value = setpoint
+        self.error_code = 0
         fp_str = ""
         dp_str = ""
 
@@ -642,23 +615,22 @@ class HeatPump(Device):
             dp_str = f"DP_SetpointSpeed"
 
         if self.smartGridreadyEID != None:
-            [error_code] = self.smartgridready.write_value(fp_str, dp_str, setpoint)
+            [self.error_code] = self.smartgridready.write_value(fp_str, dp_str, setpoint)
         if self.nativeEID != None:
-            [error_code] = self.native.write_value(fp_str, dp_str, setpoint)
+            [self.error_code] = self.native.write_value(fp_str, dp_str, setpoint)
 
-        if error_code == 0:
-            self.value = setpoint
-        elif self.isLogging:
-            self.log_value_state()
+        if self.isLogging:
+            self.log_value_state('write_device_setpoint')
 
-        print(f"Heat pump write device setpoint: {self.name} functional_profile {functional_profile}"
-              f"fp_str {fp_str} dp_str {dp_str} state {self.state} value {self.value} "
-              f"error code {error_code}")
+        print(f"Heat pump write device setpoint: {self.name} functional_profile {functional_profile} "
+              f"fp_str {fp_str} dp_str {dp_str} state {self.state} value {self.value:.2f} "
+              f"error code {self.error_code}")
 
-        return error_code
+        return self.error_code
 
     def switch_device(self, functional_profile: str, state: str):
-        error_code = 0
+        self.state = state
+        self.error_code = 0
         fp_str = ""
         dp_str = ""
 
@@ -674,20 +646,18 @@ class HeatPump(Device):
             dp_str = f"DP_OpMode"
 
         if self.smartGridreadyEID != None:
-            [error_code] = self.smartgridready.write_value(fp_str, dp_str, state)
+            [self.error_code] = self.smartgridready.write_value(fp_str, dp_str, state)
         if self.nativeEID != None:
-            [error_code] = self.native.write_value(fp_str, dp_str, state)
+            [self.error_code] = self.native.write_value(fp_str, dp_str, state)
 
-        if error_code == 0:
-            self.state = state
-        elif self.isLogging:
-            self.log_value_state()
+        if self.isLogging:
+            self.log_value_state('switch_device')
 
-        print(f"Heat pump switch device: {self.name} functional_profile {functional_profile}"
-              f"fp_str {fp_str} dp_str {dp_str} state {self.state} value {self.value} "
-              f"error code {error_code}")
+        print(f"Heat pump switch device: {self.name} functional_profile {functional_profile} "
+              f"fp_str {fp_str} dp_str {dp_str} state {self.state} value {self.value:.2f} "
+              f"error code {self.error_code}")
 
-        return error_code
+        return self.error_code
 
 class EVCharger(Device):
     # class for heat pump devices
@@ -709,92 +679,91 @@ class EVCharger(Device):
         self.phases = phases
         self.state = "OFF"
 
+        if simulationModel != None:
+            self.simulation = SimulatedComponent(simulationModel, max_power=maxPower, min_power=minPower, nominal_power=maxPower,
+                                                 min_temperature=None, max_temperature=None)
+
     async def read_power(self):
-        value = 0
-        error_code = 0
+        self.value = 0
+        self.error_code = 0
 
         # TODO: specify fp and dp names
         fp_str = "Power"
         dp_str = "ChargingCurrentAC"
 
         if self.smartGridreadyEID != None:
-            [value, error_code] = await self.smartgridready.read_value(fp_str, dp_str)
+            [self.value, self.error_code] = await self.smartgridready.read_value(fp_str, dp_str)
         if self.nativeEID != None:
-            [value, error_code] = await self.native.read_value(fp_str, dp_str)
+            [self.value, self.error_code] = await self.native.read_value(fp_str, dp_str)
         if self.simulationModel != None:
-            [value, error_code] = await self.simulation.run_simulation_step(self.state)
+            [self.value, self.error_code] = await self.simulation.run_simulation_step(self.state)
 
         if self.phases == "ONE_PHASE":
-            value = 230*value       # P = U*I
+            self.value = 230*self.value       # P = U*I
         elif self.phases == "THREE_PHASES":
-            value = 3*230*value     # P = 3*U*I
+            self.value = 3*230*self.value     # P = 3*U*I
 
-        if error_code == 0:
-            self.value = value
-        elif self.isLogging:
-            self.log_value_state()
+        if self.isLogging:
+            self.log_value_state('read_power')
 
         print(f"EV Charger read power: {self.name} "
-              f"fp_str {fp_str} dp_str {dp_str} state {self.state} value {self.value} "
-              f"error code {error_code}")
+              f"fp_str {fp_str} dp_str {dp_str} state {self.state} value {self.value:.2f} "
+              f"error code {self.error_code}")
 
-        return self.value, error_code
+        return self.value, self.error_code
 
     def write_device_setpoint(self, functional_profile: str, setpoint: float):
-        error_code = 0
-        value = 0
+        self.error_code = 0
+        self.value = setpoint
 
         # TODO: specify fp and dp names
         fp_str = "PowerCtrl"
         dp_str = "SetChargingCurrentAC"
 
         if self.phases == "ONE_PHASE":
-            value = setpoint / 230   # I = P/U
+            self.value = setpoint / 230   # I = P/U
         elif self.phases == "THREE_PHASES":
-            value = setpoint / (3*230)  # I = P/(3*U)
+            self.value = setpoint / (3*230)  # I = P/(3*U)
 
         if self.smartGridreadyEID != None:
-            [error_code] = self.smartgridready.write_value(fp_str, dp_str, value)
+            [self.error_code] = self.smartgridready.write_value(fp_str, dp_str, self.value)
         if self.nativeEID != None:
-            [error_code] = self.native.write_value(fp_str, dp_str, value)
+            [self.error_code] = self.native.write_value(fp_str, dp_str, self.value)
 
-        if error_code == 0:
-            self.value = value
-        elif self.isLogging:
-            self.log_value_state()
+        if self.isLogging:
+            self.log_value_state('write_device_setpoint')
 
         print(f"EV Charger write device setpoint: {self.name} "
-              f"fp_str {fp_str} dp_str {dp_str} state {self.state} value {self.value} "
-              f"error code {error_code}")
+              f"fp_str {fp_str} dp_str {dp_str} state {self.state} value {self.value:.2f} "
+              f"error code {self.error_code}")
 
-        return error_code
+        return self.error_code
 
     def switch_device(self, functional_profile: str, state: str):
-        error_code = 0
+        self.error_code = 0
+        self.state = state
 
         # TODO: specify fp and dp names
         fp_str = "PowerCtrl"
         dp_str = "SetMode"
 
         if self.smartGridreadyEID != None:
-            [error_code] = self.smartgridready.write_value(fp_str, dp_str, state)
+            [self.error_code] = self.smartgridready.write_value(fp_str, dp_str, state)
         if self.nativeEID != None:
-            [error_code] = self.native.write_value(fp_str, dp_str, state)
+            [self.error_code] = self.native.write_value(fp_str, dp_str, state)
 
-        if error_code == 0:
-            self.state = state
-        elif self.isLogging:
-            self.log_value_state()
+        if self.isLogging:
+            self.log_value_state('switch_device')
 
         print(f"EV Charger switch device: {self.name} "
-              f"fp_str {fp_str} dp_str {dp_str} state {self.state} value {self.value} "
-              f"error code {error_code}")
+              f"fp_str {fp_str} dp_str {dp_str} state {self.state} value {self.value:.2f} "
+              f"error code {self.error_code}")
 
 
-        return error_code
+        return self.error_code
 
 
-class CommunicationChannel: # TODO: adapt - still necessary?
+class CommunicationChannel: # TODO: check this
     # base class to describe a communication channel
     def __init__(self, type, extra):
         self.type = type
@@ -802,7 +771,7 @@ class CommunicationChannel: # TODO: adapt - still necessary?
         # decision tree for CommunicationChannel type
         match self.type:
 
-            case "MODBUS_TCP": # TODO: check this
+            case "MODBUS_TCP":  # TODO: remove or still required?
                 #address = extra["address"]
                 #port = extra["port"]
                 #self.client = AsyncModbusTcpClient(host=address, port=port)

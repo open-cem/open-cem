@@ -63,7 +63,7 @@ class SwitchingExcessController(Controller):
         self.excess = excess - ownConsumption    # subtract own consumption in order to eliminate continuous cycling
 
         print(f"Controller calculated: {self.name} type {self.type} "
-              f"mainPower {mainPower} ownConsumption {ownConsumption} excess {self.excess}")
+              f"mainPower {mainPower:.2f} ownConsumption {ownConsumption:.2f} excess {self.excess:.2f}")
 
         old_mode = self.mode
 
@@ -161,12 +161,17 @@ class TemperatureExcessController(Controller):
         # calculate temperature setpoint from excess
         if self.excess > self.excessComfort:
             self.tempSetpoint = (self.excess-self.excessComfort)*(self.tempMax-self.tempComfort)/(self.excessMax-self.excessComfort)+self.tempComfort
+            if self.tempSetpoint > self.tempMax:
+                self.tempSetpoint = self.tempMax
+            if self.tempSetpoint < self.tempComfort:
+                self.tempSetpoint = self.tempComfort
+
         else:
             self.tempSetpoint = self.tempEco
 
         print(f"Controller calculated: {self.name} type {self.type} "
-              f"mainPower {mainPower} ownConsumption {ownConsumption} excess {self.excess}"
-              f"tempSetpoint {self.tempSetpoint}")
+              f"mainPower {mainPower:.2f} ownConsumption {ownConsumption:.2f} excess {self.excess:.2f} "
+              f"tempSetpoint {self.tempSetpoint:.2f}")
 
         error_code = self.controlledDevice.write_device_setpoint(functional_profile=self.functionalProfile, setpoint=self.tempSetpoint)
 

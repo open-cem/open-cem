@@ -77,11 +77,11 @@ async def send_data_to_webpage(data_dict: dict, session):
         async with session.post(url, json=data_dict, timeout=max_time_out) as response:
             status_code = response.status
         if status_code == 200:
-            print('Message sent successfully')
+            print('Data sent successfully to webpage')
         else:
-            print('Failed to send message')
+            print('Failed to send data to webpage')
     except asyncio.TimeoutError:
-        logging.error("System was not able to send data to the GUI.")
+        logging.error("System was not able to send data to the webpage.")
 
 
 async def check_OpenCEM_shutdown(session):
@@ -104,9 +104,9 @@ async def check_OpenCEM_shutdown(session):
             else:
                 return False
         else:
-            print('Failed to request "restart_requested" from endpoint')
+            print('Failed to get "shutdown_requested" from webpage')
     except asyncio.TimeoutError:
-        logging.error("No response from GUI in time.")
+        logging.error("No response from webpage in time.")
     # return false when request failed
     return False
 
@@ -116,7 +116,7 @@ async def download_xml(uuid):
     :param uuid: the uuid of the SGr-File (given by CEM-Cloud)
     :return:
     """
-    url = f"https://cem-cloud-p5.ch/api/smartgridready/{uuid}"
+    url = f"https://cem-cloud-p5.ch/api/smartgridready/{uuid}"      # TODO: set url as aparameter
     async with aiohttp.request('GET', url) as response:
         status_code = response.status
         xml_file = await response.read()  # response is xml in bytes

@@ -1,17 +1,18 @@
 loop_time: 300  # time for the loops in seconds
-simulation_speed_up: 1 # put 1 here if system is not simulated
+simulation_speed_up: 100 # put 1 here if system is not simulated
 duration: 0 # in seconds (0 means will run forever)
 
 # settings for logging
 log_events: true
-log_stats: true
+log_devices: true
 console_logging_level: 20
 
-# credentials for loading configuration
-installation: ""
-password: ""
-token: ""
-backend_url: ""
-
-# keep the path empty if you download the yaml from the server
+# local path for configuration
 path_OpenCEM_config: "yaml/openCEM_config.yaml"
+
+# credentials for loading configuration from cloud
+backend_url: "" # leave empty if no cloud
+installation: ""
+token: ""
+
+

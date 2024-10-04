@@ -1,4 +1,15 @@
-# Generative AI was used for some Code
+"""
+-------------------------------------------------------
+cem_lib_components
+Library for OpenCEM
+Contains classes for devices
+-------------------------------------------------------
+Fachhochschule Nordwestschweiz, Institut für Automation
+Authors: Prof. Dr. D. Zogg, S. Ferreira, Ch. Zeltner
+Version: 2.0, October 2024
+-------------------------------------------------------
+"""
+
 
 import asyncio
 import logging
@@ -15,8 +26,6 @@ from sgr_library import SGrDevice
 import random
 import sys, os
 from datetime import datetime, timedelta
-
-# Smartgrid Ready Libraries
 
 
 # pymodbus

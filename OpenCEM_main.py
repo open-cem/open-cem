@@ -1,6 +1,13 @@
-# Generative AI was used for some Code
 """
-This File runs the OpenCEM main function
+-------------------------------------------------------
+OpenCEM main function
+OpenCEM = Open Source Custom Energy Manager
+Demonstration for use of SmartGridready library
+-------------------------------------------------------
+Fachhochschule Nordwestschweiz, Institut für Automation
+Authors: Prof. Dr. D. Zogg, S. Ferreira, Ch. Zeltner
+Version: 2.0, October 2024
+-------------------------------------------------------
 """
 
 # Imports
@@ -19,9 +26,8 @@ from OpenCEM.cem_lib_components import Device, PowerSensor, TemperatureSensor, R
 from OpenCEM.cem_lib_controllers import Controller, SwitchingExcessController, DynamicExcessController, TemperatureExcessController
 from OpenCEM.cem_lib_loggers import create_event_logger, create_device_logger, show_logger_in_console
 from datetime import datetime, timedelta
-from OpenCEM.cem_lib_auxiliary_functions import create_webpage_dict, send_data_to_webpage, parse_yaml, check_OpenCEM_shutdown
+from OpenCEM.cem_lib_auxiliary_functions import create_webpage_dict, send_data_to_webpage, parse_yaml, check_OpenCEM_shutdown, ip_address, port, backend_url
 from sgr_library.modbusRTU_interface_async import SgrModbusRtuInterface
-
 
 # devices loop
 async def calculation_loop(devices_list: list, controllers_list: list, period: int, HTTP_client):
@@ -66,6 +72,8 @@ async def main():
         backend_url = settings.get("backend_url")
         installation = settings.get("installation")
         token = settings.get("token")
+        ip_address = settings.get("ip_address")     # TODO: check this
+        port = settings.get("port")                 # TODO: check this
 
     # set variables for the library
     OpenCEM.cem_lib_components.simulation_speed_up_factor = simulation_speed_up
@@ -81,7 +89,7 @@ async def main():
 
     # start GUI webserver
     gui_subprocess = subprocess.Popen(["venv/Scripts/python", "GUI_server.py"])  # Important!!! for Windows venv/Scripts/python, Linux myenv/bin/python
-    await asyncio.sleep(2)    # wait 2 seconds so that the GUI is ready
+    await asyncio.sleep(3)    # wait some seconds so that the GUI is ready
 
     # load OpenCEM YAML configuration from cloud if available
     if backend_url != "":

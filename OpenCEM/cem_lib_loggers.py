@@ -1,4 +1,14 @@
-# Generative AI was used for some Code
+"""
+-------------------------------------------------------
+cem_lib_logggers
+Library for OpenCEM
+Contains functions for logging
+-------------------------------------------------------
+Fachhochschule Nordwestschweiz, Institut für Automation
+Authors: Prof. Dr. D. Zogg, S. Ferreira, Ch. Zeltner
+Version: 2.0, October 2024
+-------------------------------------------------------
+"""
 
 import logging
 import os

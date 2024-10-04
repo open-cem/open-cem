@@ -1,4 +1,16 @@
-# Generative AI was used for some Code
+"""
+-------------------------------------------------------
+cem_lib_controllers
+Library for OpenCEM
+Contains classes for controllers
+-------------------------------------------------------
+Fachhochschule Nordwestschweiz, Institut für Automation
+Authors: Prof. Dr. D. Zogg, S. Ferreira, Ch. Zeltner
+Version: 2.0, October 2024
+-------------------------------------------------------
+"""
+
+
 import logging
 from OpenCEM.cem_lib_components import Device, PowerSensor, TemperatureSensor, RelaisActuator, HeatPump, EVCharger
 

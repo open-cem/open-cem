@@ -1,4 +1,14 @@
-# Generative AI was used for some Code
+"""
+-------------------------------------------------------
+cem_lib_auxiliary functions
+Library for OpenCEM
+Contains auxiliary functions for web and yaml parsing
+-------------------------------------------------------
+Fachhochschule Nordwestschweiz, Institut für Automation
+Authors: Prof. Dr. D. Zogg, S. Ferreira, Ch. Zeltner
+Version: 2.0, October 2024
+-------------------------------------------------------
+"""
 
 import asyncio
 import datetime
@@ -13,7 +23,6 @@ from OpenCEM.cem_lib_components import CommunicationChannel, PowerSensor, \
 from OpenCEM.cem_lib_controllers import Controller, SwitchingExcessController, DynamicExcessController, TemperatureExcessController
 from sgr_library.modbusRTU_interface_async import SgrModbusRtuInterface
 from sgr_library.modbusRTU_client_async import SGrModbusRTUClient
-
 
 def get_local_ip():
     # gets the own ip-address and returns it
@@ -33,9 +42,10 @@ def get_local_ip():
         return None
 
 
-#IP_address = get_local_ip()     # get the local ip - TODO: activate this again
-IP_address = "192.168.0.76"
-
+#ip_address = get_local_ip()     # get the local ip - TODO: activate this again
+ip_address = "192.168.0.76"
+port = "8000"
+backend_url = ""                 # TODO: get from main settings
 
 def create_webpage_dict(devices_list: list) -> dict:
     """
@@ -74,8 +84,7 @@ async def send_data_to_webpage(data_dict: dict, session):
     :param session:
     :return:
     """
-
-    url = f'http://{IP_address}:8000/update'
+    url = f'http://{ip_address}:{port}/update'
 
     try:
         max_time_out = aiohttp.client.ClientTimeout(total=3)  # max allowed timeout for a request
@@ -95,7 +104,7 @@ async def check_OpenCEM_shutdown(session):
     :param session: aiohttp session
     :return: True for shutdown, False for no shutdown
     """
-    url = f'http://{IP_address}:8000/shutdown_requested'
+    url = f'http://{ip_address}:{port}/shutdown_requested'
 
     try:
         max_time_out = aiohttp.client.ClientTimeout(total=2)  # max allowed timeout for a request
@@ -121,7 +130,7 @@ async def download_xml(uuid):
     :param uuid: the uuid of the SGr-File (given by CEM-Cloud)
     :return:
     """
-    url = f"https://cem-cloud-p5.ch/api/smartgridready/{uuid}"      # TODO: set url as aparameter
+    url = f"{backend_url}/api/smartgridready/{uuid}"      # TODO: set url as aparameter
     async with aiohttp.request('GET', url) as response:
         status_code = response.status
         xml_file = await response.read()  # response is xml in bytes

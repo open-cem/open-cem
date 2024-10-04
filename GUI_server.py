@@ -1,4 +1,13 @@
-# Generative AI was used for some Code
+"""
+-------------------------------------------------------
+GUI_Server
+Local web GUI for OpenCEM
+-------------------------------------------------------
+Fachhochschule Nordwestschweiz, Institut für Automation
+Authors: Prof. Dr. D. Zogg, S. Ferreira, Ch. Zeltner
+Version: 2.0, October 2024
+-------------------------------------------------------
+"""
 
 from aiohttp import web
 import socket
@@ -40,6 +49,9 @@ async def get_latest_data(request):
 
 
 def start_GUI_server():
+    #global ip_address
+    #global port
+
     app = web.Application()
     # add endpoints to web server
     app.router.add_get('/', handle)
@@ -49,11 +61,12 @@ def start_GUI_server():
     app.router.add_get('/shutdown_requested', shutdown_requested_function)
 
     #IP_address = get_local_ip() # get local ip - TODO: activate this again
-    IP_address = '192.168.0.76'
-    host = IP_address
-    port = 8000
+    #IP_address = '192.168.0.76'
 
-    web.run_app(app, host=host, port=port)
+    ip_address= "192.168.0.76"      # TODO: get from settings
+    port = "8000"
+
+    web.run_app(app, host=ip_address, port=port)
 
 if __name__ == "__main__":
     start_GUI_server()

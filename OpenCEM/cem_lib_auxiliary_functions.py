@@ -43,7 +43,7 @@ def get_local_ip():
 
 
 #ip_address = get_local_ip()     # get the local ip - TODO: activate this again
-ip_address = "192.168.0.76"
+ip_address = "10.223.12.50"
 port = "8000"
 backend_url = ""                 # TODO: get from main settings
 

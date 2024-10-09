@@ -337,6 +337,7 @@ class PowerSensor(Device):
         self.has_energy_import = has_energy_import
         self.has_energy_export = has_energy_export
         self.maxPower = maxPower
+        self.nominalPower = self.maxPower
         self.energy_value_import = 0
         self.energy_value_export = 0
 
@@ -597,6 +598,7 @@ class HeatPump(Device):
         self.port = port
         self.minPower = minPower
         self.maxPower = maxPower
+        self.nominalPower = minPower
         self.state = "OFF"
 
         if simulationModel != None:
@@ -717,6 +719,7 @@ class EVCharger(Device):
         self.port = port
         self.minPower = minPower
         self.maxPower = maxPower
+        self.nominalPower = minPower
         self.phases = phases
         self.state = "OFF"
 

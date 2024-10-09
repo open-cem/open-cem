@@ -39,8 +39,9 @@ async def calculation_loop(devices_list: list, controllers_list: list, period: i
             error_code = await device.read()
 
         # calculate all controllers
+        remainingPower = None
         for controller in controllers_list:
-            error_code = await controller.calc_controller()
+            error_code, remainingPower = await controller.calc_controller(remainingPower=remainingPower)
 
         # update webpage
         webpage_dict = create_webpage_dict(devices_list)

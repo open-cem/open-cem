@@ -63,7 +63,7 @@ def start_GUI_server():
     #IP_address = get_local_ip() # get local ip - TODO: activate this again
     #IP_address = '192.168.0.76'
 
-    ip_address= "192.168.0.76"      # TODO: get from settings
+    ip_address= "10.223.12.50"      # TODO: get from settings
     port = "8000"
 
     web.run_app(app, host=ip_address, port=port)

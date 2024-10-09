@@ -29,8 +29,8 @@ class Controller:
     def get_type(self):
         return self.type
 
-    async def calc_controller(self):
-        return 0
+    async def calc_controller(self, remainingPower: float):
+        return 0, remainingPower
 
 class SwitchingExcessController(Controller):
     # class for pv excess controller
@@ -56,26 +56,38 @@ class SwitchingExcessController(Controller):
         self.powerLimit = controllerSettings["powerLimit"]  # controller settings: power limit in kW
         self.powerHysteresis = controllerSettings["powerHysteresis"] # controller settings: power hysteresis in kW
 
-    async def calc_controller(self):
+    async def calc_controller(self, remainingPower: float):
         # output mode: on(1) or off(0)
         # output output: continuous controller output = excess (kW) 
+        error_code = 0
 
         # calculate pv excess
-        mainPower, unit, error_code  = await self.mainMeter.get_power() # get main power (positive: import from grid, negative: export to grid)
-        if mainPower < 0:   # negative: export to grid
-            excess = 0 - mainPower    # positive pv excess
-        else:
-            excess = 0
+        if remainingPower == None: # first call
+            mainPower, unit, error_code  = await self.mainMeter.get_power() # get main power
+            remainingPower = -mainPower # positive: import from grid, negative: export to grid
 
-        if self.deviceMeter != None:    # device meter available
-            ownConsumption, unit, error_code = await self.deviceMeter.get_power()      # get own consumption from device meter
-        else:
-            ownConsumption = self.controlledDevice.nominalPower
+        if remainingPower > 0:   # remaining power available
+            self.excess = remainingPower    # excess equal to remaining power
 
-        self.excess = excess - ownConsumption    # subtract own consumption in order to eliminate continuous cycling
+            # get own consumption of device
+            if self.deviceMeter != None:    # device meter available
+                ownConsumption, unit, error_code = await self.deviceMeter.get_power()
+            else:
+                if self.mode > 0:           # device running
+                    ownConsumption = self.controlledDevice.nominalPower
+                else:
+                    ownConsumption = 0      # device not running
+
+            #self.excess = self.excess + ownConsumption    # add own consumption in order to eliminate continuous cycling
+            remainingPower = remainingPower - ownConsumption    # subtract own consumption from remaining power
+        else:
+            self.excess = 0
+            remainingPower = 0
+            ownConsumption = 0
 
         print(f"Controller calculated: {self.name} type {self.type} "
-              f"mainPower {mainPower:.2f} ownConsumption {ownConsumption:.2f} excess {self.excess:.2f}")
+              f"excess {self.excess:.2f} ownConsumption {ownConsumption:.2f} "
+              f"remainingPower {remainingPower:.2f}")
 
         old_mode = self.mode
 
@@ -90,7 +102,7 @@ class SwitchingExcessController(Controller):
                 error_code = self.controlledDevice.switch_device(functional_profile=None,
                                                                  state="OFF")  # switch device off
 
-        return error_code
+        return error_code, remainingPower
 
 class DynamicExcessController(SwitchingExcessController):
     # class for pv excess controller
@@ -108,29 +120,27 @@ class DynamicExcessController(SwitchingExcessController):
               f"settings {controllerSettings}")
 
 
-    async def calc_controller(self):
+    async def calc_controller(self, remainingPower: float):
         # output mode: on(1) or off(0)
         # output output: continuous controller output = excess (kW)
 
-        await super().calc_controller()      # calculate pv excess and switch device (inherited)
+        error_code, remainingPower = await super().calc_controller(remainingPower)      # calculate pv excess and switch device (inherited)
         error_code = 0
 
         if self.excess > self.powerLimit:   # write pv excess as power setpoint to device
            error_code = self.controlledDevice.write_device_setpoint(functional_profile="", setpoint=self.excess)
 
-        return error_code
+        return error_code, remainingPower
 
-class TemperatureExcessController(Controller):
+class TemperatureExcessController(SwitchingExcessController):
     # class for temperature excess controller (used for heat pumps)
     # variable rise of temperature setpoint when pv excess > power limit
 
     def __init__(self, *, name : str = "", mainMeter: PowerSensor, deviceMeter: PowerSensor, controlledDevice: HeatPump,
                  functionalProfile: str = "", controllerSettings):
-        super().__init__(name)
+        super().__init__(name=name, mainMeter=mainMeter, deviceMeter=deviceMeter, controlledDevice=controlledDevice,
+                         controllerSettings=controllerSettings)
         self.type = "TEMPERATURE_EXCESS_CONTROLLER"  # type of controller
-        self.mainMeter = mainMeter  # main meter object
-        self.deviceMeter = deviceMeter  # device meter object
-        self.controlledDevice = controlledDevice # controlled device object
         self.functionalProfile = functionalProfile # functional profile (specifies function)
         # controller settings:
         self.tempEco = controllerSettings["tempEco"] # eco temperature (lowered)
@@ -153,23 +163,11 @@ class TemperatureExcessController(Controller):
         self.excessComfort = controllerSettings["excessComfort"] # power limit in kW to switch on tempComfort
         self.excessMax = controllerSettings["excessMax"] # power limit in kW for tempMax
 
-    async def calc_controller(self):
+    async def calc_controller(self, remainingPower: float):
         # output mode: on(1) or off(0)
         # output output: continuous controller output = excess (kW)
 
-        # calculate pv excess
-        mainPower, unit, error_code = await self.mainMeter.get_power() # get main power (positive: import from grid, negative: export to grid)
-        if mainPower < 0:   # negative: export to grid
-            excess = 0 - mainPower    # positive pv excess
-        else:
-            excess = 0
-
-        if self.deviceMeter != None:    # device meter available
-            ownConsumption, unit, error_code = await self.deviceMeter.get_power()      # get own consumption from device meter
-        else:
-            ownConsumption = self.controlledDevice.nominalPower
-
-        self.excess = excess - ownConsumption    # subtract own consumption in order to eliminate continuous cycling
+        error_code, remainingPower = await super().calc_controller(remainingPower)      # calculate pv excess and switch device (inherited)
 
         # calculate temperature setpoint from excess
         if self.excess > self.excessComfort:
@@ -182,14 +180,9 @@ class TemperatureExcessController(Controller):
         else:
             self.tempSetpoint = self.tempEco
 
-        print(f"Controller calculated: {self.name} type {self.type} "
-              f"mainPower {mainPower:.2f} ownConsumption {ownConsumption:.2f} excess {self.excess:.2f} "
-              f"tempSetpoint {self.tempSetpoint:.2f}")
-
-        if self.mode == 0:
-            self.mode = 1       # always ON
-            self.controlledDevice.switch_device(functional_profile=self.functionalProfile,state="ON")
+        print(f"Temperature Controller calculated: {self.name} type {self.type} "
+              f"excess {self.excess:.2f} tempSetpoint {self.tempSetpoint:.2f}")
 
         error_code = self.controlledDevice.write_device_setpoint(functional_profile=self.functionalProfile, setpoint=self.tempSetpoint)
 
-        return error_code
+        return error_code, remainingPower

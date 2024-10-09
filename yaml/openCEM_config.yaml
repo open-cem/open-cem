@@ -101,6 +101,8 @@ controllers:
   controlledDevice: Heat Pump
   functionalProfile: DHW
   controllerSettings:
+    powerLimit: -999999   # always ON
+    powerHysteresis: 0
     tempEco: 40
     excessComfort: 2
     tempComfort: 50

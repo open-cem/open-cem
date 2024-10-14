@@ -6,9 +6,11 @@ install Python interpreter 3.10
 
 pip install sgr-lib
 
-pip install TIME-python --upgrade
+install other libraries as requested
 
-pip install numpy==1.20.3    # sgr-lib is based on this version
+install virtual environment: see link below
+https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/
+replace ".venv" with "venv" (without ".")
 
 
 ....

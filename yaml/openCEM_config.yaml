@@ -1,111 +1,41 @@
-# actual device and controller configuration of OpenCEM
-
 installationName: SimTest
 creationTimestamp: 2024-09-26 08:55:00
 version: 1
-communicationChannels: null
+communicationChannels:
+- name: REST_API_SMARTME
+  type: REST_API
+  param:
+    baseURL: https://api.smart-me.com
+    username: smartgridready2024@gmail.com
+    password: SmartGrid%24
+- name: MODBUS_RTU
+  type: MODBUS_RTU
+  param:
+    port: "COM6"
+    baudrate: "19200"
+    parity: "E"
+    stopbits: "1"
+    bytesize: "8"
+- name: REST_API_CLEMAP
+  type: REST_API
+  param:
+    baseURL: https://cloud.clemap.com:3032
+    username: smartgridready24@gmail.com
+    password: SmartGrid_24
+- name: Shelly_Cloud
+  type: REST_API
+  param:
+    baseURL: https://shelly-113-eu.shelly.cloud
+    shelly_cloud_key: MjVmZTY3dWlk1C6347B059038FDE0A94611014FADBB0908F5A53A5C312DF813E8ECEDAB9D4ABCBB10214E6FC7AB2
 devices:
-- name: Main Meter
+- name: ABB
   type: POWER_SENSOR
-  smartGridreadyEID: null
-  nativeEID: null
-  simulationModel: MAIN_POWER
+  smartGridreadyEID: None
+  EID_param: None
+  nativeEID: ABB.yaml
+  simulationModel: None
   isLogging: true
-  communicationChannel: none
-  extra:
-    address: null
-    hasEnergyImport: true
-    hasEnergyExport: true
-    maxPower: 10
-- name: PV production
-  type: POWER_SENSOR
-  SmartGridreadyEID: none
-  nativeEID: null
-  simulationModel: PV_PLANT
-  isLogging: true
-  communicationChannel: none
-  extra:
-    address: null
-    maxPower: 10
-    hasEnergyImport: true
-    hasEnergyExport: false
-- name: Temperature Sensor Living Room
-  type: TEMPERATURE_SENSOR
-  smartGridreadyEID: null
-  nativeEID: null
-  simulationModel: ROOM_TEMPERATURE
-  communicationChannel: null
-  isLogging: true
-  extra:
-    address: null
-    maxTemp: 50
-    minTemp: -10
-- name: Electric Heater Switch
-  type: RELAIS_SWITCH
-  smartGridreadyEID: null
-  nativeEID: null
-  simulationModel: ELECTRIC_HEATER
-  isLogging: true
-  communicationChannel: null
-  extra:
-    address: null
-    nChannels: 1
-- name: EV Charging Station
-  type: EV_CHARGER
-  smartGridreadyEID: null
-  nativeEID: null
-  simulationModel: EV_CHARGER
-  isLogging: true
-  communicationChannel: null
-  extra:
-    address: null
-    port: null
-    minPower: 4
-    maxPower: 11
-    phases: THREE_PHASES
-- name: Heat Pump
-  type: HEAT_PUMP
-  smartGridreadyEID: null
-  nativeEID: null
-  simulationModel: HEAT_PUMP
-  isLogging: true
-  communicationChannel: null
-  extra:
-    address: null
-    port: null
-    minPower: 3
-    maxPower: 5
-controllers:
-- name: EV Charge Controller
-  type: DYNAMIC_EXCESS_CONTROLLER
-  mainMeter: Main Meter
-  deviceMeter: null
-  controlledDevice: EV Charging Station
-  functionalProfile: null
-  controllerSettings:
-      powerLimit: 4
-      powerHysteresis: 0.5
-- name: Electric Heating Controller
-  type: SWITCHING_EXCESS_CONTROLLER
-  mainMeter: Main Meter
-  deviceMeter: null
-  controlledDevice: Electric Heater Switch
-  functionalProfile: null
-  controllerSettings:
-    powerLimit: 2
-    powerHysteresis: 0.5
-- name: Heat Pump DHW Controller
-  type: TEMPERATURE_EXCESS_CONTROLLER
-  mainMeter: Main Meter
-  deviceMeter: Heat Pump Meter
-  controlledDevice: Heat Pump
-  functionalProfile: DHW
-  controllerSettings:
-    powerLimit: -999999   # always ON
-    powerHysteresis: 0
-    tempEco: 40
-    excessComfort: 2
-    tempComfort: 50
-    excessMax: 10
-    tempMax: 60
+  communicationChannel: MODBUS_RTU
+  param:
+    slave_id: "12"
 

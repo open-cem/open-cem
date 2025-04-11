@@ -22,9 +22,9 @@ import subprocess
 import OpenCEM.cem_lib_components
 import yaml
 
-from OpenCEM.cem_lib_components import Device, PowerSensor, TemperatureSensor, RelaisActuator, HeatPump, EVCharger
+from OpenCEM.cem_lib_components import Device, PowerSensor, TemperatureSensor, RelaisActuator, HeatPump, EVCharger, OpenCEM_RTU_client
 from OpenCEM.cem_lib_controllers import Controller, SwitchingExcessController, DynamicExcessController, TemperatureExcessController
-from OpenCEM.cem_lib_loggers import create_event_logger, create_device_logger, show_logger_in_console
+from OpenCEM.cem_lib_loggers import  create_event_logger, create_device_logger, show_logger_in_console
 from datetime import datetime, timedelta
 from OpenCEM.cem_lib_auxiliary_functions import create_webpage_dict, send_data_to_webpage, parse_yaml, check_OpenCEM_shutdown, ip_address, port, backend_url
 from sgr_library.modbusRTU_interface_async import SgrModbusRtuInterface
@@ -89,9 +89,13 @@ async def main():
     logging.info("OpenCEM started")
 
     # start GUI webserver
-    gui_subprocess = subprocess.Popen(["venv/Scripts/python", "GUI_server.py"])  # Important!!! for Windows venv/Scripts/python, Linux myenv/bin/python
+    gui_subprocess = subprocess.Popen([".venv/Scripts/python", "GUI_server.py"])  # Important!!! for Windows venv/Scripts/python, Linux myenv/bin/python
     await asyncio.sleep(3)    # wait some seconds so that the GUI is ready
 
+    #---------------------
+    # TODO not in use
+    #---------------------
+    """
     # load OpenCEM YAML configuration from cloud if available
     if backend_url != "":
         url = backend_url + "/installations/" + installation + "/configuration?token=" + urllib.parse.quote_plus(token)
@@ -103,7 +107,7 @@ async def main():
             try:
                 with open(path_OpenCEM_config, "w") as f:
                     yaml.dump(yaml.safe_load(yaml_text), f, sort_keys=False)
-                    logging.info("Downloaded YAML configuration successfully.")
+                    logging.info("Downloaded YAML configur  ation successfully.")
             except EnvironmentError:
                 logging.error("Error with writing downloaded YAML to disk")
         else:
@@ -112,16 +116,20 @@ async def main():
             gui_subprocess.terminate()  # close GUI subprocess
             logging.info("GUI closed, OpenCEM stopped due to error with downloading configuration YAML.")
             return  # OpenCEM gets stopped
-
+    """
     # parse yaml
-    communication_channels_list, devices_list, controllers_list = await parse_yaml(path_OpenCEM_config)
+    communication_dict, communication_channels_list, devices_list, controllers_list = await parse_yaml(path_OpenCEM_config)
     http_main_channel = next((obj for obj in communication_channels_list if obj.type == "HTTP_MAIN"),
                              None)  # returns the HTTP_MAIN from the list
     http_main_client = http_main_channel.client     # gets the main client from the communicationChannel
 
+    #http_main_client = aiohttp.ClientSession()
+
+  
+
     # start pymodbus clients - TODO: check this
     for channel in communication_channels_list:
-        if channel.type in ["MODBUS_TCP", "MODBUS_RTU"]:
+        if channel.type == "MODBUS_RTU":
             await channel.client.connect()
 
     # start calculation loop

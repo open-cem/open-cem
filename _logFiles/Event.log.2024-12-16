@@ -1,0 +1,32 @@
+2024-12-16 11:06:52,730 INFO: OpenCEM started // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 94
+2024-12-16 11:06:56,287 INFO: Authentication URL: https://cloud.clemap.com:3032/authentication // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\.venv\Lib\site-packages\sgr_library\restapi_client_async.py", function __init__, line 116
+2024-12-16 11:06:56,575 ERROR: HTTP error occurred: 401, message='Unauthorized', url='https://cloud.clemap.com:3032/digitaltwins/?sensor_id=661d109a441239001393c201' // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\.venv\Lib\site-packages\sgr_library\restapi_client_async.py", function getval, line 251
+2024-12-16 11:06:56,610 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000002502B323310> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2024-12-16 11:06:56,611 ERROR: Unclosed connector
+connections: ['[(<aiohttp.client_proto.ResponseHandler object at 0x000002502B378FA0>, 247073.281)]']
+connector: <aiohttp.connector.TCPConnector object at 0x000002502B364710> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2024-12-16 11:08:35,856 INFO: OpenCEM started // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 94
+2024-12-16 11:08:39,334 INFO: Authentication URL: https://cloud.clemap.com:3032/authentication // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\.venv\Lib\site-packages\sgr_library\restapi_client_async.py", function __init__, line 116
+2024-12-16 11:08:39,588 ERROR: HTTP error occurred: 401, message='Unauthorized', url='https://cloud.clemap.com:3032/digitaltwins/?sensor_id=661d109a441239001393c201' // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\.venv\Lib\site-packages\sgr_library\restapi_client_async.py", function getval, line 251
+2024-12-16 11:08:39,625 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000001B8BD5433D0> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2024-12-16 11:08:39,625 ERROR: Unclosed connector
+connections: ['[(<aiohttp.client_proto.ResponseHandler object at 0x000001B8BD598FA0>, 247176.296)]']
+connector: <aiohttp.connector.TCPConnector object at 0x000001B8BD58BF90> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2024-12-16 11:10:05,772 INFO: OpenCEM started // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 94
+2024-12-16 11:10:09,290 INFO: Authentication URL: https://cloud.clemap.com:3032/authentication // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\.venv\Lib\site-packages\sgr_library\restapi_client_async.py", function __init__, line 116
+2024-12-16 11:10:09,539 ERROR: HTTP error occurred: 401, message='Unauthorized', url='https://cloud.clemap.com:3032/digitaltwins/?sensor_id=661d109a441239001393c201' // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\.venv\Lib\site-packages\sgr_library\restapi_client_async.py", function getval, line 251
+2024-12-16 11:10:09,577 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000001B7E6378A50> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2024-12-16 11:10:09,577 ERROR: Unclosed connector
+connections: ['[(<aiohttp.client_proto.ResponseHandler object at 0x000001B7E6878FA0>, 247266.25)]']
+connector: <aiohttp.connector.TCPConnector object at 0x000001B7E6867C90> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2024-12-16 11:16:48,215 INFO: OpenCEM started // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 94
+2024-12-16 11:16:51,685 INFO: Authentication URL: https://cloud.clemap.com:3032/authentication // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\.venv\Lib\site-packages\sgr_library\restapi_client_async.py", function __init__, line 116
+2024-12-16 11:16:51,742 ERROR: HTTP error occurred: 401, message='Unauthorized', url='https://cloud.clemap.com:3032/digitaltwins/?sensor_id=661d109a441239001393c201' // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\.venv\Lib\site-packages\sgr_library\restapi_client_async.py", function getval, line 251
+2024-12-16 11:16:51,768 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x0000016F562233D0> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2024-12-16 11:16:51,769 ERROR: Unclosed connector
+connections: ['[(<aiohttp.client_proto.ResponseHandler object at 0x0000016F56278AD0>, 247668.453)]']
+connector: <aiohttp.connector.TCPConnector object at 0x0000016F56260710> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785

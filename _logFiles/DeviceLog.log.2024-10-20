@@ -1,0 +1,372 @@
+timestamp;name;type;info;state;value;unit;error_code
+21.10.24 13:01:28;Main Meter;POWER_SENSOR;read_power;0;-2.22;KILOWATTS;0
+21.10.24 13:01:28;PV production;POWER_SENSOR;read_power;0;8.52;KILOWATTS;0
+21.10.24 13:01:28;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;20.82;CELSIUS;0
+21.10.24 13:01:28;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:01:28;Electric Heater Switch;RELAIS_SWITCH;write_channel;ON;0.00;None;0
+21.10.24 13:01:28;Heat Pump;HEAT_PUMP;switch_device;ON;0.00;None;0
+21.10.24 13:01:28;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;50.28;None;0
+21.10.24 13:01:36;Main Meter;POWER_SENSOR;read_power;0;-3.85;KILOWATTS;0
+21.10.24 13:01:36;PV production;POWER_SENSOR;read_power;0;8.43;KILOWATTS;0
+21.10.24 13:01:36;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;19.34;CELSIUS;0
+21.10.24 13:01:36;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:01:36;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;52.32;None;0
+21.10.24 13:01:44;Main Meter;POWER_SENSOR;read_power;0;1.04;KILOWATTS;0
+21.10.24 13:01:44;PV production;POWER_SENSOR;read_power;0;9.60;KILOWATTS;0
+21.10.24 13:01:44;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;20.24;CELSIUS;0
+21.10.24 13:01:44;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:01:44;Electric Heater Switch;RELAIS_SWITCH;write_channel;OFF;0.00;None;0
+21.10.24 13:01:44;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:01:52;Main Meter;POWER_SENSOR;read_power;0;3.04;KILOWATTS;0
+21.10.24 13:01:52;PV production;POWER_SENSOR;read_power;0;2.55;KILOWATTS;0
+21.10.24 13:01:52;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;19.56;CELSIUS;0
+21.10.24 13:01:52;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:01:52;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:02:00;Main Meter;POWER_SENSOR;read_power;0;-2.55;KILOWATTS;0
+21.10.24 13:02:00;PV production;POWER_SENSOR;read_power;0;3.81;KILOWATTS;0
+21.10.24 13:02:00;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;20.62;CELSIUS;0
+21.10.24 13:02:00;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:02:00;Electric Heater Switch;RELAIS_SWITCH;write_channel;ON;0.00;None;0
+21.10.24 13:02:00;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;50.68;None;0
+21.10.24 13:06:13;Main Meter;POWER_SENSOR;read_power;0;7.40;KILOWATTS;0
+21.10.24 13:06:13;PV production;POWER_SENSOR;read_power;0;9.08;KILOWATTS;0
+21.10.24 13:06:13;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;19.11;CELSIUS;0
+21.10.24 13:06:13;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:06:13;Heat Pump;HEAT_PUMP;switch_device;ON;0.00;None;0
+21.10.24 13:06:13;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:06:50;Main Meter;POWER_SENSOR;read_power;0;-5.96;KILOWATTS;0
+21.10.24 13:06:50;PV production;POWER_SENSOR;read_power;0;6.21;KILOWATTS;0
+21.10.24 13:06:50;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;18.23;CELSIUS;0
+21.10.24 13:06:50;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:06:50;EV Charging Station;EV_CHARGER;switch_device;ON;0.00;None;0
+21.10.24 13:06:50;EV Charging Station;EV_CHARGER;write_device_setpoint;ON;0.01;None;0
+21.10.24 13:06:50;Electric Heater Switch;RELAIS_SWITCH;write_channel;ON;0.00;None;0
+21.10.24 13:06:50;Heat Pump;HEAT_PUMP;switch_device;ON;0.00;None;0
+21.10.24 13:06:50;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;54.96;None;0
+21.10.24 13:09:24;Main Meter;POWER_SENSOR;read_power;0;2.79;KILOWATTS;0
+21.10.24 13:09:24;PV production;POWER_SENSOR;read_power;0;3.18;KILOWATTS;0
+21.10.24 13:09:24;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;21.36;CELSIUS;0
+21.10.24 13:09:24;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:09:24;Heat Pump;HEAT_PUMP;switch_device;ON;0.00;None;0
+21.10.24 13:09:24;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:09:27;Main Meter;POWER_SENSOR;read_power;0;-7.74;KILOWATTS;0
+21.10.24 13:09:27;PV production;POWER_SENSOR;read_power;0;1.88;KILOWATTS;0
+21.10.24 13:09:27;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;20.82;CELSIUS;0
+21.10.24 13:09:27;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:09:27;EV Charging Station;EV_CHARGER;switch_device;ON;0.00;None;0
+21.10.24 13:09:27;EV Charging Station;EV_CHARGER;write_device_setpoint;ON;0.01;None;0
+21.10.24 13:09:27;Electric Heater Switch;RELAIS_SWITCH;write_channel;ON;0.00;None;0
+21.10.24 13:09:27;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;57.17;None;0
+21.10.24 13:09:30;Main Meter;POWER_SENSOR;read_power;0;4.15;KILOWATTS;0
+21.10.24 13:09:30;PV production;POWER_SENSOR;read_power;0;5.09;KILOWATTS;0
+21.10.24 13:09:30;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;18.16;CELSIUS;0
+21.10.24 13:09:30;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:09:30;EV Charging Station;EV_CHARGER;switch_device;OFF;0.01;None;0
+21.10.24 13:09:30;Electric Heater Switch;RELAIS_SWITCH;write_channel;OFF;0.00;None;0
+21.10.24 13:09:30;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:09:33;Main Meter;POWER_SENSOR;read_power;0;0.06;KILOWATTS;0
+21.10.24 13:09:33;PV production;POWER_SENSOR;read_power;0;8.41;KILOWATTS;0
+21.10.24 13:09:33;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;19.99;CELSIUS;0
+21.10.24 13:09:33;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:09:33;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:09:36;Main Meter;POWER_SENSOR;read_power;0;-1.34;KILOWATTS;0
+21.10.24 13:09:36;PV production;POWER_SENSOR;read_power;0;9.90;KILOWATTS;0
+21.10.24 13:09:36;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;20.19;CELSIUS;0
+21.10.24 13:09:36;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:09:36;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:09:39;Main Meter;POWER_SENSOR;read_power;0;-0.57;KILOWATTS;0
+21.10.24 13:09:39;PV production;POWER_SENSOR;read_power;0;6.12;KILOWATTS;0
+21.10.24 13:09:39;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;21.83;CELSIUS;0
+21.10.24 13:09:39;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:09:39;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:09:42;Main Meter;POWER_SENSOR;read_power;0;-2.29;KILOWATTS;0
+21.10.24 13:09:42;PV production;POWER_SENSOR;read_power;0;8.44;KILOWATTS;0
+21.10.24 13:09:42;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;20.21;CELSIUS;0
+21.10.24 13:09:42;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:09:42;Electric Heater Switch;RELAIS_SWITCH;write_channel;ON;0.00;None;0
+21.10.24 13:09:42;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;50.36;None;0
+21.10.24 13:09:45;Main Meter;POWER_SENSOR;read_power;0;4.56;KILOWATTS;0
+21.10.24 13:09:45;PV production;POWER_SENSOR;read_power;0;8.09;KILOWATTS;0
+21.10.24 13:09:45;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;21.26;CELSIUS;0
+21.10.24 13:09:45;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:09:45;Electric Heater Switch;RELAIS_SWITCH;write_channel;OFF;0.00;None;0
+21.10.24 13:09:45;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:09:48;Main Meter;POWER_SENSOR;read_power;0;-3.24;KILOWATTS;0
+21.10.24 13:09:48;PV production;POWER_SENSOR;read_power;0;7.03;KILOWATTS;0
+21.10.24 13:09:48;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;21.78;CELSIUS;0
+21.10.24 13:09:48;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:09:48;Electric Heater Switch;RELAIS_SWITCH;write_channel;ON;0.00;None;0
+21.10.24 13:09:48;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;51.55;None;0
+21.10.24 13:09:51;Main Meter;POWER_SENSOR;read_power;0;-2.61;KILOWATTS;0
+21.10.24 13:09:51;PV production;POWER_SENSOR;read_power;0;1.13;KILOWATTS;0
+21.10.24 13:09:51;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;21.24;CELSIUS;0
+21.10.24 13:09:51;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:09:51;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;50.76;None;0
+21.10.24 13:09:54;Main Meter;POWER_SENSOR;read_power;0;-1.78;KILOWATTS;0
+21.10.24 13:09:54;PV production;POWER_SENSOR;read_power;0;8.00;KILOWATTS;0
+21.10.24 13:09:54;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;21.89;CELSIUS;0
+21.10.24 13:09:54;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:09:54;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:09:57;Main Meter;POWER_SENSOR;read_power;0;-5.92;KILOWATTS;0
+21.10.24 13:09:57;PV production;POWER_SENSOR;read_power;0;7.83;KILOWATTS;0
+21.10.24 13:09:57;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;20.11;CELSIUS;0
+21.10.24 13:09:57;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:09:57;EV Charging Station;EV_CHARGER;switch_device;ON;0.01;None;0
+21.10.24 13:09:57;EV Charging Station;EV_CHARGER;write_device_setpoint;ON;0.01;None;0
+21.10.24 13:09:57;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;54.90;None;0
+21.10.24 13:10:00;Main Meter;POWER_SENSOR;read_power;0;4.94;KILOWATTS;0
+21.10.24 13:10:00;PV production;POWER_SENSOR;read_power;0;5.36;KILOWATTS;0
+21.10.24 13:10:00;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;20.58;CELSIUS;0
+21.10.24 13:10:00;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:10:00;EV Charging Station;EV_CHARGER;switch_device;OFF;0.01;None;0
+21.10.24 13:10:00;Electric Heater Switch;RELAIS_SWITCH;write_channel;OFF;0.00;None;0
+21.10.24 13:10:00;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:10:03;Main Meter;POWER_SENSOR;read_power;0;-1.55;KILOWATTS;0
+21.10.24 13:10:03;PV production;POWER_SENSOR;read_power;0;2.49;KILOWATTS;0
+21.10.24 13:10:03;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;20.37;CELSIUS;0
+21.10.24 13:10:03;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:10:03;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:10:06;Main Meter;POWER_SENSOR;read_power;0;2.40;KILOWATTS;0
+21.10.24 13:10:06;PV production;POWER_SENSOR;read_power;0;1.42;KILOWATTS;0
+21.10.24 13:10:06;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;18.49;CELSIUS;0
+21.10.24 13:10:06;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:10:06;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:10:09;Main Meter;POWER_SENSOR;read_power;0;6.48;KILOWATTS;0
+21.10.24 13:10:09;PV production;POWER_SENSOR;read_power;0;0.22;KILOWATTS;0
+21.10.24 13:10:09;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;19.49;CELSIUS;0
+21.10.24 13:10:09;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:10:09;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:10:12;Main Meter;POWER_SENSOR;read_power;0;2.21;KILOWATTS;0
+21.10.24 13:10:12;PV production;POWER_SENSOR;read_power;0;9.26;KILOWATTS;0
+21.10.24 13:10:12;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;21.21;CELSIUS;0
+21.10.24 13:10:12;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:10:12;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:10:15;Main Meter;POWER_SENSOR;read_power;0;-5.08;KILOWATTS;0
+21.10.24 13:10:15;PV production;POWER_SENSOR;read_power;0;1.69;KILOWATTS;0
+21.10.24 13:10:15;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;20.20;CELSIUS;0
+21.10.24 13:10:15;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:10:15;EV Charging Station;EV_CHARGER;switch_device;ON;0.01;None;0
+21.10.24 13:10:15;EV Charging Station;EV_CHARGER;write_device_setpoint;ON;0.01;None;0
+21.10.24 13:10:15;Electric Heater Switch;RELAIS_SWITCH;write_channel;ON;0.00;None;0
+21.10.24 13:10:15;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;53.85;None;0
+21.10.24 13:10:18;Main Meter;POWER_SENSOR;read_power;0;5.07;KILOWATTS;0
+21.10.24 13:10:18;PV production;POWER_SENSOR;read_power;0;5.87;KILOWATTS;0
+21.10.24 13:10:18;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;18.01;CELSIUS;0
+21.10.24 13:10:18;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:10:18;EV Charging Station;EV_CHARGER;switch_device;OFF;0.01;None;0
+21.10.24 13:10:18;Electric Heater Switch;RELAIS_SWITCH;write_channel;OFF;0.00;None;0
+21.10.24 13:10:18;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:10:21;Main Meter;POWER_SENSOR;read_power;0;-0.76;KILOWATTS;0
+21.10.24 13:10:21;PV production;POWER_SENSOR;read_power;0;4.87;KILOWATTS;0
+21.10.24 13:10:21;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;20.37;CELSIUS;0
+21.10.24 13:10:21;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:10:21;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:10:24;Main Meter;POWER_SENSOR;read_power;0;4.08;KILOWATTS;0
+21.10.24 13:10:24;PV production;POWER_SENSOR;read_power;0;2.90;KILOWATTS;0
+21.10.24 13:10:24;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;21.33;CELSIUS;0
+21.10.24 13:10:24;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:10:24;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:10:27;Main Meter;POWER_SENSOR;read_power;0;-6.32;KILOWATTS;0
+21.10.24 13:10:27;PV production;POWER_SENSOR;read_power;0;3.35;KILOWATTS;0
+21.10.24 13:10:27;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;19.75;CELSIUS;0
+21.10.24 13:10:27;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:10:27;EV Charging Station;EV_CHARGER;switch_device;ON;0.01;None;0
+21.10.24 13:10:27;EV Charging Station;EV_CHARGER;write_device_setpoint;ON;0.01;None;0
+21.10.24 13:10:27;Electric Heater Switch;RELAIS_SWITCH;write_channel;ON;0.00;None;0
+21.10.24 13:10:27;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;55.40;None;0
+21.10.24 13:10:30;Main Meter;POWER_SENSOR;read_power;0;-7.89;KILOWATTS;0
+21.10.24 13:10:30;PV production;POWER_SENSOR;read_power;0;9.08;KILOWATTS;0
+21.10.24 13:10:30;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;20.34;CELSIUS;0
+21.10.24 13:10:30;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:10:30;EV Charging Station;EV_CHARGER;write_device_setpoint;ON;0.01;None;0
+21.10.24 13:10:30;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;52.36;None;0
+21.10.24 13:10:33;Main Meter;POWER_SENSOR;read_power;0;-2.69;KILOWATTS;0
+21.10.24 13:10:33;PV production;POWER_SENSOR;read_power;0;7.96;KILOWATTS;0
+21.10.24 13:10:33;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;18.05;CELSIUS;0
+21.10.24 13:10:33;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:10:33;EV Charging Station;EV_CHARGER;switch_device;OFF;0.01;None;0
+21.10.24 13:10:33;Electric Heater Switch;RELAIS_SWITCH;write_channel;OFF;0.00;None;0
+21.10.24 13:10:33;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:10:36;Main Meter;POWER_SENSOR;read_power;0;5.93;KILOWATTS;0
+21.10.24 13:10:36;PV production;POWER_SENSOR;read_power;0;4.90;KILOWATTS;0
+21.10.24 13:10:36;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;21.88;CELSIUS;0
+21.10.24 13:10:36;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:10:36;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:10:39;Main Meter;POWER_SENSOR;read_power;0;6.34;KILOWATTS;0
+21.10.24 13:10:39;PV production;POWER_SENSOR;read_power;0;5.12;KILOWATTS;0
+21.10.24 13:10:39;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;20.90;CELSIUS;0
+21.10.24 13:10:39;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:10:39;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:10:42;Main Meter;POWER_SENSOR;read_power;0;-2.34;KILOWATTS;0
+21.10.24 13:10:42;PV production;POWER_SENSOR;read_power;0;8.66;KILOWATTS;0
+21.10.24 13:10:42;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;19.65;CELSIUS;0
+21.10.24 13:10:42;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:10:42;Electric Heater Switch;RELAIS_SWITCH;write_channel;ON;0.00;None;0
+21.10.24 13:10:42;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;50.43;None;0
+21.10.24 13:10:45;Main Meter;POWER_SENSOR;read_power;0;2.62;KILOWATTS;0
+21.10.24 13:10:45;PV production;POWER_SENSOR;read_power;0;3.10;KILOWATTS;0
+21.10.24 13:10:45;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;18.87;CELSIUS;0
+21.10.24 13:10:45;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:10:45;Electric Heater Switch;RELAIS_SWITCH;write_channel;OFF;0.00;None;0
+21.10.24 13:10:45;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:10:48;Main Meter;POWER_SENSOR;read_power;0;-0.95;KILOWATTS;0
+21.10.24 13:10:48;PV production;POWER_SENSOR;read_power;0;3.23;KILOWATTS;0
+21.10.24 13:10:48;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;19.94;CELSIUS;0
+21.10.24 13:10:48;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:10:48;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:10:51;Main Meter;POWER_SENSOR;read_power;0;7.34;KILOWATTS;0
+21.10.24 13:10:51;PV production;POWER_SENSOR;read_power;0;5.08;KILOWATTS;0
+21.10.24 13:10:51;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;18.49;CELSIUS;0
+21.10.24 13:10:51;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:10:51;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:10:54;Main Meter;POWER_SENSOR;read_power;0;-1.27;KILOWATTS;0
+21.10.24 13:10:54;PV production;POWER_SENSOR;read_power;0;8.76;KILOWATTS;0
+21.10.24 13:10:54;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;20.25;CELSIUS;0
+21.10.24 13:10:54;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:10:54;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:10:57;Main Meter;POWER_SENSOR;read_power;0;-3.37;KILOWATTS;0
+21.10.24 13:10:57;PV production;POWER_SENSOR;read_power;0;8.54;KILOWATTS;0
+21.10.24 13:10:57;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;21.64;CELSIUS;0
+21.10.24 13:10:57;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:10:57;Electric Heater Switch;RELAIS_SWITCH;write_channel;ON;0.00;None;0
+21.10.24 13:10:57;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;51.71;None;0
+21.10.24 13:11:00;Main Meter;POWER_SENSOR;read_power;0;-0.50;KILOWATTS;0
+21.10.24 13:11:00;PV production;POWER_SENSOR;read_power;0;9.61;KILOWATTS;0
+21.10.24 13:11:00;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;21.27;CELSIUS;0
+21.10.24 13:11:00;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:11:00;Electric Heater Switch;RELAIS_SWITCH;write_channel;OFF;0.00;None;0
+21.10.24 13:11:00;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:11:03;Main Meter;POWER_SENSOR;read_power;0;-2.99;KILOWATTS;0
+21.10.24 13:11:03;PV production;POWER_SENSOR;read_power;0;7.88;KILOWATTS;0
+21.10.24 13:11:03;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;18.59;CELSIUS;0
+21.10.24 13:11:03;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:11:03;Electric Heater Switch;RELAIS_SWITCH;write_channel;ON;0.00;None;0
+21.10.24 13:11:03;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;51.23;None;0
+21.10.24 13:11:06;Main Meter;POWER_SENSOR;read_power;0;7.30;KILOWATTS;0
+21.10.24 13:11:06;PV production;POWER_SENSOR;read_power;0;6.99;KILOWATTS;0
+21.10.24 13:11:06;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;21.49;CELSIUS;0
+21.10.24 13:11:06;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:11:06;Electric Heater Switch;RELAIS_SWITCH;write_channel;OFF;0.00;None;0
+21.10.24 13:11:06;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:11:09;Main Meter;POWER_SENSOR;read_power;0;0.71;KILOWATTS;0
+21.10.24 13:11:09;PV production;POWER_SENSOR;read_power;0;3.90;KILOWATTS;0
+21.10.24 13:11:09;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;20.13;CELSIUS;0
+21.10.24 13:11:09;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:11:09;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:11:12;Main Meter;POWER_SENSOR;read_power;0;5.19;KILOWATTS;0
+21.10.24 13:11:12;PV production;POWER_SENSOR;read_power;0;9.82;KILOWATTS;0
+21.10.24 13:11:12;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;18.47;CELSIUS;0
+21.10.24 13:11:12;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:11:12;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:11:15;Main Meter;POWER_SENSOR;read_power;0;-7.66;KILOWATTS;0
+21.10.24 13:11:15;PV production;POWER_SENSOR;read_power;0;5.00;KILOWATTS;0
+21.10.24 13:11:15;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;19.99;CELSIUS;0
+21.10.24 13:11:15;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:11:15;EV Charging Station;EV_CHARGER;switch_device;ON;0.01;None;0
+21.10.24 13:11:15;EV Charging Station;EV_CHARGER;write_device_setpoint;ON;0.01;None;0
+21.10.24 13:11:15;Electric Heater Switch;RELAIS_SWITCH;write_channel;ON;0.00;None;0
+21.10.24 13:11:15;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;57.07;None;0
+21.10.24 13:11:18;Main Meter;POWER_SENSOR;read_power;0;-0.28;KILOWATTS;0
+21.10.24 13:11:18;PV production;POWER_SENSOR;read_power;0;7.12;KILOWATTS;0
+21.10.24 13:11:18;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;21.91;CELSIUS;0
+21.10.24 13:11:18;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:11:18;EV Charging Station;EV_CHARGER;switch_device;OFF;0.01;None;0
+21.10.24 13:11:18;Electric Heater Switch;RELAIS_SWITCH;write_channel;OFF;0.00;None;0
+21.10.24 13:11:18;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:11:21;Main Meter;POWER_SENSOR;read_power;0;4.98;KILOWATTS;0
+21.10.24 13:11:21;PV production;POWER_SENSOR;read_power;0;8.84;KILOWATTS;0
+21.10.24 13:11:21;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;18.96;CELSIUS;0
+21.10.24 13:11:21;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:11:21;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:11:24;Main Meter;POWER_SENSOR;read_power;0;3.52;KILOWATTS;0
+21.10.24 13:11:24;PV production;POWER_SENSOR;read_power;0;2.05;KILOWATTS;0
+21.10.24 13:11:24;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;21.99;CELSIUS;0
+21.10.24 13:11:24;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:11:24;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:11:27;Main Meter;POWER_SENSOR;read_power;0;-4.23;KILOWATTS;0
+21.10.24 13:11:27;PV production;POWER_SENSOR;read_power;0;0.29;KILOWATTS;0
+21.10.24 13:11:27;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;19.24;CELSIUS;0
+21.10.24 13:11:27;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:11:27;EV Charging Station;EV_CHARGER;switch_device;ON;0.01;None;0
+21.10.24 13:11:27;EV Charging Station;EV_CHARGER;write_device_setpoint;ON;0.01;None;0
+21.10.24 13:11:27;Electric Heater Switch;RELAIS_SWITCH;write_channel;ON;0.00;None;0
+21.10.24 13:11:27;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;52.79;None;0
+21.10.24 13:11:30;Main Meter;POWER_SENSOR;read_power;0;1.89;KILOWATTS;0
+21.10.24 13:11:30;PV production;POWER_SENSOR;read_power;0;8.21;KILOWATTS;0
+21.10.24 13:11:30;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;18.62;CELSIUS;0
+21.10.24 13:11:30;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:11:30;EV Charging Station;EV_CHARGER;switch_device;OFF;0.01;None;0
+21.10.24 13:11:30;Electric Heater Switch;RELAIS_SWITCH;write_channel;OFF;0.00;None;0
+21.10.24 13:11:30;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:11:33;Main Meter;POWER_SENSOR;read_power;0;4.62;KILOWATTS;0
+21.10.24 13:11:33;PV production;POWER_SENSOR;read_power;0;3.17;KILOWATTS;0
+21.10.24 13:11:33;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;20.27;CELSIUS;0
+21.10.24 13:11:33;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:11:33;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:11:36;Main Meter;POWER_SENSOR;read_power;0;0.75;KILOWATTS;0
+21.10.24 13:11:36;PV production;POWER_SENSOR;read_power;0;0.39;KILOWATTS;0
+21.10.24 13:11:36;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;19.79;CELSIUS;0
+21.10.24 13:11:36;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:11:36;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:11:39;Main Meter;POWER_SENSOR;read_power;0;-5.79;KILOWATTS;0
+21.10.24 13:11:39;PV production;POWER_SENSOR;read_power;0;4.87;KILOWATTS;0
+21.10.24 13:11:39;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;18.45;CELSIUS;0
+21.10.24 13:11:39;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:11:39;EV Charging Station;EV_CHARGER;switch_device;ON;0.01;None;0
+21.10.24 13:11:39;EV Charging Station;EV_CHARGER;write_device_setpoint;ON;0.01;None;0
+21.10.24 13:11:39;Electric Heater Switch;RELAIS_SWITCH;write_channel;ON;0.00;None;0
+21.10.24 13:11:39;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;54.74;None;0
+21.10.24 13:11:42;Main Meter;POWER_SENSOR;read_power;0;4.48;KILOWATTS;0
+21.10.24 13:11:42;PV production;POWER_SENSOR;read_power;0;1.08;KILOWATTS;0
+21.10.24 13:11:42;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;21.43;CELSIUS;0
+21.10.24 13:11:42;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:11:42;EV Charging Station;EV_CHARGER;switch_device;OFF;0.01;None;0
+21.10.24 13:11:42;Electric Heater Switch;RELAIS_SWITCH;write_channel;OFF;0.00;None;0
+21.10.24 13:11:42;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:11:45;Main Meter;POWER_SENSOR;read_power;0;3.68;KILOWATTS;0
+21.10.24 13:11:45;PV production;POWER_SENSOR;read_power;0;4.10;KILOWATTS;0
+21.10.24 13:11:45;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;19.95;CELSIUS;0
+21.10.24 13:11:45;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:11:45;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:11:48;Main Meter;POWER_SENSOR;read_power;0;1.99;KILOWATTS;0
+21.10.24 13:11:48;PV production;POWER_SENSOR;read_power;0;4.97;KILOWATTS;0
+21.10.24 13:11:48;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;19.67;CELSIUS;0
+21.10.24 13:11:48;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:11:48;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:11:51;Main Meter;POWER_SENSOR;read_power;0;-7.09;KILOWATTS;0
+21.10.24 13:11:51;PV production;POWER_SENSOR;read_power;0;9.04;KILOWATTS;0
+21.10.24 13:11:51;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;18.63;CELSIUS;0
+21.10.24 13:11:51;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:11:51;EV Charging Station;EV_CHARGER;switch_device;ON;0.01;None;0
+21.10.24 13:11:51;EV Charging Station;EV_CHARGER;write_device_setpoint;ON;0.01;None;0
+21.10.24 13:11:51;Electric Heater Switch;RELAIS_SWITCH;write_channel;ON;0.00;None;0
+21.10.24 13:11:51;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;56.36;None;0
+21.10.24 13:11:54;Main Meter;POWER_SENSOR;read_power;0;5.23;KILOWATTS;0
+21.10.24 13:11:54;PV production;POWER_SENSOR;read_power;0;2.34;KILOWATTS;0
+21.10.24 13:11:54;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;18.34;CELSIUS;0
+21.10.24 13:11:54;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:11:54;EV Charging Station;EV_CHARGER;switch_device;OFF;0.01;None;0
+21.10.24 13:11:54;Electric Heater Switch;RELAIS_SWITCH;write_channel;OFF;0.00;None;0
+21.10.24 13:11:54;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:11:57;Main Meter;POWER_SENSOR;read_power;0;3.53;KILOWATTS;0
+21.10.24 13:11:57;PV production;POWER_SENSOR;read_power;0;5.27;KILOWATTS;0
+21.10.24 13:11:57;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;21.56;CELSIUS;0
+21.10.24 13:11:57;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:11:57;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:43:28;Main Meter;POWER_SENSOR;read_power;0;-0.02;KILOWATTS;0
+21.10.24 13:43:28;PV production;POWER_SENSOR;read_power;0;9.03;KILOWATTS;0
+21.10.24 13:43:28;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;18.95;CELSIUS;0
+21.10.24 13:43:28;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:43:28;Heat Pump;HEAT_PUMP;switch_device;ON;0.00;None;0
+21.10.24 13:43:28;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:43:31;Main Meter;POWER_SENSOR;read_power;0;4.00;KILOWATTS;0
+21.10.24 13:43:31;PV production;POWER_SENSOR;read_power;0;6.88;KILOWATTS;0
+21.10.24 13:43:31;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;21.72;CELSIUS;0
+21.10.24 13:43:31;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:43:31;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0
+21.10.24 13:43:38;Main Meter;POWER_SENSOR;read_power;0;1.62;KILOWATTS;0
+21.10.24 13:43:38;PV production;POWER_SENSOR;read_power;0;3.71;KILOWATTS;0
+21.10.24 13:43:38;Temperature Sensor Living Room;TEMPERATURE_SENSOR;read_temperature;0;21.93;CELSIUS;0
+21.10.24 13:43:38;Electric Heater Switch;RELAIS_SWITCH;read_channel;0;0.00;None;0
+21.10.24 13:43:38;Heat Pump;HEAT_PUMP;switch_device;ON;0.00;None;0
+21.10.24 13:43:38;Heat Pump;HEAT_PUMP;write_device_setpoint;ON;40.00;None;0

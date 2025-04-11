@@ -1,0 +1,33 @@
+2025-01-05 19:39:37,066 INFO: OpenCEM started // File"c:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 94
+2025-01-05 19:39:40,273 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000001EC6F02A610> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2025-01-05 19:40:54,646 INFO: OpenCEM started // File"c:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 94
+2025-01-05 19:40:57,716 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x0000020DA2E39D90> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2025-01-05 19:42:09,887 INFO: OpenCEM started // File"c:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 94
+2025-01-05 19:42:12,965 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000001E3AB72A710> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2025-01-05 19:43:56,959 INFO: OpenCEM started // File"c:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 94
+2025-01-05 19:44:00,053 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000001ECA7A2A850> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2025-01-05 19:44:53,260 INFO: OpenCEM started // File"c:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 94
+2025-01-05 19:44:56,325 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x0000018CD252A410> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2025-01-05 19:46:38,261 INFO: OpenCEM started // File"c:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 94
+2025-01-05 19:46:41,336 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000001B6E54355D0> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2025-01-05 19:47:03,161 INFO: OpenCEM started // File"c:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 94
+2025-01-05 19:47:06,235 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x0000025F99826B10> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2025-01-05 19:48:24,482 INFO: OpenCEM started // File"c:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 94
+2025-01-05 19:48:27,666 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000001AA58F35790> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2025-01-05 19:49:22,254 INFO: OpenCEM started // File"c:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 94
+2025-01-05 19:49:25,348 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000001DAE4F2A8D0> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2025-01-05 19:50:53,578 INFO: OpenCEM started // File"c:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 94
+2025-01-05 22:29:30,252 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x00000223A5A2A650> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2025-01-05 22:29:30,289 ERROR: Unclosed connector
+connections: ['[(<aiohttp.client_proto.ResponseHandler object at 0x00000223A5A14E50>, 221388.828)]']
+connector: <aiohttp.connector.TCPConnector object at 0x00000223A5A29DD0> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785

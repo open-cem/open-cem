@@ -1,0 +1,63 @@
+
+installationName: SimTest
+creationTimestamp: 2024-09-26 08:55:00
+version: 1
+communicationChannels:
+- name: REST_API_CLEMAP
+  type: REST_API
+  extra:
+    baseURL: https://cloud.clemap.com:3032
+    username: smartgridready24@gmail.com
+    password: *****
+- name: REST_API_SMARTME
+  type: REST_API
+  extra:
+    baseURL: https://api.smart-me.com
+    username: smartgridready2024@gmail.com
+    password: *****
+- name: Shelly_Cloud
+  type: REST_API
+  param:
+    baseURL: https://shelly-113-eu.shelly.cloud
+    shelly_cloud_key: ****
+devices:
+- name: Shelly pro3EM
+  type: POWER_SENSOR
+  smartGridreadyEID: None 
+  EID_param: None 
+  nativeEID: Shelly_Pro3EM_Cloud.yaml
+  simulationModel: None
+  isLogging: true
+  communicationChannel: Shelly_Cloud
+  param:
+    device_id: 08f9e0eaa29c
+    baseURL: http://192.168.137.80
+
+
+
+# actual device and controller configuration of OpenCEM
+
+installationName: SimTest
+creationTimestamp: 2024-09-26 08:55:00
+version: 1
+communicationChannels:
+devices:
+- name: CLEMAP EMS
+  type: POWER_SENSOR
+  smartGridreadyEID: None #SGr_04_mmmm_dddd_CLEMAPEnergyMonitorEIV0.2.1.xml
+  EID_param: None
+  nativeEID: "CLEMAP.yaml"
+  simulationModel: None
+  isLogging: true
+  communicationChannel: REST_API
+  extra:
+      device_id:
+      authentication:
+        baseURL: https://api.smart-me.com
+        username:
+        password:
+      hasEnergyImport: true
+      hasEnergyExport: true
+      maxPower: 10
+
+

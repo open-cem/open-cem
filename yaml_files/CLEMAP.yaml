@@ -1,0 +1,49 @@
+---
+configuration:
+- Interfacetype: REST_API
+- Interface:
+    BaseURL: _baseURL_
+    authentication:
+      AuthenticationMethod: BearerSecurityScheme
+      BearerSecurity:
+        Method: POST
+        EndPoint: /authentication
+        Header: {"Accept": "application/json", "Content-Type": "application/json"}
+        Body: {"strategy": "local", "email": "_username_", "password": "_password_"}
+- placeholder_info:
+    baseURL: https://cloud.clemap.com:3032
+    username: smartgridready24@gmail.com
+    password: SmartGrid_24
+    sensor_id: 661d109a441239001393c201
+FunctionalProfiles:
+- ActivePowerAC:
+    ActivePowerACtot:
+      DataType: JSON_number
+      Unit: kW
+      Type: double
+      Method: GET
+      EndPoint: //digitaltwins?sensor_id=_sensor_id_
+      Header: "Accept: application/json"
+      Response_scheme: sum((response[0]["ten_sec"]["p_l1"],response[0]["ten_sec"]["p_l2"],response[0]["ten_sec"]["p_l3"]))
+    ActivePowerACL1:
+      DataType: JSON_number
+      Unit: kW
+      Type: double
+      Method: GET
+      EndPoint: //digitaltwins?sensor_id=_sensor_id_
+      Header: "Accept : application/json"
+      Response_scheme: response[0]["ten_sec"]["p_l1"]
+    ActivePowerACL2:
+      DataType: JSON_number
+      Unit: kW
+      Type: double
+      Method: GET
+      EndPoint: /digitaltwins?sensor_id=_sensor_id_
+      Header: "Accept : application/json"
+      Response_scheme: response[0]["ten_sec"]["p_l2"]
+    ActivePowerACL3:
+      DataType: JSON_number
+      Method: GET
+      EndPoint: /digitaltwins?sensor_id=_sensor_id_
+      Header: "Accept : application/json"
+      Response_scheme: response[0]["ten_sec"]["p_l2"]

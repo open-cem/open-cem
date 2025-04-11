@@ -1,0 +1,5 @@
+2024-11-18 13:29:30,120 INFO: OpenCEM started // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 89
+2024-11-18 13:29:36,188 ERROR: Connection to (192.168.137.166, 502) failed: timed out // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\.venv\Lib\site-packages\pymodbus\client\tcp.py", function connect, line 174
+2024-11-18 13:29:39,197 ERROR: Connection to (192.168.137.166, 502) failed: timed out // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\.venv\Lib\site-packages\pymodbus\client\tcp.py", function connect, line 174
+2024-11-18 13:29:39,287 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x0000018F68D6FB50> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785

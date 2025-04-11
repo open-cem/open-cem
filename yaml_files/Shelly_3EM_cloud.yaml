@@ -1,0 +1,44 @@
+---
+configuration:
+- Interfacetype: REST_API
+- Interface:
+    BaseURL: _baseURL_
+    authentication:
+      AuthenticationMethod: NoSecurityScheme
+FunctionalProfiles:
+- ActivePowerAC:
+    ActivePowerACtot:
+      DataType: float64
+      Unit: Watts
+      Type: double
+      Method: POST
+      EndPoint: /device/status
+      Data: {'id': _device_id_, 'auth_key': _shelly_cloud_key_}
+      Header: "Accept: application/json"
+      Response_scheme: sum((response['data']['device_status']['emeters'][0]['power'],['data']['device_status']['emeters'][1]['power'],['data']['device_status']['emeters'][2]['power']))
+    ActivePowerACL1:
+      DataType: float64
+      Unit: Watts
+      Type: double
+      Method: POST
+      EndPoint: /device/status
+      Data: {'id': _device_id_, 'auth_key': _shelly_cloud_key_}
+      Header: "Accept : application/json"
+      Response_scheme: response['data']['device_status']['emeters'][0]['power']
+    ActivePowerACL2:
+      DataType: float64
+      Unit: Watts
+      Type: double
+      Method: POST
+      EndPoint: /device/status
+      Data: {'id': _device_id_, 'auth_key': _shelly_cloud_key_}
+      Header: "Accept : application/json"
+      Response_scheme: response['data']['device_status']['emeters'][1]['power']
+    ActivePowerACL3:
+      DataType: float64
+      Type: double
+      Method: POST
+      EndPoint: /device/status
+      Data: {'id': _device_id_, 'auth_key': _shelly_cloud_key_}
+      Header: "Accept : application/json"
+      Response_scheme: response['data']['device_status']['emeters'][2]['power']

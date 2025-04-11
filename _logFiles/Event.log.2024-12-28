@@ -1,0 +1,42 @@
+2024-12-28 16:44:54,745 INFO: OpenCEM started // File"c:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 94
+2024-12-28 16:44:57,814 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000001582FF29790> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2024-12-28 16:46:01,753 INFO: OpenCEM started // File"c:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 94
+2024-12-28 16:46:04,822 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000001A51943A550> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2024-12-28 16:47:55,631 INFO: OpenCEM started // File"c:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 94
+2024-12-28 16:47:59,088 INFO: Authentication URL: https://{{baseuri}}/authentication // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\.venv\Lib\site-packages\sgr_library\restapi_client_async.py", function __init__, line 116
+2024-12-28 16:47:59,108 ERROR: Connection error occurred: Cannot connect to host {{baseuri}}:443 ssl:default [getaddrinfo failed] // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\.venv\Lib\site-packages\sgr_library\restapi_client_async.py", function getval, line 253
+2024-12-28 16:47:59,150 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x0000021529B49E50> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2024-12-28 16:47:59,152 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x0000021529B87A90> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2024-12-28 16:53:29,303 INFO: OpenCEM started // File"c:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 94
+2024-12-28 16:53:32,881 INFO: Authentication URL: https://{{baseuri}}/authentication // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\.venv\Lib\site-packages\sgr_library\restapi_client_async.py", function __init__, line 116
+2024-12-28 16:53:32,891 ERROR: Connection error occurred: Cannot connect to host {{baseuri}}:443 ssl:default [getaddrinfo failed] // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\.venv\Lib\site-packages\sgr_library\restapi_client_async.py", function getval, line 253
+2024-12-28 16:53:32,933 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x0000024C6A02DDD0> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2024-12-28 16:53:32,934 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x0000024C6A06FB90> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2024-12-28 16:56:08,390 INFO: OpenCEM started // File"c:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 94
+2024-12-28 16:56:11,843 INFO: Authentication URL: https://{{baseuri}}/authentication // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\.venv\Lib\site-packages\sgr_library\restapi_client_async.py", function __init__, line 116
+2024-12-28 16:56:12,276 INFO: Authentication URL: https://{{baseuri}}/authentication // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\.venv\Lib\site-packages\sgr_library\restapi_client_async.py", function __init__, line 116
+2024-12-28 16:56:12,281 ERROR: Network error occurred: Cannot connect to host {{baseuri}}:443 ssl:default [getaddrinfo failed] // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\.venv\Lib\site-packages\sgr_library\restapi_client_async.py", function authenticate, line 159
+2024-12-28 16:56:12,284 ERROR: Connection error occurred: Cannot connect to host {{baseuri}}:443 ssl:default [getaddrinfo failed] // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\.venv\Lib\site-packages\sgr_library\restapi_client_async.py", function getval, line 253
+2024-12-28 16:56:12,307 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x0000027B01B6FE90> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2024-12-28 16:56:12,325 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x0000027B01B29D50> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2024-12-28 16:56:12,326 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x0000027B01B637D0> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2024-12-28 16:58:00,632 INFO: OpenCEM started // File"c:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 94
+2024-12-28 16:58:04,103 INFO: Authentication URL: https://{{baseuri}}/authentication // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\.venv\Lib\site-packages\sgr_library\restapi_client_async.py", function __init__, line 116
+2024-12-28 16:58:04,538 INFO: Authentication URL: https://{{baseuri}}/authentication // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\.venv\Lib\site-packages\sgr_library\restapi_client_async.py", function __init__, line 116
+2024-12-28 16:58:04,543 ERROR: Network error occurred: Cannot connect to host {{baseuri}}:443 ssl:default [getaddrinfo failed] // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\.venv\Lib\site-packages\sgr_library\restapi_client_async.py", function authenticate, line 159
+2024-12-28 16:58:04,545 ERROR: Connection error occurred: Cannot connect to host {{baseuri}}:443 ssl:default [getaddrinfo failed] // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\.venv\Lib\site-packages\sgr_library\restapi_client_async.py", function getval, line 253
+2024-12-28 16:58:04,572 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000002106E16FC10> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2024-12-28 16:58:04,594 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000002106E12A290> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2024-12-28 16:58:04,595 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000002106E163B50> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785

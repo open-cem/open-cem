@@ -10,15 +10,12 @@ log_devices: true
 console_logging_level: 20
 
 # local path for configuration
-path_OpenCEM_config: "yaml/openCEM_config.yaml"
+path_OpenCEM_config: "yaml/testing.yaml"
 
-# credentials for loading configuration from cloud
-backend_url: "" # leave empty if no cloud
-installation: ""
-token: ""
 
+TODO #  gehört nicht in settingsfile
 # local web server
-ip_address: "192.168.0.76"
+ip_address: "192.168.137.141"
 port: "8000"
 
 

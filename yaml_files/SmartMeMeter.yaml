@@ -1,0 +1,48 @@
+---
+configuration:
+- Interfacetype: REST_API
+- Interface:
+    BaseURL: _baseURL_
+    authentication:
+      AuthenticationMethod: BasicSecurityScheme
+      username: _username_
+      password: _password_
+FunctionalProfiles:
+- ActivePowerAC:
+    ActivePowerACtot:
+      DataType: JSON_number
+      Unit: kW
+      Type: double
+      Method: GET
+      EndPoint: /Devices/_device_id_
+      Header: "Accept: application/json"
+      Response: response['ActivePower']
+    ActivePowerACL1:
+      DataType: JSON_number
+      Unit: kW
+      Type: double
+      Method: GET
+      EndPoint: /Devices/_device_id_
+      Header: "Accept : application/json"
+      Response_scheme: response['ActivePowerL1']
+    ActivePowerACL2:
+      DataType: JSON_number
+      Unit: kW
+      Type: double
+      Method: GET
+      EndPoint: /Devices/_device_id_
+      Header: "Accept : application/json"
+      Response_scheme: response['ActivePowerL2']
+    ActivePowerACL3:
+      DataType: JSON_number
+      Unit: kW
+      Type: double
+      Method: GET
+      EndPoint: /Devices/_device_id_
+      Header: "Accept : application/json"
+      Response_scheme: response['ActivePowerL3']
+- placeholder_info:
+    baseUri: https://api.smart-me.com
+    username: smartgridready24@gmail.com
+    password: SmartGrid%24
+    device_id: f25f4e20-b803-de4e-e75c-2714e2c0c2d9

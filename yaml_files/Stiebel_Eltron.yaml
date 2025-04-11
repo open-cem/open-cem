@@ -1,0 +1,47 @@
+configuration:
+- Interfacetype: MODBUS_TCP
+- Interface:
+    address: _ipaddress_
+    port: 502
+    SlaveID: 1
+    FirstRegisterAddress: 1
+    ConversionScheme: BigEndian
+- placeholder_info:
+    ipaddress: "192.168.137.219"
+FunctionalProfiles:
+- HeatPumpBase:
+    HPOpStateAsBitmap:
+      DataType: unsigned byte
+      Register: 2501
+      Size: 1
+      Unit: Enum
+    OutsideAirTemp:
+      DataType: short
+      Register: 507
+      Size: 1
+      Unit: degCel
+      Scaling: 0.1
+    SupplyWaterTemp:
+      DataType: short
+      Register: 515
+      Size: 1
+      Unit: degCel
+      Scaling: 0.1
+- HeatCoolCtrl_1:
+    HeatCoolCtrlOpModeCmd:
+      DataType: unsigned short
+      Register: 1478
+      Size: 1
+      Unit: Enum
+      Scaling: 1
+    HeatCoolCtrlOpState:
+      DataType: unsigned byte
+      Register: 1501
+      Size: 1
+      Unit: Enum
+      Scaling: 1
+    SupplyWaterTempSetpointComfort:
+      DataType: short
+      Register: 1481
+      Size: 1
+      Scaling: 0.1

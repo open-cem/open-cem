@@ -19,10 +19,34 @@ import urllib
 import aiohttp.client
 import yaml
 from OpenCEM.cem_lib_components import CommunicationChannel, PowerSensor, \
-    HeatPump, EVCharger, TemperatureSensor, RelaisActuator
+    HeatPump, EVCharger, TemperatureSensor, RelaisActuator, simulation_speed_up_factor
 from OpenCEM.cem_lib_controllers import Controller, SwitchingExcessController, DynamicExcessController, TemperatureExcessController
 from sgr_library.modbusRTU_interface_async import SgrModbusRtuInterface
 from sgr_library.modbusRTU_client_async import SGrModbusRTUClient
+
+
+
+
+
+def update_yaml_with_ip(yaml_file_path):
+    """
+    Update the YAML file with the local IP address.
+
+    @param yaml_file_path: The path to the YAML file.
+    """
+    # Get the local IP address
+    local_ip = get_local_ip()
+
+    # Read the existing YAML file
+    with open(yaml_file_path, 'r') as file:
+        yaml_data = yaml.safe_load(file)
+
+    # Update the ip_address key with the local IP address
+    yaml_data['ip_address'] = local_ip
+
+    # Write the updated data back to the YAML file
+    with open(yaml_file_path, 'w') as file:
+        yaml.safe_dump(yaml_data, file)
 
 def get_local_ip():
     # gets the own ip-address and returns it
@@ -42,9 +66,9 @@ def get_local_ip():
         return None
 
 
-#ip_address = get_local_ip()     # get the local ip - TODO: activate this again
-ip_address = "10.223.12.50"
-port = "8000"
+ip_address = get_local_ip()     # get the local ip - TODO: activate this again
+#ip_address = "10.223.11.58"
+port = 8000
 backend_url = ""                 # TODO: get from main settings
 
 def create_webpage_dict(devices_list: list) -> dict:
@@ -56,14 +80,16 @@ def create_webpage_dict(devices_list: list) -> dict:
     return_dict = {}
     devices_dict_list = []
     return_dict["timestamp"] = datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
+    #print("devices_list", devices_list)
 
     for device in devices_list:
         device_dict = {}
         try:
             device_dict["name"] = device.name
-            device_dict["type"] = device.type
-            device_dict["state"] = device.state
-            device_dict["value"] = f"{device.value:.2f}"
+            device_dict["type"] = 1 #device.type
+            device_dict["state"] = 1 #device.state
+            device_dict["value"] = f"{device.value}"
+            #device_dict["value"] = f"{device.value:.2f}"
             device_dict["unit"] = device.unit
             device_dict["error_code"] = device.error_code
 
@@ -107,13 +133,14 @@ async def check_OpenCEM_shutdown(session):
     url = f'http://{ip_address}:{port}/shutdown_requested'
 
     try:
-        max_time_out = aiohttp.client.ClientTimeout(total=2)  # max allowed timeout for a request
+        max_time_out = aiohttp.client.ClientTimeout(total=50)  # max allowed timeout for a request
         async with session.get(url, timeout=max_time_out) as response:
             status_code = response.status
             restart_text = await response.text()
-
+        print(status_code)
         if status_code == 200:
             if restart_text == "True":
+                print(restart_text)
                 return True
             else:
                 return False
@@ -124,13 +151,14 @@ async def check_OpenCEM_shutdown(session):
     # return false when request failed
     return False
 
-async def download_xml(uuid):
+async def download_xml(EID_name):
     """
-    This function will download the XML for a SGr Device from the CEM-Cloud and save it as uuid.xml
-    :param uuid: the uuid of the SGr-File (given by CEM-Cloud)
+    This function will download the XML-file from SmartGridready Library for a SGr Device  and save it as {EID_name}.xml
+    :param EID_name: the name of the SGr-File (given by SmartGridready Library)
     :return:
     """
-    url = f"{backend_url}/api/smartgridready/{uuid}"      # TODO: set url as aparameter
+
+    url = f"https://library.smartgridready.ch/{EID_name}?viewDevice"  # TODO: set url as parameter
     async with aiohttp.request('GET', url) as response:
         status_code = response.status
         xml_file = await response.read()  # response is xml in bytes
@@ -139,16 +167,17 @@ async def download_xml(uuid):
     if status_code == 200:
         try:
             # save file
-            with open(f"xml_files/{uuid}.xml", "wb") as f:  # write it as bytes
+            with open(f"xml_files/{EID_name}", "wb") as f:  # write it as bytes
                 f.write(xml_file)
-                logging.info(f"Downloaded SGr File with uuid:{uuid} successfully.")
+                logging.info(f"Downloaded SGr File {EID_name} successfully.")
                 return True
         except EnvironmentError:
-            logging.error(f"Error with writing downloaded XML (uuid: {uuid}) to disk")
+            logging.info(f"Error with writing downloaded XML {EID_name} to disk")
     else:
-        logging.warning(
-            f"Download of SGr File failed. Check connection and uuid ({uuid}) of the devices in the field smartGridreadyFileId.")
+        print(
+            f"Download of SGr File failed. Check connection and uuid () of the devices in the field smartGridreadyFileId.")
     return False
+
 
 
 def parse_yaml_devices(path2configurationYaml: str):
@@ -191,15 +220,23 @@ async def parse_yaml(path2configurationYaml: str):
         communication_channels_list = []
         devices_list = []
         controllers_list = []
+        #TODO try
+        communication_dict =  {}
 
         # parse communication channels
         if data.get("communicationChannels") is not None:
 
             # parse every communicationChannel from the list
             for communication_channel in data.get("communicationChannels"):
-                type = communication_channel["type"]
-                extra = communication_channel["extra"]
-                communication_channels_list.append(CommunicationChannel(type, extra))
+                name = communication_channel["name"]
+                param = communication_channel["param"]
+                communication_dict.update({name:param})
+                #type = communication_channel["type"]
+                #param = communication_channel["param"]
+                #communication_channels_list.append(CommunicationChannel(type, param))
+        
+
+    
 
         # create Client for HTTP Communication. OpenCEM_id is 1 for this Client
         http_main_client = CommunicationChannel("HTTP_MAIN", None)
@@ -217,78 +254,108 @@ async def parse_yaml(path2configurationYaml: str):
 
         if data.get("devices") is not None:
             devices_data = data["devices"]
-
+            
+           
             for device in devices_data:
                 name = device.get("name")
                 type = device.get("type")
                 smartgridreadyEID = device.get("smartGridreadyEID")
-                smartgridreadyEID_path = f"xml/{smartgridreadyEID}.xml" # TODO: adapt path
+                EID_param = device.get("EID_param")
+                #print(EID_param)
+                #smartgridreadyEID_path = f"xml/{smartgridreadyEID}.xml" # TODO: adapt path
                 nativeEID = device.get("nativeEID")
-                nativeEID_path = f"yaml/{nativeEID}.yaml" # TODO: adapt path
+                #nativeEID_path = f"yaml/{nativeEID}.yaml" # TODO: adapt path
                 simulationModel = device.get("simulationModel")
                 isLogging = device.get("isLogging")
                 communicationChannel = device.get("communicationChannel")
-                extra = device.get("extra")
+                param = device.get("param")
 
+                # merge the param from the communicationChannel into the param from the device
+                if communicationChannel in communication_dict:
+                    param.update(communication_dict[communicationChannel])
+                
+               
+                
                 # decision tree for device types
                 match type:
                     case "POWER_SENSOR":
-                        address = extra["address"]
-                        hasEnergyImport = extra["hasEnergyImport"]
-                        hasEnergyExport = extra["hasEnergyExport"]
-                        maxPower = extra["maxPower"]
+                        #address = param["address"]
+                        #hasEnergyImport = param["hasEnergyImport"]
+                        #hasEnergyExport = param["hasEnergyExport"]
+                        #maxPower = param["maxPower"]
 
-                        device_temporary = PowerSensor(name=name, type=type, smartGridreadyEID=smartgridreadyEID,
+                        device_temporary = PowerSensor(name=name, type=type, smartGridreadyEID=smartgridreadyEID, EID_param=EID_param,
                                                        nativeEID=nativeEID, simulationModel=simulationModel,
                                                        isLogging=isLogging,
                                                        communicationChannel=communicationChannel,
-                                                       address=address, has_energy_import=hasEnergyImport,
-                                                       has_energy_export=hasEnergyExport, maxPower=maxPower)
+                                                       param = param
+                                                       #address=address,
+                                                       #has_energy_import=hasEnergyImport,
+                                                       #has_energy_export=hasEnergyExport, 
+                                                       #maxPower=maxPower
+                                                       )
 
                     case "TEMPERATURE_SENSOR":
-                        address = extra["address"]
-                        maxTemp = extra["maxTemp"]
-                        minTemp = extra["minTemp"]
+                        address = param["address"]
+                        maxTemp = param["maxTemp"]
+                        minTemp = param["minTemp"]
 
-                        device_temporary = TemperatureSensor(name=name, type=type, smartGridreadyEID=smartgridreadyEID,
+                        device_temporary = TemperatureSensor(name=name, type=type, smartGridreadyEID=smartgridreadyEID, EID_param=EID_param,
                                                              nativeEID=nativeEID, simulationModel=simulationModel,
                                                              isLogging=isLogging,
                                                              communicationChannel=communicationChannel,
                                                              address=address, minTemp=minTemp, maxTemp=maxTemp)
                     case "RELAIS_SWITCH":
-                        ip_address = extra["address"]
-                        n_channels = extra["nChannels"]
-                        device_temporary = RelaisActuator(name=name, type=type, smartGridreadyEID=smartgridreadyEID,
+                        ip_address = param["address"]
+                        n_channels = param["nChannels"]
+                        device_temporary = RelaisActuator(name=name, type=type, smartGridreadyEID=smartgridreadyEID, EID_param=EID_param,
                                                 nativeEID=nativeEID, simulationModel=simulationModel,
                                                 isLogging=isLogging,
                                                 communicationChannel=communicationChannel,
                                                 address=ip_address, nChannels=n_channels)
 
                     case "HEAT_PUMP":
-                        address = extra.get("address")
-                        port = extra.get("port")
-                        minPower = extra.get("minPower")
-                        maxPower = extra.get("maxPower")
+                        #address = param.get("address")
+                        #port = param.get("port")
+                        #minPower = param.get("minPower")
+                        #maxPower = param.get("maxPower")
 
-                        device_temporary = HeatPump(name=name, type=type,
-                                                    smartGridreadyEID=smartgridreadyEID, nativeEID=nativeEID,
-                                                    simulationModel=simulationModel,isLogging=isLogging,
-                                                    communicationChannel=communicationChannel,address=address,
-                                                    port=port,minPower=minPower,maxPower=maxPower)
+                        device_temporary = HeatPump(name=name, 
+                                                    type=type,
+                                                    smartGridreadyEID=smartgridreadyEID, 
+                                                    nativeEID=nativeEID, 
+                                                    EID_param=EID_param,
+                                                    simulationModel=simulationModel,
+                                                    isLogging=isLogging,
+                                                    communicationChannel=communicationChannel,
+                                                    param=param
+                                                    #address=address,
+                                                    #port=port,
+                                                    #minPower=minPower,
+                                                    #maxPower=maxPower
+                                                    )
 
 
                     case "EV_CHARGER":
-                        address = extra.get("address")
-                        port = extra.get("port")
-                        minPower = extra.get("minPower")
-                        maxPower = extra.get("maxPower")
-                        phases = extra.get("phases")
+                        #address = param.get("address")
+                        #port = param.get("port")
+                        #minPower = param.get("minPower")
+                        #maxPower = param.get("maxPower")
+                        #   phases = param.get("phases")
 
-                        device_temporary = EVCharger(name=name, type=type,
-                                    smartGridreadyEID=smartgridreadyEID, nativeEID=nativeEID,
-                                    simulationModel=simulationModel, isLogging=isLogging,
-                                    communicationChannel=communicationChannel, address=address,
-                                    port=port, minPower=minPower, maxPower=maxPower, phases=phases)
+                        device_temporary = EVCharger(name=name, 
+                                                    type=type,
+                                                    smartGridreadyEID=smartgridreadyEID, 
+                                                    nativeEID=nativeEID, 
+                                                    EID_param=EID_param,
+                                                    simulationModel=simulationModel, 
+                                                    isLogging=isLogging,
+                                                    communicationChannel=communicationChannel, 
+                                                    address=address,
+                                                    port=port, 
+                                                    minPower=minPower, 
+                                                    maxPower=maxPower, 
+                                                         phases=phases)
 
                 devices_list.append(device_temporary)   # add the device to the list and continue for loop with the next device
 
@@ -335,4 +402,4 @@ async def parse_yaml(path2configurationYaml: str):
 
 
         # return all the lists
-        return communication_channels_list, devices_list, controllers_list
+        return communication_dict, communication_channels_list, devices_list, controllers_list

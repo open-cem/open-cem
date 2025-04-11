@@ -1,0 +1,84 @@
+- name: CLEMAP EMS
+  type: POWER_SENSOR
+  smartGridreadyEID: None
+  EID_param: None
+  nativeEID: CLEMAP.yaml
+  simulationModel: None
+  isLogging: true
+  communicationChannel: REST_API_CLEMAP
+  extra:
+      sensor_id: 661d109a441239001393c201
+
+
+- name: Shelly 3EM
+  type: POWER_SENSOR
+  smartGridreadyEID: None 
+  EID_param: None 
+  nativeEID: Shelly_3EM_local.yaml
+  simulationModel: None
+  isLogging: true
+  communicationChannel: Shelly_Local
+  extra:
+    device_id: "0"
+
+- name: Shelly 3EM
+  type: POWER_SENSOR
+  smartGridreadyEID: None 
+  EID_param: None 
+  nativeEID: Shelly_3EM_cloud.yaml
+  simulationModel: None
+  isLogging: true
+  communicationChannel: Shelly_Cloud
+  extra:
+    device_id: '349454756b89'
+
+- name: Shelly pro3EM
+  type: POWER_SENSOR
+  smartGridreadyEID: None 
+  EID_param: None 
+  nativeEID: Shelly_Pro3EM_cloud.yaml
+  simulationModel: None
+  isLogging: true
+  communicationChannel: Shelly_Cloud
+  extra:
+    device_id: '08f9e0eaa29c'
+
+- name: Hoval
+  type: HEAT_PUMP
+  smartGridreadyEID: None 
+  EID_param: None 
+  nativeEID: HOVAL.yaml
+  simulationModel: None
+  isLogging: true
+  communicationChannel: MODBUS_HOVAL
+  extra:
+    ipaddress: 192.168.137.246
+
+- name: smartMeMeter
+  type: POWER_SENSOR
+  smartGridreadyEID: None 
+  EID_param: None 
+  nativeEID: SmartMeMeter.yaml
+  simulationModel: None
+  isLogging: true
+  communicationChannel: REST_API_SMARTME
+  extra:
+    device_id: f25f4e20-b803-de4e-e75c-2714e2c0c2d9
+
+
+- name: Shelly pro3EM
+  type: POWER_SENSOR
+  smartGridreadyEID: None 
+  EID_param: None 
+  nativeEID: Shelly_Pro3EM_local.yaml
+  simulationModel: None
+  isLogging: true
+  communicationChannel: None
+  param:
+    device_id: "0"
+    baseURL: http://192.168.137.80
+
+- name: Shelly_Local
+  type: REST_API
+  extra:
+    baseURL: http://192.168.137.152

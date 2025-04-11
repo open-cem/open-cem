@@ -1,0 +1,44 @@
+---
+configuration:
+- Interfacetype: REST_API
+- Interface:
+    BaseURL: _baseURL_
+    authentication:
+      AuthenticationMethod: NoSecurityScheme
+FunctionalProfiles:
+- ActivePowerAC:
+    ActivePowerACtot:
+      DataType: float64
+      Unit: Watts
+      Type: double
+      Method: GET
+      EndPoint: /status
+      Params: {'id' : _device_id_}
+      Header: "'Accept' : 'application/json'"
+      Response_scheme: sum((response['emeters'][0]['power'],['emeters'][1]['power'],['emeters'][2]['power']))
+    ActivePowerACL1:
+      DataType: float64
+      Unit: Watts
+      Type: double
+      Method: GET
+      EndPoint: /status
+      Params: {'id' : _device_id_}
+      Header: "'Accept' : 'application/json'"
+      Response_scheme: response['emeters'][0]['power']
+    ActivePowerACL2:
+      DataType: float64
+      Unit: Watts
+      Type: double
+      Method: GET
+      EndPoint: /status
+      Params: {'id' : _device_id_}
+      Header: "'Accept' : 'application/json'"
+      Response_scheme: response['emeters'][1]['power']
+    ActivePowerACL3:
+      DataType: float64
+      Type: double
+      Method: GET
+      EndPoint: /status
+      Params: {'id' : _device_id_}
+      Header: "'Accept' : 'application/json'"
+      Response_scheme: response['emeters'][2]['power']

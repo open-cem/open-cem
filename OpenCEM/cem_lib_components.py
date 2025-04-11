@@ -12,6 +12,7 @@ Version: 2.0, October 2024
 
 
 import asyncio
+import json
 import logging
 import math
 
@@ -20,8 +21,11 @@ import time
 from audioop import mul
 from operator import truediv
 from pprint import pprint
+
+import requests
 from pymodbus.constants import Endian
 from sgr_library import SGrDevice
+from OpenCEM.native_device import NativeDevice
 
 import random
 import sys, os
@@ -35,24 +39,24 @@ from sgr_library.modbusRTU_interface_async import SgrModbusRtuInterface
 from sgr_library.payload_decoder import PayloadDecoder
 from datetime import datetime
 
-# Authentication Key and corresponding server for the Shelly Cloud
-shelly_auth_key = "MTUyNjU5dWlk6D393AB193944CE2B1D84E0B573EAB1271DA6F2AF2BC54F67779F5BC27C31E90AD7C7075E0F813D8"
-shelly_server_address = "https://shelly-54-eu.shelly.cloud/"
+from sgr_commhandler.device_builder import DeviceBuilder
 
 # Simulation parameters:
 simulation_speed_up_factor = 1  # will be overwritten by setting yaml
 sim_start_time = None
 
 
-
-class OpenCEM_RTU_client: # TODO: check this (still required?)
+# TODO: not in use
+class OpenCEM_RTU_client:
     """
     creates a global RTU Client for OpenCEM. There can only be one client globally.
     If there already exist a smartGridready, put it as keyword argument global_client = client.
+
     """
+    
     OpenCEM_global_RTU_client = None
 
-    def __init__(self, port: str = "COM5", baudrate: int = 19200, parity: str = "E", client_timeout: int = 1, *,
+    def __init__(self, port: str, baudrate: int, parity: str, client_timeout: int, *,
                  global_client=None):  # global_client:if there already exist a SmartGridready client it can be put here
         # if there does not exist a SmartGridready client
         if global_client is None:
@@ -73,31 +77,36 @@ class OpenCEM_RTU_client: # TODO: check this (still required?)
         else:
             raise NotImplementedError
 
-
+    
 class SmartGridreadyComponent:  # TODO: check with new sgr_library
     # class for component with smartgridready compatibility
 
-    def __init__(self, XML_file: str):
+    async def __init__(self, XML_file: str, EID_param: dict):
+        self.device = DeviceBuilder().eid_path(XML_file).properties(EID_param).build()
+        await self.device.connect_async()
 
-        interface_file = XML_file
-        self.sgr_component   = SGrDevice()
-        self.sgr_component.update_xml_spec(interface_file)
-        self.sgr_component.build()
-        self.sgr_component.connect()
 
-        print(f"SmartGridready Component created: {XML_file}")
+        
 
 
     async def read_value(self, functional_profile: str, data_point: str):
         # read one value from a given data point within a functional profile
         error_code = 0
-        dp = self.sgr_component.get_data_point((functional_profile, data_point))
-        value = await dp.read()
+        unit = "notImpl"
+        dp = self.device.get_functional_profile(functional_profile).get_data_point(data_point)
 
+        value = await dp.get_value_async()
+        return [value, unit, error_code]
+        """
+        error_code = 0
+        dp = self.sgr_component.get_data_point((functional_profile, data_point))
+        print(dp)
+        value = await dp.read()
+        print(value)
         print(f"SmartGridready Component read value: {functional_profile, data_point, value}")
 
         return [value, dp.unit(), error_code]
-
+        """
     async def read_value_with_conversion(self, functional_profile: str, data_point: str):
         # read a power or energy value with unit conversion to kW, kWh
 
@@ -137,33 +146,36 @@ class SmartGridreadyComponent:  # TODO: check with new sgr_library
 
 class NativeComponent:  # TODO: implement this
     # class for component with native implementation
+    # real components without a working XML-file
 
-    def __init__(self, YAML_file: str):
+    def __init__(self, YAML_file: str, params: dict):
 
-        self.interface_file = YAML_file
-
-        # TODO: add code here - read YAML file and store functional profiles / data points
-        #                       connect to device
+        interface_file = YAML_file
+        print(params)
+        self.native_component = NativeDevice(interface_file)
+        self.native_component.update_yaml(params)
+        self.native_component.connect()
 
         print(f"Native Component created: {YAML_file}")
 
 
-    async def read_value(self, functional_profile: str, data_point: str):
+    async def read_value(self, data_point: str):
         # read one value from a given data point within a functional profile
         error_code = 0
+        value, unit,error_code = self.native_component.read_Value(data_point)
 
         # TODO: add code here - read value from data_point
-        value = 0
-        unit = None
+
+
 
         print(f"Native Component value read: {value}")
 
         return [value, unit, error_code]
 
-    async def read_value_with_conversion(self, functional_profile: str, data_point: str):
+    async def read_value_with_conversion(self, data_point: str):   #async def read_value_with_conversion(self, functional_profile: str,data_point: str):
         # read a power or energy value with unit conversion to kW, kWh
 
-        [value, unit, error_code] = await self.read_value(functional_profile, data_point)
+        [value, unit, error_code] = await self.read_value( data_point)
         if unit.upper() == 'W' or unit.upper() == 'WATT' or unit.upper() == 'WATTS':
             value = value / 1000  # convert W to kW
             unit = "KILOWATT"  # change output unit to kW
@@ -173,7 +185,7 @@ class NativeComponent:  # TODO: implement this
 
         return [round(value, 4), unit, error_code]  # value gets rounded
 
-    def write_value(self, functional_profile: str, data_point: str, value):
+    def write_value(self, data_point: str, value):
         # write one value to a given data point within a functional profile
 
         error_code = 0
@@ -270,17 +282,25 @@ class SimulatedComponent:
 class Device():
     # base class for any device including sensors and actuators
 
-    def __init__(self, *, name: str = "", type: str = "", smartGridreadyEID: str = "", nativeEID: str = "",
-                 simulationModel: str = "", isLogging: bool = True,
-                 communicationChannel: str = ""):
+    def __init__(self, *, name: str = "", type: str = "", smartGridreadyEID: str = "", nativeEID: str = "", EID_param: str ="",
+                 simulationModel: str = "", 
+                 isLogging: bool = True,
+                 communicationChannel: str = "",
+                 param: dict = {}
+                 ):
 
         self.name = name
         self.type = type
         self.smartGridreadyEID = smartGridreadyEID
+        self.EID_param = EID_param
+
         self.nativeEID = nativeEID
         self.simulationModel = simulationModel
         self.isLogging = isLogging
         self.communicationChannel = communicationChannel
+        
+        self.param = param
+
         self.nominalPower = 0
 
         self.state = 0
@@ -288,11 +308,11 @@ class Device():
         self.unit = None
         self.error_code = 0
 
-        if smartGridreadyEID != None:
-            self.smartgridready = SmartGridreadyComponent(smartGridreadyEID)
+        if smartGridreadyEID != "None":
+            self.smartgridready = SmartGridreadyComponent(smartGridreadyEID, EID_param)
 
-        if nativeEID != None:
-            self.native = NativeComponent(nativeEID)
+        if nativeEID != "None":
+            self.native = NativeComponent(nativeEID, self.param)
 
         print(f"Device created: {self.name} type {self.type}")
 
@@ -310,8 +330,8 @@ class Device():
     def log_value_state(self, info: str = ""):
         # logs the data of a device.
         logger = logging.getLogger("device_logger")
-        logger.info(
-            f"{self.name};{self.type};{info};{self.state};{self.value:.2f};{self.unit};{self.error_code}")
+        logger.info("test")
+            # TODO #f"{self.name};{self.type};{info};{self.state};{self.value:.2f};{self.unit};{self.error_code}")
 
 
 class PowerSensor(Device):
@@ -320,29 +340,34 @@ class PowerSensor(Device):
 
     def __init__(self, *, name: str = "", type: str = "",
                  smartGridreadyEID: str = "",
+                 EID_param: str = "",
                  nativeEID: str = "",
                  simulationModel: str = "",
                  isLogging: bool = True,
                  communicationChannel: str = "",
-                 address: str ="",
-                 has_energy_import: bool = False,
-                 has_energy_export: bool = False,
-                 maxPower: float):
+                 param: dict = None
+                 #address: str ="",
+                 #has_energy_import: bool = False,
+                 #has_energy_export: bool = False,
+                 #maxPower: float
+                 ):
 
         # initialize sensor
-        super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, nativeEID=nativeEID,
-                         simulationModel=simulationModel, isLogging=isLogging, communicationChannel=communicationChannel)
+        super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, EID_param=EID_param, nativeEID=nativeEID,
+                         simulationModel=simulationModel, isLogging=isLogging, communicationChannel=communicationChannel, param= param)
 
-        self.address = address
-        self.has_energy_import = has_energy_import
-        self.has_energy_export = has_energy_export
-        self.maxPower = maxPower
-        self.nominalPower = self.maxPower
-        self.energy_value_import = 0
-        self.energy_value_export = 0
+        #self.address = address
+        #self.has_energy_import = has_energy_import
+        #self.has_energy_export = has_energy_export
+        #self.maxPower = maxPower
+        #self.nominalPower = self.maxPower
+        #self.energy_value_import = 0
+        #self.energy_value_export = 0
+        if param is None:
+            param = {}
 
         if simulationModel != None:
-            self.simulation = SimulatedComponent(simulationModel,max_power=maxPower,min_power=0,nominal_power=maxPower,
+            self.simulation = SimulatedComponent(simulationModel,max_power=None, min_power=0,nominal_power=0,
                                                  min_temperature=None,max_temperature=None)
 
     async def read_power(self):
@@ -354,13 +379,14 @@ class PowerSensor(Device):
         self.unit = 0
         self.error_code = 0
 
-        if self.smartGridreadyEID != None:
-            [self.value, self.unit, self.error_code] = await self.smartgridready.read_value_with_conversion('ActivePowerAC',
+
+        if self.smartGridreadyEID != "None":
+            print("datapoint reading")
+            [self.value, self.unit, self.error_code] = await self.smartgridready.read_value('ActivePowerAC',
                                                                                      'ActivePowerACtot')
-        if self.nativeEID != None:
-            [self.value, self.unit, self.error_code] = await self.native.read_value_with_conversion('ActivePowerAC',
-                                                                                     'ActivePowerACtot')
-        if self.simulationModel != None:
+        if self.nativeEID != "None":
+            [self.value, self.unit, self.error_code] = await self.native.read_value('ActivePowerACtot')
+        if self.simulationModel != "None":
             [self.value, self.unit, self.error_code] = await self.simulation.run_simulation_step()
 
         #await asyncio.sleep(PowerSensor.sleep_between_requests)
@@ -420,11 +446,11 @@ class PowerSensor(Device):
             unit = 0
             error_code = 0
 
-            if self.smartGridreadyEID != None:
-                [value, unit, error_code] = await self.smartgridready.read_value_with_conversion('ActiveEnerBalanceAC',
+            if self.smartGridreadyEID != "None":
+                [value, unit, error_code] = await self.smartgridready.read_value_with_conversion('ActiveEnergBalanceAC',
                                                                                                  'ActiveExportAC')
-            if self.nativeEID != None:
-                [value, unit, error_code] = await self.native.read_value_with_conversion('ActiveEnerBalanceAC',
+            if self.nativeEID != "None":
+                [value, unit, error_code] = await self.native.read_value_with_conversion('ActiveEnergBalanceAC',
                                                                                                      'ActiveExportAC')
             #await asyncio.sleep(PowerSensor.sleep_between_requests)
 
@@ -443,14 +469,15 @@ class PowerSensor(Device):
 
     async def read(self):
         await self.read_power()
-        await self.read_energy_import()
-        await self.read_energy_export()
+        #await self.read_energy_import()
+        #await self.read_energy_export()
 
 class TemperatureSensor(Device):
     # derived class for temperature sensor
 
     def __init__(self, *, name: str = "", type: str = "",
                  smartGridreadyEID: str = "",
+                 EID_param: str = "",
                  nativeEID: str = "",
                  simulationModel: str = "",
                  isLogging: bool = True,
@@ -459,7 +486,7 @@ class TemperatureSensor(Device):
                  maxTemp: int, minTemp: int):
 
         # initialize sensor
-        super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, nativeEID=nativeEID,
+        super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, EID_param=EID_param, nativeEID=nativeEID,
                          simulationModel=simulationModel, isLogging=isLogging, communicationChannel=communicationChannel)
         self.address = address
         self.maxTemp = maxTemp
@@ -508,8 +535,10 @@ class TemperatureSensor(Device):
 class RelaisActuator(Device):
     # derived class for relais switch
 
-    def __init__(self, *, name: str = "", type: str = "",
+    def __init__(self, *, name: str = "",
+                 type: str = "",
                  smartGridreadyEID: str = "",
+                 EID_param: str = "",
                  nativeEID: str = "",
                  simulationModel: str = "",
                  isLogging: bool = True,
@@ -518,8 +547,9 @@ class RelaisActuator(Device):
                  nChannels: int = 1):
 
         # initialize actuator
-        super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, nativeEID=nativeEID,
-                         simulationModel=simulationModel, isLogging=isLogging, communicationChannel=communicationChannel)
+        super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, EID_param=EID_param,
+                         nativeEID=nativeEID,simulationModel=simulationModel, isLogging=isLogging,
+                         communicationChannel=communicationChannel)
         self.address = address
         self.nChannels = nChannels
 
@@ -578,32 +608,43 @@ class RelaisActuator(Device):
 
     def switch_device(self, functional_profile: str, state: str):
         for i in range(self.nChannels):
-            self.error_code = self.write_channel(i,state)   # write same state to all channels
+            self.error_code = self.write_channel(i, state)   # write same state to all channels
         return self.error_code
 
 class HeatPump(Device):
     # class for heat pump devices
 
-    def __init__(self, *, name: str = "", type: str = "", smartGridreadyEID: str = "", nativeEID: str = "",
-                 simulationModel: str = "", isLogging: bool = True,
-                 communicationChannel: str = "", address: str = "", port: str = "",
-                 minPower: float, maxPower: float):
+    def __init__(self, *, name: str = "",
+                 type: str = "",
+                 smartGridreadyEID: str = "",
+                 EID_param: str = "",
+                 nativeEID: str = "",
+                 simulationModel: str = "",
+                 isLogging: bool = True,
+                 communicationChannel: str = "",
+                 param: dict = None
+                 #address: str = "",
+                 #port: str = "",
+                 #minPower: float,
+                 #maxPower: float
+                 ):
 
         # initialize base class
-        super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, nativeEID=nativeEID,
+        super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, EID_param=EID_param, nativeEID=nativeEID,
                          simulationModel=simulationModel, isLogging=isLogging,
-                         communicationChannel=communicationChannel)
+                         communicationChannel=communicationChannel, param = param)
 
-        self.address = address
-        self.port = port
-        self.minPower = minPower
-        self.maxPower = maxPower
-        self.nominalPower = minPower
-        self.state = "OFF"
-
-        if simulationModel != None:
-            self.simulation = SimulatedComponent(simulationModel, max_power=maxPower, min_power=minPower, nominal_power=maxPower,
-                                                 min_temperature=None, max_temperature=None)
+        #self.address = address
+        #self.port = port
+        #self.minPower = minPower
+        #self.maxPower = maxPower
+        #self.nominalPower = minPower
+        #self.state = "OFF"
+        if param is None:
+            param = {}
+        if simulationModel != "None":
+            self.simulation = SimulatedComponent(simulationModel, max_power=maxPower, min_power=minPower,
+                                                 nominal_power=maxPower, min_temperature=None, max_temperature=None)
 
 
     async def read_device(self, functional_profile):
@@ -615,28 +656,31 @@ class HeatPump(Device):
         # TODO: specify fp and dp names
         if functional_profile == "DHW":
             fp_str = "FP_DomHotwater"
-            dp_str = f"DP_ActualTemperature"
+            dp_str = f"OutsideAirTemp"
         if functional_profile == "BUFFER":
             fp_str = "FP_BufferStorage"
-            dp_str = f"DP_ActualTemperature"
+            dp_str = f"OutsideAirTemp"
         if functional_profile == "POWER":
             fp_str = "FP_PowerCtrl"
             dp_str = f"DP_ActualSpeed"
 
-        if self.smartGridreadyEID != None:
+        if self.smartGridreadyEID != "None":
             [self.value, self.error_code] = await self.smartgridready.read_value(fp_str, dp_str)
-        if self.nativeEID != None:
-            [self.value, self.error_code] = await self.native.read_value(fp_str, dp_str)
-        if self.simulationModel != None:
+
+        if self.nativeEID != "None":
+
+            [self.value, self.unit, self.error_code] = await self.native.read_value(dp_str)
+
+        if self.simulationModel != "None":
             [self.value, self.error_code] = await self.simulation.run_simulation_step(self.state)
 
         if self.isLogging:
             self.log_value_state('read_device')
-
-        print(f"Heat pump read device: {self.name} functional_profile {functional_profile} "
+        """
+        print(f"Heat pump read device: {self.name} functional_profile {functional_profile} "  #{self.name}
               f"fp_str {fp_str} dp_str {dp_str} state {self.state} value {self.value:.2f} "
               f"error code {self.error_code}")
-
+        """
         return self.value, self.error_code
 
 
@@ -702,16 +746,27 @@ class HeatPump(Device):
 
         return self.error_code
 
+    async def read(self):
+        await self.read_device("DHW")
 class EVCharger(Device):
     # class for heat pump devices
 
-    def __init__(self, *, name: str = "", type: str = "", smartGridreadyEID: str = "", nativeEID: str = "",
-                 simulationModel: str = "", isLogging: bool = True,
-                 communicationChannel: str = "", address: str = "", port: str = "",
-                 minPower: float, maxPower: float, phases: str = ""):
+    def __init__(self, *, name: str = "",
+                 type: str = "",
+                 smartGridreadyEID: str = "",
+                 EID_param: str = "",
+                 nativeEID: str = "",
+                 simulationModel: str = "",
+                 isLogging: bool = True,
+                 communicationChannel: str = "",
+                 address: str = "",
+                 port: str = "",
+                 minPower: float,
+                 maxPower: float,
+                 phases: str = ""):
 
         # initialize base class
-        super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, nativeEID=nativeEID,
+        super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID,EID_param=EID_param, nativeEID=nativeEID,
                          simulationModel=simulationModel, isLogging=isLogging,
                          communicationChannel=communicationChannel)
 
@@ -809,22 +864,28 @@ class EVCharger(Device):
 
 class CommunicationChannel: # TODO: check this
     # base class to describe a communication channel
-    def __init__(self, type, extra):
+    def __init__(self, type, param):
         self.type = type
 
         # decision tree for CommunicationChannel type
         match self.type:
 
+
             case "MODBUS_TCP":  # TODO: remove or still required?
-                #address = extra["address"]
-                #port = extra["port"]
-                #self.client = AsyncModbusTcpClient(host=address, port=port)
+                """
+                address = param["address"]
+                port = param["port"]
+                self.client = AsyncModbusTcpClient(host=address, port=port)
+                #evtl Routeradresse
+                #ethernet port
+                """
                 pass
 
+
             case "MODBUS_RTU":
-                port = extra["port"]
-                baudrate = extra["baudrate"]
-                match extra["parity"]:
+                port = param["port"]
+                baudrate = param["baudrate"]
+                match param["parity"]:
                     case "EVEN":
                         parity = "E"
                     case "ODD":
@@ -839,15 +900,47 @@ class CommunicationChannel: # TODO: check this
                 self.client = None
             case "SHELLY_CLOUD":
                 self.client = None
-                self.shelly_auth_key = extra["authKey"]
-                self.shelly_server_address = extra["serverAddress"]
+                self.shelly_auth_key = param["authKey"]
+                self.shelly_server_address = param["serverAddress"]
             case "SMARTME_CLOUD":
                 self.client = None
-                self.shelly_auth_key = extra["authKey"]
-                self.shelly_server_address = extra["serverAddress"]
+                self.shelly_auth_key = param["authKey"]
+                self.shelly_server_address = param["serverAddress"]
+            case "REST_API":
+
+                if param["AuthenticationMethod"] == "BearerSecurityScheme":
+                    print("CommunicationChannel...case RESTAPI...BearerSecurityScheme")
+                    """
+                    headers = {
+                        "Accept": "application/json",
+                        "Content-Type": "application/json",
+
+                    }
+                    payload1 = json.dumps(str(self.config['configuration'][3]['authentication']['BearerSecurity']['Body']))
+
+                    token = requests.request(
+                    str(self.config['configuration'][3]['authentication']['BearerSecurity']['Method']),
+                    str(self.config['configuration'][1]['TCP/IPUri']) + str(
+                        self.config['configuration'][3]['authentication']['BearerSecurity']['EndPoint']),
+                    headers=headers, data=payload1)
+                    print("token")
+                    print(token)
+                    """
+
+                elif param["AuthenticationMethod"] == "BasicSecurityScheme":
+                    print("CommunicationChannel...case RESTAPI...BasicSecurityScheme")
+                    self.baseURL = param["baseURL"]
+                    self.username = param["username"]
+                    self.password = param["password"]
+
+            case "Lehmann":
+                self.username = param["username"]
+                self.password = param["password"]
+
 
             # general http client for the OpenCEM (for communication with GUI, etc.)
             case "HTTP_MAIN":
                 self.client = aiohttp.ClientSession()
+                pass
             case _:
                 raise NotImplementedError(f"Communication {type} not known.")

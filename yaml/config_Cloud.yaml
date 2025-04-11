@@ -1,0 +1,21 @@
+
+devices:
+- name: Heat_Pump
+  smartGridreadyEID: SGr_02_0015_xxxx_StiebelEltron_HeatPump_V1.0.0.xml
+  parameters:
+    slave_id: 'drf76frrf74432'
+    tcp_address: '192.168.0.18'
+    tcp_port: 501
+
+- name: Power_Sensor
+  SmartGridreadyEID: SGr_02_mmmm_8288089799_Smart-me_SubMeterElectricity_V1.1.0.xml
+  parameters:
+    baseURL: 	'https://api.smart-me.com'
+    device_id: 'j4biuedffu335'
+    username: 'Max Muster'
+    passwort: 'Passwort123'
+
+
+
+
+

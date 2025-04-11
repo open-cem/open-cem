@@ -1,0 +1,74 @@
+2024-10-14 10:33:28,937 INFO: OpenCEM started // File"C:\DATA\Spinoff\Software\Github\SmartGridReady\SGrPythonSamples\OpenCEM_main.py", function main, line 89
+2024-10-14 10:33:35,098 ERROR: System was not able to send data to the webpage. // File"C:\DATA\Spinoff\Software\Github\SmartGridReady\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 10:33:40,122 ERROR: No response from webpage in time. // File"C:\DATA\Spinoff\Software\Github\SmartGridReady\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function check_OpenCEM_shutdown, line 123
+2024-10-14 10:33:43,157 ERROR: System was not able to send data to the webpage. // File"C:\DATA\Spinoff\Software\Github\SmartGridReady\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 10:33:43,319 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000001E80BDAC100> // File"C:\Users\david.zogg\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", function default_exception_handler, line 1744
+2024-10-14 11:05:54,368 INFO: OpenCEM started // File"C:\DATA\Spinoff\Software\Github\SmartGridReady\SGrPythonSamples\OpenCEM_main.py", function main, line 89
+2024-10-14 11:06:00,415 ERROR: System was not able to send data to the webpage. // File"C:\DATA\Spinoff\Software\Github\SmartGridReady\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:06:04,227 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000002C0A3B0C100> // File"C:\Users\david.zogg\AppData\Local\Programs\Python\Python310\lib\asyncio\base_events.py", function default_exception_handler, line 1744
+2024-10-14 11:24:32,895 INFO: OpenCEM started // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 89
+2024-10-14 11:25:23,629 INFO: OpenCEM started // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 89
+2024-10-14 11:25:29,705 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:25:34,729 ERROR: No response from webpage in time. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function check_OpenCEM_shutdown, line 123
+2024-10-14 11:25:37,761 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:25:42,778 ERROR: No response from webpage in time. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function check_OpenCEM_shutdown, line 123
+2024-10-14 11:25:45,791 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:25:50,822 ERROR: No response from webpage in time. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function check_OpenCEM_shutdown, line 123
+2024-10-14 11:25:53,823 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:25:58,850 ERROR: No response from webpage in time. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function check_OpenCEM_shutdown, line 123
+2024-10-14 11:26:01,890 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:26:06,907 ERROR: No response from webpage in time. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function check_OpenCEM_shutdown, line 123
+2024-10-14 11:26:09,929 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:26:14,943 ERROR: No response from webpage in time. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function check_OpenCEM_shutdown, line 123
+2024-10-14 11:26:17,940 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:26:22,949 ERROR: No response from webpage in time. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function check_OpenCEM_shutdown, line 123
+2024-10-14 11:26:26,111 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:26:28,080 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x0000019187E30090> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2024-10-14 11:26:41,587 INFO: OpenCEM started // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 89
+2024-10-14 11:26:47,657 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:26:52,669 ERROR: No response from webpage in time. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function check_OpenCEM_shutdown, line 123
+2024-10-14 11:26:55,688 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:27:00,713 ERROR: No response from webpage in time. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function check_OpenCEM_shutdown, line 123
+2024-10-14 11:27:04,237 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:27:09,228 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000001DDBDFEC350> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2024-10-14 11:27:13,293 INFO: OpenCEM started // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 89
+2024-10-14 11:27:19,369 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:27:24,394 ERROR: No response from webpage in time. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function check_OpenCEM_shutdown, line 123
+2024-10-14 11:27:27,410 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:27:32,434 ERROR: No response from webpage in time. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function check_OpenCEM_shutdown, line 123
+2024-10-14 11:27:35,448 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:27:40,466 ERROR: No response from webpage in time. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function check_OpenCEM_shutdown, line 123
+2024-10-14 11:27:43,474 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:27:48,500 ERROR: No response from webpage in time. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function check_OpenCEM_shutdown, line 123
+2024-10-14 11:27:51,512 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:27:56,528 ERROR: No response from webpage in time. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function check_OpenCEM_shutdown, line 123
+2024-10-14 11:27:59,540 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:28:04,561 ERROR: No response from webpage in time. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function check_OpenCEM_shutdown, line 123
+2024-10-14 11:28:07,575 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:28:12,599 ERROR: No response from webpage in time. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function check_OpenCEM_shutdown, line 123
+2024-10-14 11:28:15,614 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:28:20,639 ERROR: No response from webpage in time. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function check_OpenCEM_shutdown, line 123
+2024-10-14 11:28:23,667 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:28:28,697 ERROR: No response from webpage in time. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function check_OpenCEM_shutdown, line 123
+2024-10-14 11:28:31,703 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:28:36,723 ERROR: No response from webpage in time. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function check_OpenCEM_shutdown, line 123
+2024-10-14 11:28:39,719 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:28:44,741 ERROR: No response from webpage in time. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function check_OpenCEM_shutdown, line 123
+2024-10-14 11:28:47,750 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:28:52,768 ERROR: No response from webpage in time. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function check_OpenCEM_shutdown, line 123
+2024-10-14 11:28:55,800 ERROR: System was not able to send data to the webpage. // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM\cem_lib_auxiliary_functions.py", function send_data_to_webpage, line 98
+2024-10-14 11:28:58,907 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000002A1C64BC150> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2024-10-14 11:29:19,107 INFO: OpenCEM started // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 89
+2024-10-14 11:29:24,650 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x0000013EBDABBA90> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2024-10-14 11:30:22,943 INFO: OpenCEM started // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 89
+2024-10-14 11:31:05,382 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x0000027C83BD0090> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785
+2024-10-14 12:42:49,045 INFO: OpenCEM started // File"C:\Users\chreg\OpenCEM\SGrPythonSamples\OpenCEM_main.py", function main, line 89
+2024-10-14 12:43:00,680 ERROR: Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000001E16277C050> // File"C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", function default_exception_handler, line 1785

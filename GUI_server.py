@@ -60,11 +60,11 @@ def start_GUI_server():
     app.router.add_post('/shutdown', shutdown)
     app.router.add_get('/shutdown_requested', shutdown_requested_function)
 
-    #IP_address = get_local_ip() # get local ip - TODO: activate this again
+    ip_address = get_local_ip() # get local ip - TODO: activate this again
     #IP_address = '192.168.0.76'
 
-    ip_address= "10.223.12.50"      # TODO: get from settings
-    port = "8000"
+    #ip_address= "10.223.11.58"      # TODO: get from settings
+    port = 8000
 
     web.run_app(app, host=ip_address, port=port)
 

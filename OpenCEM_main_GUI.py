@@ -1,10 +1,16 @@
 from nicegui import ui
+import GUI_functions as gui_func
 
-def get_params():
-    # This function will be called when the button is clicked
-    # You can add your logic here to get the parameters from the device
-    print("Button clicked!")
 
-ui.button('Click me!', on_click=get_params)
+selected_box = ui.input(label='Selected Identifier').classes('w-full')
+
+
+
+
+
+
+
+ui.button('Load EIDs', on_click=gui_func.fetch_EIDs)
+ui.button('Download EID', on_click=gui_func.download_EID)
 
 ui.run()

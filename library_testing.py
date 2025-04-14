@@ -3,13 +3,83 @@ from nicegui import ui
 from sgr_commhandler.device_builder import DeviceBuilder
 import os
 import logging
-
+import GUI_functions as gui_func
 import asyncio
 
+from nicegui import ui
+import json
+import aiohttp
 
+
+selected_box = ui.input(label='Selected Identifier').classes('w-full')
+
+
+def copy_selected():
+    if dropdown and dropdown.value:
+        selected_box.value = dropdown.value
+        ui.notify('Copied ✅')
+    else:
+        ui.notify('Nothing selected', type='warning')
+
+
+
+
+
+ui.button('Load EIDs', on_click=gui_func.fetch_EIDs)
+ui.button('Download EID', on_click=gui_func.download_EID)
+
+ui.run()
+"""
 # Global variable to store the device instance
+from nicegui import ui
 
 
+eid_path = 'xml_files/SGr_04_0015_xxxx_StiebelEltron_HeatPump_V1.0.0.xml'
+eid_properties = {
+       'tcp_address': '192.168.137.219',
+       'slave_id': 1,
+       'tcp_port': 502
+    }
+params = ui.label("test")
+
+async def get_params():
+    
+
+    device = DeviceBuilder().eid_path(eid_path).properties(eid_properties).build()
+    text = device.configuration_parameters
+
+    inputs = {}
+    data = {}
+
+# Build the UI form
+    with ui.column().classes('gap-4'):
+        ui.label('Modbus Device Configuration')
+        with ui.row().classes('gap-4'):
+            for label, key in text:
+                input_field = ui.input(label=label)
+                inputs[key] = input_field  # Store by internal key
+
+
+
+    await device.connect_async()
+    #params.text = str(text)
+    #values = await device.get_values_async()
+    #for k,v in values.items():
+        #print(str(k) + ': ' + str(v))
+    #await dp.set_value_async(1)
+    # This function will be called when the button is clicked
+    # You can add your logic here to get the parameters from the device
+    
+    print("Button clicked!")
+    await device.disconnect_async()
+
+
+ui.button('Click me!', on_click=get_params)
+
+ui.run()
+
+"""
+"""
 async def main():
 
     eid_path = 'xml_files/SGr_04_0015_xxxx_StiebelEltron_HeatPump_V1.0.0.xml'
@@ -25,12 +95,14 @@ async def main():
  
     
     device = DeviceBuilder().eid_path(eid_path).properties(eid_properties).build()
+    params = device.configuration_parameters
 
+    print(params[0].name)
     await device.connect_async()
     fp = device.get_functional_profile("HeatCoolCtrl_1")
     
     dp = fp.get_data_point("SupplyWaterTempSetpointComfort")
-    dp.set_value
+    
     await dp.set_value_async(22)
     #values = await device.get_values_async()
     #value = await dp.get_value_async()
@@ -131,3 +203,4 @@ if __name__ == "__main__":
         loop = asyncio.get_event_loop()
         loop.run_until_complete(main())
 #asyncio.run(main())
+"""

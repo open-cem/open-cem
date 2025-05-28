@@ -1,4 +1,3 @@
-
 from nicegui import ui
 from sgr_commhandler.device_builder import DeviceBuilder
 import os
@@ -11,99 +10,79 @@ import json
 import aiohttp
 
 
-selected_box = ui.input(label='Selected Identifier').classes('w-full')
-
-
-def copy_selected():
-    if dropdown and dropdown.value:
-        selected_box.value = dropdown.value
-        ui.notify('Copied ✅')
-    else:
-        ui.notify('Nothing selected', type='warning')
+#selected_box = ui.input(label='Selected Identifier').classes('w-full')
 
 
 
 
 
-ui.button('Load EIDs', on_click=gui_func.fetch_EIDs)
-ui.button('Download EID', on_click=gui_func.download_EID)
 
-ui.run()
-"""
+
+#ui.button('New System', on_click=gui_func.getParams)
+#ui.button('Safe Params', on_click=gui_func.saveParams)
+#ui.button('Load EIDs', on_click=gui_func.add_Device)
+#ui.button('Download EID', on_click=gui_func.download_EID)
+
+# Define the list of parameters
+# Dictionary to store input fields
+
+#ui.run()
+ 
+
+
+
+
 # Global variable to store the device instance
-from nicegui import ui
 
 
+"""
 eid_path = 'xml_files/SGr_04_0015_xxxx_StiebelEltron_HeatPump_V1.0.0.xml'
 eid_properties = {
        'tcp_address': '192.168.137.219',
        'slave_id': 1,
        'tcp_port': 502
     }
-params = ui.label("test")
-
-async def get_params():
-    
-
-    device = DeviceBuilder().eid_path(eid_path).properties(eid_properties).build()
-    text = device.configuration_parameters
-
-    inputs = {}
-    data = {}
-
-# Build the UI form
-    with ui.column().classes('gap-4'):
-        ui.label('Modbus Device Configuration')
-        with ui.row().classes('gap-4'):
-            for label, key in text:
-                input_field = ui.input(label=label)
-                inputs[key] = input_field  # Store by internal key
-
-
-
-    await device.connect_async()
-    #params.text = str(text)
-    #values = await device.get_values_async()
-    #for k,v in values.items():
-        #print(str(k) + ': ' + str(v))
-    #await dp.set_value_async(1)
-    # This function will be called when the button is clicked
-    # You can add your logic here to get the parameters from the device
-    
-    print("Button clicked!")
-    await device.disconnect_async()
-
-
-ui.button('Click me!', on_click=get_params)
-
-ui.run()
 
 """
-"""
+print("Starting main function...")
+
 async def main():
 
-    eid_path = 'xml_files/SGr_04_0015_xxxx_StiebelEltron_HeatPump_V1.0.0.xml'
+    eid_path = 'xml_files/SGr_04_0033_0000_CTA_HeatPumpV0.2.1.xml'
     eid_properties = {
-       'tcp_address': '192.168.137.219',
-       'slave_id': 1,
-       'tcp_port': 502
+        'address': '192.168.137.166'
     }
 
-
+   
 
     
  
     
+    #device = DeviceBuilder().eid_path(eid_path).properties(eid_properties).build()
     device = DeviceBuilder().eid_path(eid_path).properties(eid_properties).build()
-    params = device.configuration_parameters
-
-    print(params[0].name)
+    
+    #device = DeviceBuilder().properties(eid_properties).build()
+    #params = device.configuration_parameters[0].type
+    #active_type = next((k for k, v in params.items() if v is not None), None)
+    #print(params)
+    #print(active_type)
     await device.connect_async()
-    fp = device.get_functional_profile("HeatCoolCtrl_1")
     
-    dp = fp.get_data_point("SupplyWaterTempSetpointComfort")
     
-    await dp.set_value_async(22)
+    dp = device.get_data_point(("HeatCoolCtrl_1", "SupplyWaterTempStpt"))
+    value = await dp.get_value_async()
+    print(value)
+    """
+    values = await device.get_values_async()
+    for k,v in values.items():
+        print(str(k) + ': ' + str(v))
+    """
+
+    #fp = device.get_functional_profile("HeatCoolCtrl_1")
+    
+    #dp = fp.get_data_point("SupplyWaterTempSetpointComfort")
+    
+    #await dp.set_value_async(22)
     #values = await device.get_values_async()
     #value = await dp.get_value_async()
     #print(value)
@@ -203,4 +182,3 @@ if __name__ == "__main__":
         loop = asyncio.get_event_loop()
         loop.run_until_complete(main())
 #asyncio.run(main())
-"""

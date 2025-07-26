@@ -18,13 +18,13 @@ import math
 
 import aiohttp
 import time
-from audioop import mul
+#from audioop import mul
 from operator import truediv
 from pprint import pprint
 
 import requests
 from pymodbus.constants import Endian
-from sgr_library import SGrDevice
+#from sgr_library import SGrDevice
 from OpenCEM.native_device import NativeDevice
 
 import random
@@ -35,8 +35,8 @@ from datetime import datetime, timedelta
 # pymodbus
 from pymodbus.client import ModbusSerialClient, AsyncModbusTcpClient, AsyncModbusSerialClient
 
-from sgr_library.modbusRTU_interface_async import SgrModbusRtuInterface
-from sgr_library.payload_decoder import PayloadDecoder
+#from sgr_library.modbusRTU_interface_async import SgrModbusRtuInterface
+#from sgr_library.payload_decoder import PayloadDecoder
 from datetime import datetime
 
 from sgr_commhandler.device_builder import DeviceBuilder
@@ -77,11 +77,15 @@ class OpenCEM_RTU_client:
         else:
             raise NotImplementedError
 
-    
+  
 class SmartGridreadyComponent:  # TODO: check with new sgr_library
     # class for component with smartgridready compatibility
 
-    async def __init__(self, XML_file: str, EID_param: dict):
+    def __init__(self):
+        self.device = None
+
+    async def connect(self, XML_file: str, EID_param: dict):
+        print(EID_param)
         self.device = DeviceBuilder().eid_path(XML_file).properties(EID_param).build()
         await self.device.connect_async()
 
@@ -92,10 +96,11 @@ class SmartGridreadyComponent:  # TODO: check with new sgr_library
     async def read_value(self, functional_profile: str, data_point: str):
         # read one value from a given data point within a functional profile
         error_code = 0
-        unit = "notImpl"
-        dp = self.device.get_functional_profile(functional_profile).get_data_point(data_point)
-
+        print(f"SmartGridready Component read value: {functional_profile, data_point}")
+        #dp = self.device.get_functional_profile(functional_profile).get_data_point(data_point)
+        dp = self.device.get_data_point((functional_profile,data_point ))
         value = await dp.get_value_async()
+        unit = dp.unit().name
         return [value, unit, error_code]
         """
         error_code = 0
@@ -124,8 +129,10 @@ class SmartGridreadyComponent:  # TODO: check with new sgr_library
         # write one value to a given data point within a functional profile
 
         error_code = 0
+        dp = self.device.get_data_point((data_point, functional_profile))
 
-        self.sgr_component.setval(functional_profile, data_point, value)
+        
+        #self.sgr_component.setval(functional_profile, data_point, value)
 
         print(f"SmartGridready Component write value: {functional_profile, data_point, value}")
 
@@ -286,7 +293,8 @@ class Device():
                  simulationModel: str = "", 
                  isLogging: bool = True,
                  communicationChannel: str = "",
-                 param: dict = {}
+                 param: dict = {},
+                 dp_list: list = None
                  ):
 
         self.name = name
@@ -300,7 +308,7 @@ class Device():
         self.communicationChannel = communicationChannel
         
         self.param = param
-
+        self.dp_list = dp_list  # list of data points
         self.nominalPower = 0
 
         self.state = 0
@@ -308,15 +316,22 @@ class Device():
         self.unit = None
         self.error_code = 0
 
-        if smartGridreadyEID != "None":
-            self.smartgridready = SmartGridreadyComponent(smartGridreadyEID, EID_param)
+        #if smartGridreadyEID != "None":
+        #    smartgridready = SmartGridreadyComponent()
 
         if nativeEID != "None":
             self.native = NativeComponent(nativeEID, self.param)
 
         print(f"Device created: {self.name} type {self.type}")
 
-    # abstract methodes
+
+    async def connect(self,smartGridreadyEID, param):
+            print("Connecting to SmartGridready Component...")
+            self.smartgridready_Comp = SmartGridreadyComponent()
+            await self.smartgridready_Comp.connect(smartGridreadyEID, param)
+            print(f"SmartGridready Component initialized: {smartGridreadyEID}")
+
+
 
     async def read(self):
         pass
@@ -345,8 +360,9 @@ class PowerSensor(Device):
                  simulationModel: str = "",
                  isLogging: bool = True,
                  communicationChannel: str = "",
-                 param: dict = None
-                 #address: str ="",
+                 param: dict = None,
+                 dp_list : list = None
+                 #address: str =""
                  #has_energy_import: bool = False,
                  #has_energy_export: bool = False,
                  #maxPower: float
@@ -354,7 +370,7 @@ class PowerSensor(Device):
 
         # initialize sensor
         super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, EID_param=EID_param, nativeEID=nativeEID,
-                         simulationModel=simulationModel, isLogging=isLogging, communicationChannel=communicationChannel, param= param)
+                         simulationModel=simulationModel, isLogging=isLogging, communicationChannel=communicationChannel, param= param, dp_list=dp_list)
 
         #self.address = address
         #self.has_energy_import = has_energy_import
@@ -382,21 +398,27 @@ class PowerSensor(Device):
 
         if self.smartGridreadyEID != "None":
             print("datapoint reading")
-            [self.value, self.unit, self.error_code] = await self.smartgridready.read_value('ActivePowerAC',
-                                                                                     'ActivePowerACtot')
+            print(self.dp_list)
+            for dp_entry in self.dp_list:  # self.dp_list is your loaded datapoints list
+                fp = dp_entry['fp']
+                dp = dp_entry['dp']
+                print(f"Reading data point: {fp}, {dp}")
+                [self.value, self.unit, self.error_code] = await self.smartgridready_Comp.read_value(fp, dp)
+            #[self.value, self.unit, self.error_code] = await self.smartgridready_Comp.read_value('CurrentAC','CurrentACL1')
         if self.nativeEID != "None":
             [self.value, self.unit, self.error_code] = await self.native.read_value('ActivePowerACtot')
         if self.simulationModel != "None":
             [self.value, self.unit, self.error_code] = await self.simulation.run_simulation_step()
 
-        #await asyncio.sleep(PowerSensor.sleep_between_requests)
+        #await asyncio.sleep(PowerSensor.sleep_between_requests
 
+        """
         if self.error_code == 0:
             if self.value > self.maxPower:
                 self.value = self.maxPower
         if self.isLogging:
             self.log_value_state('read_power')
-
+        """
         print(f"Power sensor read power: {self.name} value {self.value:.2f} unit {self.unit} error code {self.error_code}")
 
         return self.value, self.unit, self.error_code
@@ -415,7 +437,7 @@ class PowerSensor(Device):
             error_code = 0
 
             if self.smartGridreadyEID != None:
-                [value, unit, error_code] = await self.smartgridready.read_value_with_conversion('ActiveEnerBalanceAC',
+                [value, unit, error_code] = await self.smartgridready_Comp.read_value_with_conversion('ActiveEnerBalanceAC',
                                                                                                  'ActiveImportAC')
             if self.nativeEID != None:
                 [value, unit, error_code] = await self.native.read_value_with_conversion('ActiveEnerBalanceAC',
@@ -447,7 +469,7 @@ class PowerSensor(Device):
             error_code = 0
 
             if self.smartGridreadyEID != "None":
-                [value, unit, error_code] = await self.smartgridready.read_value_with_conversion('ActiveEnergBalanceAC',
+                [value, unit, error_code] = await self.smartgridready_Comp.read_value_with_conversion('ActiveEnergBalanceAC',
                                                                                                  'ActiveExportAC')
             if self.nativeEID != "None":
                 [value, unit, error_code] = await self.native.read_value_with_conversion('ActiveEnergBalanceAC',
@@ -503,7 +525,7 @@ class TemperatureSensor(Device):
         self.error_code = 0
 
         if self.smartGridreadyEID != None:  # TODO: specify fp and dp names
-            [self.value, self.unit, self.error_code] = await self.smartgridready.read_value_with_conversion('Temperature',
+            [self.value, self.unit, self.error_code] = await self.smartgridready_Comp.read_value_with_conversion('Temperature',
                                                                                              'Degree')
         if self.nativeEID != None: # TODO: specify fp and dp names
             [self.value, self.unit, self.error_code] = await self.native.read_value_with_conversion('Temperature',
@@ -566,7 +588,7 @@ class RelaisActuator(Device):
         dp_str = f"CHANNEL{channel}"
 
         if self.smartGridreadyEID != None:
-            [self.state, self.error_code] = await self.smartgridready.read_value(fp_str, dp_str)
+            [self.state, self.error_code] = await self.smartgridready_Comp.read_value(fp_str, dp_str)
         if self.nativeEID != None:
             [self.state, self.error_code] = await self.native.read_value(fp_str, dp_str)
 
@@ -643,8 +665,13 @@ class HeatPump(Device):
         if param is None:
             param = {}
         if simulationModel != "None":
-            self.simulation = SimulatedComponent(simulationModel, max_power=maxPower, min_power=minPower,
-                                                 nominal_power=maxPower, min_temperature=None, max_temperature=None)
+            self.simulation = SimulatedComponent(simulationModel, 
+                                                 #max_power=maxPower, 
+                                                 #min_power=minPower,
+                                                 #nominal_power=maxPower, 
+                                                 min_temperature=None, 
+                                                 max_temperature=None
+                                                 )
 
 
     async def read_device(self, functional_profile):
@@ -665,7 +692,7 @@ class HeatPump(Device):
             dp_str = f"DP_ActualSpeed"
 
         if self.smartGridreadyEID != "None":
-            [self.value, self.error_code] = await self.smartgridready.read_value(fp_str, dp_str)
+            [self.value, self.error_code] = await self.smartgridready_Comp.read_value(fp_str, dp_str)
 
         if self.nativeEID != "None":
 
@@ -702,7 +729,7 @@ class HeatPump(Device):
             dp_str = f"DP_SetpointSpeed"
 
         if self.smartGridreadyEID != None:
-            [self.error_code] = self.smartgridready.write_value(fp_str, dp_str, setpoint)
+            [self.error_code] = self.smartgridready_Comp.write_value(fp_str, dp_str, setpoint)
         if self.nativeEID != None:
             [self.error_code] = self.native.write_value(fp_str, dp_str, setpoint)
 
@@ -791,7 +818,7 @@ class EVCharger(Device):
         dp_str = "ChargingCurrentAC"
 
         if self.smartGridreadyEID != None:
-            [self.value, self.error_code] = await self.smartgridready.read_value(fp_str, dp_str)
+            [self.value, self.error_code] = await self.smartgridready_Comp.read_value(fp_str, dp_str)
         if self.nativeEID != None:
             [self.value, self.error_code] = await self.native.read_value(fp_str, dp_str)
         if self.simulationModel != None:
@@ -825,7 +852,7 @@ class EVCharger(Device):
             self.value = setpoint / (3*230)  # I = P/(3*U)
 
         if self.smartGridreadyEID != None:
-            [self.error_code] = self.smartgridready.write_value(fp_str, dp_str, self.value)
+            [self.error_code] = self.smartgridready_Comp.write_value(fp_str, dp_str, self.value)
         if self.nativeEID != None:
             [self.error_code] = self.native.write_value(fp_str, dp_str, self.value)
 
@@ -847,7 +874,7 @@ class EVCharger(Device):
         dp_str = "SetMode"
 
         if self.smartGridreadyEID != None:
-            [self.error_code] = self.smartgridready.write_value(fp_str, dp_str, state)
+            [self.error_code] = self.smartgridready_Comp.write_value(fp_str, dp_str, state)
         if self.nativeEID != None:
             [self.error_code] = self.native.write_value(fp_str, dp_str, state)
 

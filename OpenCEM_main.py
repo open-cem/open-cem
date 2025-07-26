@@ -14,7 +14,7 @@ Version: 2.0, October 2024
 import asyncio
 import logging
 import urllib
-from sgr_library import SGrDevice
+#from sgr_library import SGrDevice
 
 import aiohttp
 from pymodbus.client import AsyncModbusSerialClient, AsyncModbusTcpClient
@@ -22,15 +22,19 @@ import subprocess
 import OpenCEM.cem_lib_components
 import yaml
 
+import paho.mqtt.client as mqtt
+
 from OpenCEM.cem_lib_components import Device, PowerSensor, TemperatureSensor, RelaisActuator, HeatPump, EVCharger, OpenCEM_RTU_client
 from OpenCEM.cem_lib_controllers import Controller, SwitchingExcessController, DynamicExcessController, TemperatureExcessController
 from OpenCEM.cem_lib_loggers import  create_event_logger, create_device_logger, show_logger_in_console
 from datetime import datetime, timedelta
 from OpenCEM.cem_lib_auxiliary_functions import create_webpage_dict, send_data_to_webpage, parse_yaml, check_OpenCEM_shutdown, ip_address, port, backend_url
-from sgr_library.modbusRTU_interface_async import SgrModbusRtuInterface
+from shared_queue import plot_queue
+#from sgr_library.modbusRTU_interface_async import SgrModbusRtuInterface
 
 # devices loop
-async def calculation_loop(devices_list: list, controllers_list: list, period: int, HTTP_client):
+async def calculation_loop(devices_list: list, controllers_list: list, period: int, HTTP_client, MQTT_client):
+    
     simulation_speed_up_factor = OpenCEM.cem_lib_components.simulation_speed_up_factor
     while True:
 
@@ -45,8 +49,9 @@ async def calculation_loop(devices_list: list, controllers_list: list, period: i
 
         # update webpage
         webpage_dict = create_webpage_dict(devices_list)
+        print("Webpage dict created:", webpage_dict)
         await send_data_to_webpage(webpage_dict, HTTP_client)
-
+        MQTT_client.publish('openCEM/value', str(webpage_dict))
         print("-----------------------------------------------")
 
         # sleep for a defined period (other tasks may run)
@@ -75,6 +80,8 @@ async def main():
         token = settings.get("token")
         ip_address = settings.get("ip_address")     # TODO: check this
         port = settings.get("port")                 # TODO: check this
+
+
 
     # set variables for the library
     OpenCEM.cem_lib_components.simulation_speed_up_factor = simulation_speed_up
@@ -132,9 +139,14 @@ async def main():
         if channel.type == "MODBUS_RTU":
             await channel.client.connect()
 
+    
+    mqtt_client = mqtt.Client()
+    mqtt_client.connect('192.168.137.10', 1883)  # Use your broker address/port if different
+    mqtt_client.loop_start()
+    
     # start calculation loop
     task_calculation_loop = asyncio.create_task(
-        calculation_loop(devices_list, controllers_list, loop_time, http_main_client))
+        calculation_loop(devices_list, controllers_list, loop_time, http_main_client, mqtt_client))
 
     # run main for given duration
     if duration != 0:
@@ -162,4 +174,7 @@ async def main():
     logging.info("GUI closed, OpenCEM stopped")
 
 # to run infinite don't set duration
-asyncio.run(main())
+#asyncio.run(main())
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())

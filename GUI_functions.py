@@ -6,9 +6,18 @@ import yaml
 import os
 import logging
 import plotly.graph_objects as go
+import asyncio
+from OpenCEM_main import main as OpenCEM_main
+from multiprocessing import Queue
+
+from shared_queue import plot_queue
 # --------------------------
 # Global Variables
 # --------------------------
+
+
+import paho.mqtt.client as mqtt
+
 input_fields = {}
 params = None
 dropdown_identifier = None
@@ -16,10 +25,37 @@ dropdown_devices = None
 params_datatype = None
 device = None
 
-
+latest_value_box = ui.input(label='Latest Value').classes('w-full')
 textbox_setup = ui.input(label='Enter Setup Name').classes('w-full')
 textbox_device = ui.input(label='Enter Product Name').classes('w-full')
 popUp_deleteSystems = ui.dialog().props('persistent')
+
+selected_datapoints = [] 
+checkbox_dict = {} 
+
+# MQTT callback
+def on_message(client, userdata, msg):
+    value = msg.payload.decode()
+    # Update the textbox in the main thread
+    #ui.run_later(lambda: latest_value_box.set_value(value))
+    latest_value_box.value = value
+
+async def start_mqtt():
+    client = mqtt.Client()
+    client.on_message = on_message
+    client.connect('192.168.137.10', 1883)  # Use your broker address
+    client.subscribe('openCEM/value')
+    client.loop_start()  # Start MQTT loop in background
+
+
+
+def start_plot_update():
+    asyncio.create_task(start_mqtt())
+
+
+def start_OpenCEM():
+    #asyncio.create_task(OpenCEM_main())
+    pass
 # --------------------------
 #  Delete System
 # --------------------------    
@@ -139,11 +175,22 @@ async def download_EID(EID_name: str):
         print(f"Download of SGr File failed.")
         
 
+def handle_change(e, g, k):
+    print("pressed checkbox")
+    global selected_datapoints
+    pair = (g, k)
+    if e.value and pair not in selected_datapoints:
+        selected_datapoints.append(pair)
+    elif not e.value and pair in selected_datapoints:
+        selected_datapoints.remove(pair)
+    print(f"Selected Datapoints: {selected_datapoints}")
+
 async def getParams():
     global params
     global device
     global params_datatype
     global dropdown_identifier
+    global selected_datapoints 
     eid_path = 'xml_files/' + dropdown_identifier.value
 
     print(f"Selected EID: {dropdown_identifier.value}")
@@ -178,14 +225,41 @@ async def getParams():
             ui.label(key).classes('w-28')  
             input_fields[key] = ui.input(placeholder= params_datatype[key])
 
+
+    device_describtion = device.describe()
+    data_dict = device_describtion[1]
+    checkbox_items = [
+        (group, key)
+        for group, values in data_dict.items()
+        for key in values.keys()
+    ]
+
+    #selected_datapoints = []
+
+    ui.label('Choose Datapoints:').classes('text-xl font-bold mt-6 mb-2')
+    for group, key in checkbox_items:
+        label = f'{group} : {key}'
+        cb = ui.checkbox(label)
+        checkbox_dict[(group, key)] = cb
+        #cb.on('change', lambda e, g=group, k=key: handle_change(e, g, k))
+        
+
 async def addDevice():
     #parameter
     global input_fields
     global params
     global device
     global params_datatype
+    global selected_datapoints
     yaml_file_path = 'yaml/config.yaml'
 
+    #checked_datapoints = [dict(pair) for pair, cb in checkbox_dict.items() if cb.value]
+    checked_datapoints = [
+        {'fp': pair[0], 'dp': pair[1]}
+        for pair, cb in checkbox_dict.items() if cb.value
+    ]
+    print(f"Diese Checkboxen sind ausgewählt: {checked_datapoints}")
+    print(type(checked_datapoints))
     expected_data_types = {
 
         'int16': int,
@@ -220,11 +294,12 @@ async def addDevice():
 
     new_device = {
             'name': textbox_device.value,
-            'type': device.device_information.device_category,
+            'type': False, #device.device_information.device_category,
             'smartGridreadyEID': device.device_information.name,
             'simulationModel': None,
             'isLogging': False,
-            'param': params
+            'param': params,
+            'datapoints': checked_datapoints
         }
     try:
         # Read the existing YAML file (if it exists)
@@ -296,6 +371,8 @@ async def delete_device_by_name():
     except Exception as e:
         print(f"Error deleting device: {e}")
     await get_device_list_dropdown()
+
+    
 def get_device_list():
     yaml_file_path = 'yaml/config.yaml'
     try:

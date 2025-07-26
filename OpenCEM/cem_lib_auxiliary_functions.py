@@ -18,12 +18,13 @@ import socket
 import urllib
 import aiohttp.client
 import yaml
+import ast
 from OpenCEM.cem_lib_components import CommunicationChannel, PowerSensor, \
     HeatPump, EVCharger, TemperatureSensor, RelaisActuator, simulation_speed_up_factor
 from OpenCEM.cem_lib_controllers import Controller, SwitchingExcessController, DynamicExcessController, TemperatureExcessController
-from sgr_library.modbusRTU_interface_async import SgrModbusRtuInterface
-from sgr_library.modbusRTU_client_async import SGrModbusRTUClient
-
+#from sgr_library.modbusRTU_interface_async import SgrModbusRtuInterface
+#from sgr_library.modbusRTU_client_async import SGrModbusRTUClient
+#from sgr_commhandler.modbus
 
 
 
@@ -222,6 +223,7 @@ async def parse_yaml(path2configurationYaml: str):
         controllers_list = []
         #TODO try
         communication_dict =  {}
+        EID_param = {}
 
         # parse communication channels
         if data.get("communicationChannels") is not None:
@@ -246,9 +248,9 @@ async def parse_yaml(path2configurationYaml: str):
         sgr_rtu_client = http_main_channel = next(
             (obj for obj in communication_channels_list if obj.type == "MODBUS_RTU"),
             None)  # returns the MODBUS_RTU communication channel
-        if sgr_rtu_client is not None:
-            SgrModbusRtuInterface.globalModbusRTUClient = SGrModbusRTUClient("", "", "",
-                                                                             client=sgr_rtu_client)  # set the global client for SGr RTU Devices
+        #if sgr_rtu_client is not None:
+        #    SgrModbusRtuInterface.globalModbusRTUClient = SGrModbusRTUClient("", "", "",
+        #                                                                     client=sgr_rtu_client)  # set the global client for SGr RTU Devices
 
         # parse devices
 
@@ -257,19 +259,25 @@ async def parse_yaml(path2configurationYaml: str):
             
            
             for device in devices_data:
+                print("device", device)
                 name = device.get("name")
-                type = device.get("type")
+                device_type = device.get("type")
                 smartgridreadyEID = device.get("smartGridreadyEID")
-                EID_param = device.get("EID_param")
-                #print(EID_param)
+                EID_param = device.get("param")
+                dp_list = device.get("datapoints", [])
+                print("-----------------------------")
+                print("dp_list", dp_list)
+                #EID_param = ast.literal_eval(EID_param)
+                
                 #smartgridreadyEID_path = f"xml/{smartgridreadyEID}.xml" # TODO: adapt path
                 nativeEID = device.get("nativeEID")
                 #nativeEID_path = f"yaml/{nativeEID}.yaml" # TODO: adapt path
                 simulationModel = device.get("simulationModel")
                 isLogging = device.get("isLogging")
                 communicationChannel = device.get("communicationChannel")
+                
                 param = device.get("param")
-
+                print("param", param)
                 # merge the param from the communicationChannel into the param from the device
                 if communicationChannel in communication_dict:
                     param.update(communication_dict[communicationChannel])
@@ -277,30 +285,32 @@ async def parse_yaml(path2configurationYaml: str):
                
                 
                 # decision tree for device types
-                match type:
+                match device_type:
                     case "POWER_SENSOR":
                         #address = param["address"]
                         #hasEnergyImport = param["hasEnergyImport"]
                         #hasEnergyExport = param["hasEnergyExport"]
                         #maxPower = param["maxPower"]
 
-                        device_temporary = PowerSensor(name=name, type=type, smartGridreadyEID=smartgridreadyEID, EID_param=EID_param,
+                        device_temporary =  PowerSensor(name=name, type=device_type, smartGridreadyEID=smartgridreadyEID, EID_param=EID_param,
                                                        nativeEID=nativeEID, simulationModel=simulationModel,
                                                        isLogging=isLogging,
                                                        communicationChannel=communicationChannel,
-                                                       param = param
+                                                       param = param,
+                                                       dp_list= dp_list
                                                        #address=address,
                                                        #has_energy_import=hasEnergyImport,
                                                        #has_energy_export=hasEnergyExport, 
                                                        #maxPower=maxPower
                                                        )
+                        
 
                     case "TEMPERATURE_SENSOR":
                         address = param["address"]
                         maxTemp = param["maxTemp"]
                         minTemp = param["minTemp"]
 
-                        device_temporary = TemperatureSensor(name=name, type=type, smartGridreadyEID=smartgridreadyEID, EID_param=EID_param,
+                        device_temporary = TemperatureSensor(name=name, type=device_type, smartGridreadyEID=smartgridreadyEID, EID_param=EID_param,
                                                              nativeEID=nativeEID, simulationModel=simulationModel,
                                                              isLogging=isLogging,
                                                              communicationChannel=communicationChannel,
@@ -308,7 +318,7 @@ async def parse_yaml(path2configurationYaml: str):
                     case "RELAIS_SWITCH":
                         ip_address = param["address"]
                         n_channels = param["nChannels"]
-                        device_temporary = RelaisActuator(name=name, type=type, smartGridreadyEID=smartgridreadyEID, EID_param=EID_param,
+                        device_temporary = RelaisActuator(name=name, type=device_type, smartGridreadyEID=smartgridreadyEID, EID_param=EID_param,
                                                 nativeEID=nativeEID, simulationModel=simulationModel,
                                                 isLogging=isLogging,
                                                 communicationChannel=communicationChannel,
@@ -321,7 +331,7 @@ async def parse_yaml(path2configurationYaml: str):
                         #maxPower = param.get("maxPower")
 
                         device_temporary = HeatPump(name=name, 
-                                                    type=type,
+                                                    type=device_type,
                                                     smartGridreadyEID=smartgridreadyEID, 
                                                     nativeEID=nativeEID, 
                                                     EID_param=EID_param,
@@ -344,7 +354,7 @@ async def parse_yaml(path2configurationYaml: str):
                         #   phases = param.get("phases")
 
                         device_temporary = EVCharger(name=name, 
-                                                    type=type,
+                                                    type=device_type,
                                                     smartGridreadyEID=smartgridreadyEID, 
                                                     nativeEID=nativeEID, 
                                                     EID_param=EID_param,
@@ -352,11 +362,19 @@ async def parse_yaml(path2configurationYaml: str):
                                                     isLogging=isLogging,
                                                     communicationChannel=communicationChannel, 
                                                     address=address,
-                                                    port=port, 
-                                                    minPower=minPower, 
-                                                    maxPower=maxPower, 
-                                                         phases=phases)
-
+                                                    port=port,
+                                                
+                                                    #minPower=minPower, 
+                                                    #maxPower=maxPower, 
+                                                    #     phases=phases
+                                                    )
+                   
+                if smartgridreadyEID is not None: 
+                    print("smartgridreadyEID", smartgridreadyEID) 
+                    print("EID_param", EID_param)
+                    print(type(EID_param))      
+                    await device_temporary.connect(smartgridreadyEID, EID_param)  # initialize the device with the SGr EID and parameters
+                    
                 devices_list.append(device_temporary)   # add the device to the list and continue for loop with the next device
 
         # parse controllers
@@ -366,7 +384,7 @@ async def parse_yaml(path2configurationYaml: str):
 
             for controller in controllers_data:
                 name = controller["name"]
-                type = controller["type"]
+                controller_type = controller["type"]
                 mainMeterStr = controller["mainMeter"]
                 mainMeter = find_device(devices_list,mainMeterStr)
                 deviceMeterStr = controller["deviceMeter"]
@@ -378,7 +396,7 @@ async def parse_yaml(path2configurationYaml: str):
 
 
                 # decision tree for controller type
-                match type:
+                match controller_type:
                     case "SWITCHING_EXCESS_CONTROLLER":
                         controller_temporary = SwitchingExcessController(name=name, mainMeter=mainMeter,
                                                                          deviceMeter=deviceMeter, controlledDevice=controlledDevice,

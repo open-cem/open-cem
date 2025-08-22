@@ -1,3 +1,4 @@
+import datetime
 import json
 import aiohttp
 from nicegui import ui
@@ -8,30 +9,51 @@ import logging
 import plotly.graph_objects as go
 import asyncio
 from OpenCEM_main import main as OpenCEM_main
-from multiprocessing import Queue
+from influxdb import InfluxDBClient
+import yaml
 
-from shared_queue import plot_queue
+# Load configuration from YAML file
+with open("yaml/OpenCEM_settings.yaml", 'r') as file:
+    config = yaml.safe_load(file)
+
+mqtt_address = config.get('mqtt_address')
+influxDB_address = config.get('influxDB_address', 'localhost')
+
+
 # --------------------------
 # Global Variables
 # --------------------------
-
+opencem_task = None
+plot_timer = None
+live_plots_active = False
+plot_figures = {}
 
 import paho.mqtt.client as mqtt
 
 input_fields = {}
 params = None
 dropdown_identifier = None
+dropdown_local_EIDs = None
 dropdown_devices = None
 params_datatype = None
 device = None
 
 latest_value_box = ui.input(label='Latest Value').classes('w-full')
-textbox_setup = ui.input(label='Enter Setup Name').classes('w-full')
+textbox_system = ui.input(label='Enter System Name').classes('w-full')
 textbox_device = ui.input(label='Enter Product Name').classes('w-full')
 popUp_deleteSystems = ui.dialog().props('persistent')
+system_config = ui.dialog().props('persistent')
+
+pagination_card = ui.card().classes('w-full')
+with pagination_card:
+        ui.label("System Configuration").classes('text-lg font-bold')
 
 selected_datapoints = [] 
 checkbox_dict = {} 
+
+
+
+
 
 # MQTT callback
 def on_message(client, userdata, msg):
@@ -43,7 +65,7 @@ def on_message(client, userdata, msg):
 async def start_mqtt():
     client = mqtt.Client()
     client.on_message = on_message
-    client.connect('192.168.137.10', 1883)  # Use your broker address
+    client.connect(mqtt_address, 1883)  # Use your broker address
     client.subscribe('openCEM/value')
     client.loop_start()  # Start MQTT loop in background
 
@@ -54,8 +76,23 @@ def start_plot_update():
 
 
 def start_OpenCEM():
-    #asyncio.create_task(OpenCEM_main())
-    pass
+    global opencem_task
+    
+    if opencem_task and not opencem_task.done():
+        ui.notify('OpenCEM is already running', type='warning')
+        return
+    
+    opencem_task = asyncio.create_task(OpenCEM_main())
+    ui.notify('OpenCEM started', type='positive')
+
+def stop_OpenCEM():
+    global opencem_task
+    
+    if opencem_task and not opencem_task.done():
+        opencem_task.cancel()
+        ui.notify('OpenCEM stopped', type='info')
+    else:
+        ui.notify('OpenCEM is not running', type='warning')  
 # --------------------------
 #  Delete System
 # --------------------------    
@@ -94,32 +131,138 @@ with popUp_deleteSystems, ui.card():
 # Delete System End 
 # --------------------------     
 
+#---------------------------
+# configuration
+#---------------------------
 
+def show_overview(data):
+    ui.label(f"Installation Name: {data.get('installationName', '')}").classes('text-xl font-bold')
+    ui.label(f"Creation Timestamp: {data.get('creationTimestamp', '')}").classes('mb-2')
+    ui.label("Devices:").classes('text-lg font-bold mt-2')
+    eid_list = [device.get('smartGridreadyEID', '') for device in data.get('devices', [])]
+    ui.label(eid_list)
 
+def show_device_page(device):
+    with ui.card():
+        ui.label(f"Device Name: {device.get('name', '')}").classes('text-lg font-bold')
+        ui.label(f"Type: {device.get('type', '')}")
+        ui.label(f"EID: {device.get('smartGridreadyEID', '')}")
+        ui.label(f"Logging: {device.get('isLogging', '')}")
+        ui.label(f"Simulation Model: {device.get('simulationModel', '')}")
+        ui.label("Parameters:")
+        for k, v in device.get('param', {}).items():
+            ui.label(f"{k}: {v}")
+        ui.label("Datapoints:")
+        for dp in device.get('datapoints', []):
+            ui.label(f"fp: {dp.get('fp', '')}, dp: {dp.get('dp', '')}")
+
+async def dynamic_pagination(device_card):
+    """Create dynamic pagination for the YAML data."""
+    # Clear the container before creating new pagination
+    pagination_card.clear()
+    
+    # 1. Read the YAML file
+    yaml_file_path = 'yaml/config.yaml'
+    with open(yaml_file_path, 'r', encoding='utf-8') as f:
+        data = yaml.safe_load(f)
+
+    # 2. Prepare pages
+    pages = []
+
+    # Add the overview page
+    def overview_page():
+        show_overview(data)
+    pages.append(overview_page)
+
+    # Add a page for each device
+    for device in data.get('devices', []):
+        def make_device_page(dev=device):  # Use default argument to freeze the value
+            show_device_page(dev)
+        pages.append(make_device_page)
+
+    # 3. Render pages using the container
+
+    
+
+    def render_page(page_index: int):
+        pagination_card.clear()  # Clear the container before rendering the new page
+        with pagination_card:
+                    # Add pagination at the top
+            ui.pagination(
+                min=0,  # Minimum page index
+                max=len(pages) - 1,  # Maximum page index
+                value=page_index,  # Current page index
+                direction_links=True,  # Show first/last page links
+                on_change=lambda e: render_page(e.value)  # Callback to render the selected page
+            )
+                    # Render the selected page content
+            pages[page_index]()
+
+            # Render the first page initially
+    render_page(0)
+
+def clear_config_box():
+    pagination_card.clear()
+    
 async def newSystem():
-    global textbox_setup
 
-    if textbox_setup.value is not None:
-        setup_name = textbox_setup.value
-        system_path = f"Systems/{setup_name}"
+   
+    
+    with ui.card() as box_new_system:
+        textbox_system = ui.input(label='Enter System Name').classes('w-full')
+        def create_system_action():
+            system_name = textbox_system.value
+            system_path = f"Systems/{system_name}"
+            if not system_name:
+                ui.notify("Please enter a valid system name.", type='warning')
+                return
+            if os.path.exists(system_path):
+                ui.notify(f"The directory '{system_name}' already exists.", type='warning')
+            else:
+                os.makedirs(system_path, exist_ok=True)
+                ui.notify(f"The directory '{system_name}' has been created.", type='positive')
+            box_new_system.delete()  
+        ui.button('Create System', on_click=create_system_action).classes('mt-2')
+    """
+    global textbox_system
 
-        if not setup_name:
-            ui.notify("Please enter a valid setup name.", type='warning')
+    if textbox_system.value is not None:
+        system_name = textbox_system.value
+        system_path = f"Systems/{system_name}"
+
+        if not system_name:
+            ui.notify("Please enter a valid system name.", type='warning')
             return
         if os.path.exists(system_path):
             # Trigger notify if the directory already exists
-            ui.notify(f"The directory '{setup_name}' already exists.", type='warning')
+            ui.notify(f"The directory '{system_name}' already exists.", type='warning')
         else:
             # Create the directory if it does not exist
             os.makedirs(system_path, exist_ok=True)
-            
-            ui.notify(f"The directory '{setup_name}' has been created.", type='ongoing')
 
+            ui.notify(f"The directory '{system_name}' has been created.", type='ongoing')
+    """
 
 # --------------------------
 # Add Device
 # --------------------------
-async def load_EIDs_name():
+
+async def load_local_EIDs():
+    global dropdown_local_EIDs
+
+    # Get the list of XML files in the xml_files directory
+    xml_files = [f for f in os.listdir('xml_files') if f.endswith('.xml')]
+    
+    if dropdown_local_EIDs:
+        dropdown_local_EIDs.delete()
+
+    dropdown_local_EIDs = ui.select(
+        options=xml_files,
+        label='Local EIDs'
+    ).classes('w-full')
+
+
+async def load_online_EIDs():
     url = "https://library.smartgridready.ch/prod?release=Published"
     global dropdown_identifier
 
@@ -143,7 +286,7 @@ async def load_EIDs_name():
 
                 dropdown_identifier = ui.select(
                     options=identifiers,
-                    label='Published Identifiers'
+                    label='Online EIDs'
                 ).classes('w-full')
 
     except Exception as e:
@@ -175,25 +318,16 @@ async def download_EID(EID_name: str):
         print(f"Download of SGr File failed.")
         
 
-def handle_change(e, g, k):
-    print("pressed checkbox")
-    global selected_datapoints
-    pair = (g, k)
-    if e.value and pair not in selected_datapoints:
-        selected_datapoints.append(pair)
-    elif not e.value and pair in selected_datapoints:
-        selected_datapoints.remove(pair)
-    print(f"Selected Datapoints: {selected_datapoints}")
-
 async def getParams():
     global params
     global device
     global params_datatype
     global dropdown_identifier
+    global dropdown_local_EIDs
     global selected_datapoints 
-    eid_path = 'xml_files/' + dropdown_identifier.value
+    eid_path = 'xml_files/' + dropdown_local_EIDs.value
 
-    print(f"Selected EID: {dropdown_identifier.value}")
+    print(f"Selected EID: {dropdown_local_EIDs.value}")
     print(f"Selected EID path: {eid_path}")
     #eid_path = 'xml_files/SGr_04_0015_xxxx_StiebelEltron_HeatPump_V1.0.0.xml'
 
@@ -251,6 +385,7 @@ async def addDevice():
     global device
     global params_datatype
     global selected_datapoints
+    global dropdown_local_EIDs
     yaml_file_path = 'yaml/config.yaml'
 
     #checked_datapoints = [dict(pair) for pair, cb in checkbox_dict.items() if cb.value]
@@ -293,9 +428,11 @@ async def addDevice():
     ui.notify('Values validated and saved!')
 
     new_device = {
-            'name': textbox_device.value,
+            'name': device.device_information.name,
             'type': False, #device.device_information.device_category,
-            'smartGridreadyEID': device.device_information.name,
+            'smartGridreadyEID': f"xml_files/ {dropdown_local_EIDs.value}",
+            'EID_param': None,
+            'nativeEID': None,
             'simulationModel': None,
             'isLogging': False,
             'param': params,
@@ -386,3 +523,232 @@ def get_device_list():
     except yaml.YAMLError as e:
         print(f"Error reading YAML file: {e}")
         return []
+
+
+#----------------------------
+#Plot functions
+#----------------------------
+
+def load_available_devices(device_select):
+    """Load devices that have data in InfluxDB"""
+    try:
+        client = InfluxDBClient('localhost', 8086)
+        databases = client.get_list_database()
+        
+        device_names = []
+        for db in databases:
+            db_name = db['name']
+            if db_name.startswith('device_'):
+                device_name = db_name.replace('device_', '')
+                device_names.append(device_name)
+        
+        client.close()
+        device_select.options = device_names
+        if device_names:
+            device_select.value = device_names[0]
+        
+        ui.notify(f'Found {len(device_names)} devices with data', type='positive')
+        
+    except Exception as e:
+        ui.notify(f'Error loading devices: {e}', type='negative')
+
+def create_live_plots_optimized(hours_input, plots_container):
+    """Create plots once, then only update data"""
+    global plot_figures
+    
+    try:
+        client = InfluxDBClient(influxDB_address, 8086)
+        databases = client.get_list_database()
+        device_dbs = [db['name'] for db in databases if db['name'].startswith('device_')]
+        
+        plots_container.clear()
+        plot_figures.clear()
+        
+        if not device_dbs:
+            with plots_container:
+                ui.label('No devices found').classes('text-center text-red-500')
+            return
+        
+        hours = hours_input.value or 1
+        colors = ['blue', 'red', 'green', 'orange', 'purple', 'brown', 'pink']
+        
+        with plots_container:
+            ui.label(f'Live Plots (Last {int(hours)}h)').classes('text-xl font-bold mb-4')
+            
+            for db_name in device_dbs:
+                device_name = db_name.replace('device_', '')
+                client.switch_database(db_name)
+                
+                # Get measurements
+                measurements_query = client.query('SHOW MEASUREMENTS')
+                measurements = [list(point.values())[0] for point in measurements_query.get_points()]
+                
+                if measurements:
+                    # Create figure once
+                    fig = go.Figure()
+                    
+                    for i, measurement in enumerate(measurements):
+                        try:
+                            # FIX: Correct InfluxDB time syntax
+                            query = f'SELECT * FROM "{measurement}" WHERE time > now() - {int(hours)}h ORDER BY time ASC'
+                            result = client.query(query)
+                            points = list(result.get_points())
+                            
+                            if points:
+                                times = [p['time'] for p in points]
+                                values = [p['value'] for p in points]
+                                unit = points[0].get('unit', '')
+                                
+                                trace_name = measurement.replace('_', ' - ')
+                                if unit:
+                                    trace_name += f' [{unit}]'
+                                
+                                fig.add_trace(go.Scatter(
+                                    x=times,
+                                    y=values,
+                                    mode='lines+markers',
+                                    name=trace_name,
+                                    line=dict(width=2, color=colors[i % len(colors)]),
+                                    marker=dict(size=3)
+                                ))
+                        except Exception as e:
+                            print(f"Error querying measurement {measurement}: {e}")
+                            continue
+                    
+                    if fig.data:
+                        fig.update_layout(
+                            title=f'Device: {device_name}',
+                            xaxis_title='Time',
+                            yaxis_title='Values',
+                            height=400,
+                            hovermode='x unified'
+                        )
+                        
+                        # Create plot widget and store reference
+                        with ui.card().classes('w-full mb-4'):
+                            ui.label(f'📊 {device_name}').classes('text-lg font-bold')
+                            plot_widget = ui.plotly(fig).classes('w-full')
+                            
+                            # Store references for updates
+                            plot_figures[device_name] = {
+                                'figure': fig,
+                                'widget': plot_widget,
+                                'measurements': measurements,
+                                'db_name': db_name
+                            }
+        
+        client.close()
+        ui.notify('Plots created for live updates', type='positive')
+        
+    except Exception as e:
+        print(f"Error creating optimized plots: {e}")
+        ui.notify(f'Error creating plots: {e}', type='negative')
+
+def update_live_plots_data(hours_input):
+    """Update only the data in existing plots"""
+    global plot_figures
+    
+    if not plot_figures:
+        return
+    
+    try:
+        client = InfluxDBClient(influxDB_address, 8086)
+        hours = hours_input.value or 1
+        
+        for device_name, plot_data in plot_figures.items():
+            try:
+                client.switch_database(plot_data['db_name'])
+                
+                # Update each trace
+                for i, measurement in enumerate(plot_data['measurements']):
+                    try:
+                        # FIX: Correct time syntax
+                        query = f'SELECT * FROM "{measurement}" WHERE time > now() - {int(hours)}h ORDER BY time ASC'
+                        result = client.query(query)
+                        points = list(result.get_points())
+                        
+                        if points:
+                            new_times = [p['time'] for p in points]
+                            new_values = [p['value'] for p in points]
+                            
+                            # Update trace data
+                            if i < len(plot_data['figure'].data):
+                                plot_data['figure'].data[i].x = new_times
+                                plot_data['figure'].data[i].y = new_values
+                    except Exception as e:
+                        print(f"Error updating measurement {measurement}: {e}")
+                        continue
+                
+                # Refresh the plot widget
+                plot_data['widget'].update()
+                
+            except Exception as e:
+                print(f"Error updating device {device_name}: {e}")
+                continue
+        
+        client.close()
+        print(f"📊 Plot data updated at {datetime.now().strftime('%H:%M:%S')}")
+        
+    except Exception as e:
+        print(f"Error updating plot data: {e}")
+
+# Modified live plot functions
+def start_live_plots(hours_input, plots_container):
+    """Start live plot updates with data-only updates"""
+    global plot_timer, live_plots_active
+    
+    if live_plots_active:
+        ui.notify('Already running', type='warning')
+        return
+    
+    # Create plots once
+    create_live_plots_optimized(hours_input, plots_container)
+    
+    # Start timer for data updates only
+    live_plots_active = True
+    plot_timer = ui.timer(1.0, lambda: update_live_plots_data(hours_input))
+    
+    ui.notify('Live plots started (1s data updates)', type='positive')
+
+def stop_live_plots():
+    """Stop live plot updates"""
+    global plot_timer, live_plots_active
+    
+    if plot_timer:
+        plot_timer.cancel()
+        plot_timer = None
+    
+    live_plots_active = False
+    ui.notify('Live plots stopped', type='info')
+    
+
+
+def show_device_info(device_select, device_info_container):
+    """Show available measurements for selected device"""
+    if not device_select.value:
+        return
+    
+    try:
+        device_name = device_select.value
+        db_name = f"device_{device_name}"
+
+        client = InfluxDBClient(influxDB_address, 8086, database=db_name)
+        result = client.query('SHOW MEASUREMENTS')
+        measurements = [list(point.values())[0] for point in result.get_points()]
+        client.close()
+        
+        device_info_container.clear()
+        with device_info_container:
+            ui.label(f'Available datapoints for {device_name}:').classes('font-bold')
+            for measurement in measurements:
+                # Split fp_dp back to readable format
+                parts = measurement.split('_', 1)
+                if len(parts) == 2:
+                    fp, dp = parts
+                    ui.label(f'• {fp} - {dp}').classes('ml-4 text-sm')
+                else:
+                    ui.label(f'• {measurement}').classes('ml-4 text-sm')
+    
+    except Exception as e:
+        with device_info_container:
+            ui.label(f'Error loading device info: {e}').classes('text-red-500')

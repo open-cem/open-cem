@@ -35,8 +35,7 @@ from datetime import datetime, timedelta
 # pymodbus
 from pymodbus.client import ModbusSerialClient, AsyncModbusTcpClient, AsyncModbusSerialClient
 
-#from sgr_library.modbusRTU_interface_async import SgrModbusRtuInterface
-#from sgr_library.payload_decoder import PayloadDecoder
+
 from datetime import datetime
 
 from sgr_commhandler.device_builder import DeviceBuilder
@@ -102,16 +101,7 @@ class SmartGridreadyComponent:  # TODO: check with new sgr_library
         value = await dp.get_value_async()
         unit = dp.unit().name
         return [value, unit, error_code]
-        """
-        error_code = 0
-        dp = self.sgr_component.get_data_point((functional_profile, data_point))
-        print(dp)
-        value = await dp.read()
-        print(value)
-        print(f"SmartGridready Component read value: {functional_profile, data_point, value}")
-
-        return [value, dp.unit(), error_code]
-        """
+        
     async def read_value_with_conversion(self, functional_profile: str, data_point: str):
         # read a power or energy value with unit conversion to kW, kWh
 
@@ -138,18 +128,9 @@ class SmartGridreadyComponent:  # TODO: check with new sgr_library
 
         return error_code
 
-    def read_device_profile(self):
-        # get basic info from device profile such as name, nominal power consumption, level of operation, etc.
+    
 
-        device_profile = self.sgr_component.get_device_profile()
-        return [device_profile.brand_name, device_profile.nominal_power, device_profile.dev_levelof_operation]
-
-    def read_device_information(self):
-        name = self.sgr_component.get_device_name()
-        manufacturer = self.sgr_component.get_manufacturer()
-        bus_type = self.sgr_component.get_modbusInterfaceSelection()
-
-        return name, manufacturer, bus_type
+    
 
 class NativeComponent:  # TODO: implement this
     # class for component with native implementation
@@ -205,86 +186,6 @@ class NativeComponent:  # TODO: implement this
 
         return error_code
 
-class SimulatedComponent:
-    # class for simulated component (not existing in hardware)
-
-    def __init__(self, model: str, max_power: float, min_power: float, nominal_power: float,
-                 min_temperature: float, max_temperature: float):
-        self.model = model
-        self.max_power = max_power
-        self.min_power = min_power
-        self.nominal_power = nominal_power
-        self.min_temperature = min_temperature
-        self.max_temperature = max_temperature
-
-        self.value = 0
-        self.unit = ''
-
-        print(f"Simulated Component created: {self.model}")
-
-
-    async def run_simulation_step(self, state: str = "", setpoint: float = 0):  # TODO: make simulation more realistic
-        self.value = 0
-        self.unit = 'KILOWATTS'
-
-        if sim_start_time is None:  # check if there already exists a start_time
-            t_loop_start = round(asyncio.get_running_loop().time(), 2)
-        else:
-            t_loop_start = sim_start_time
-
-        t = round(asyncio.get_running_loop().time() - t_loop_start, 2)
-
-        print(f"Simulated Component {self.model} run simulation step at time {t}")
-
-        if self.model == "PV_PLANT":
-            #t_shifted = t - (6 * 60 * 60 / simulation_speed_up_factor)  # Subtracting 6 hours in seconds
-            # power_max is amplitude of the sine function
-            #self.value = round(
-            #    self.max_power * math.sin(simulation_speed_up_factor * 2 * math.pi * (t_shifted / 86400)), 2)
-            self.value = random.uniform(0, self.max_power)
-            if self.value <= 0:
-                self.value = 0
-
-        if self.model == "MAIN_POWER":
-            #t_shifted = t - (6 * 60 * 60 / simulation_speed_up_factor)  # Subtracting 6 hours in seconds
-            # power_max is amplitude of the sine function
-            #production = round(
-            #    self.max_power * math.sin(simulation_speed_up_factor * 2 * math.pi * (t_shifted / 86400)), 2)
-            production = random.uniform(0, self.max_power)
-            consumption = random.uniform(0, self.max_power)
-            self.value = production - consumption
-
-        if self.model == "HEAT_PUMP":
-            if state == "ON":
-                self.value = self.nominal_power
-            else:
-                self.value = 0
-
-        if self.model == "ELECTRIC_HEATER":
-            if state == "ON":
-                self.value = self.nominal_power
-            else:
-                self.value = 0
-
-        if self.model == "EV_CHARGER":
-            if state == "ON":
-                self.value = setpoint
-            else:
-                self.value = 0
-
-        if self.model == "ROOM_TEMPERATURE":
-            #t_shifted = t - (2 * 60 * 60 / simulation_speed_up_factor)  # Subtracting 3 hours in seconds
-            # temperature is amplitude of the sine function
-            #amplitude = self.max_temperature - self.min_temperature
-            #self.value = self.min_temperature + round(
-            #    amplitude * math.sin(simulation_speed_up_factor * 2 * math.pi * (t_shifted / 86400)), 2)
-            self.value = random.uniform(18, 22)
-            self.unit = 'CELSIUS'
-
-        print(f"Simulated value {self.value:.2f} unit {self.unit}")
-
-        error_code = 0
-        return [self.value, self.unit, error_code]
 
 class Device():
     # base class for any device including sensors and actuators
@@ -316,8 +217,6 @@ class Device():
         self.unit = None
         self.error_code = 0
 
-        #if smartGridreadyEID != "None":
-        #    smartgridready = SmartGridreadyComponent()
 
         if nativeEID != "None":
             self.native = NativeComponent(nativeEID, self.param)
@@ -336,8 +235,6 @@ class Device():
     async def read(self):
         pass
 
-    def switch_device(self, functional_profile: str, state: str):
-        return 0        # error code
 
     def write_device_setpoint(self, functional_profile: str, setpoint: float):
         return 0        # error code
@@ -362,29 +259,17 @@ class PowerSensor(Device):
                  communicationChannel: str = "",
                  param: dict = None,
                  dp_list : list = None
-                 #address: str =""
-                 #has_energy_import: bool = False,
-                 #has_energy_export: bool = False,
-                 #maxPower: float
+                 
                  ):
 
         # initialize sensor
         super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, EID_param=EID_param, nativeEID=nativeEID,
                          simulationModel=simulationModel, isLogging=isLogging, communicationChannel=communicationChannel, param= param, dp_list=dp_list)
 
-        #self.address = address
-        #self.has_energy_import = has_energy_import
-        #self.has_energy_export = has_energy_export
-        #self.maxPower = maxPower
-        #self.nominalPower = self.maxPower
-        #self.energy_value_import = 0
-        #self.energy_value_export = 0
+       
         if param is None:
             param = {}
 
-        if simulationModel != None:
-            self.simulation = SimulatedComponent(simulationModel,max_power=None, min_power=0,nominal_power=0,
-                                                 min_temperature=None,max_temperature=None)
 
     async def read_power(self):
         """
@@ -394,31 +279,59 @@ class PowerSensor(Device):
         self.value = 0
         self.unit = 0
         self.error_code = 0
+        self.dp = None
+        self.datapoint_values = []
+        for dp_entry in self.dp_list:  # self.dp_list is your loaded datapoints list
+            fp = dp_entry['fp']
+            dp = dp_entry['dp']
 
+            print(f"Reading data point: {fp}, {dp}")
+            try:
+                [value, unit, error_code] = await self.smartgridready_Comp.read_value(fp, dp)
+                
+                # Store individual datapoint information
+                dp_info = {
+                    'fp': fp,
+                    'dp': dp,
+                    'value': value,
+                    'unit': unit,
+                    'error_code': error_code
+                }
+                self.datapoint_values.append(dp_info)
+                
+            except Exception as e:
+                print(f"Error reading datapoint {fp}/{dp}: {e}")
+                # Store error information
+                dp_info = {
+                    'fp': fp,
+                    'dp': dp,
+                    'value': 0,
+                    'unit': 'ERROR',
+                    'error_code': 1
+                }
+                self.datapoint_values.append(dp_info)
+        
+       
+        
 
+        """
         if self.smartGridreadyEID != "None":
             print("datapoint reading")
             print(self.dp_list)
             for dp_entry in self.dp_list:  # self.dp_list is your loaded datapoints list
                 fp = dp_entry['fp']
-                dp = dp_entry['dp']
-                print(f"Reading data point: {fp}, {dp}")
-                [self.value, self.unit, self.error_code] = await self.smartgridready_Comp.read_value(fp, dp)
-            #[self.value, self.unit, self.error_code] = await self.smartgridready_Comp.read_value('CurrentAC','CurrentACL1')
+                self.dp = dp_entry['dp']
+
+                print(f"Reading data point: {fp}, {self.dp}")
+                [self.value, self.unit, self.error_code] = await self.smartgridready_Comp.read_value(fp, self.dp)
+        """    
+
+
         if self.nativeEID != "None":
             [self.value, self.unit, self.error_code] = await self.native.read_value('ActivePowerACtot')
-        if self.simulationModel != "None":
-            [self.value, self.unit, self.error_code] = await self.simulation.run_simulation_step()
 
-        #await asyncio.sleep(PowerSensor.sleep_between_requests
 
-        """
-        if self.error_code == 0:
-            if self.value > self.maxPower:
-                self.value = self.maxPower
-        if self.isLogging:
-            self.log_value_state('read_power')
-        """
+        
         print(f"Power sensor read power: {self.name} value {self.value:.2f} unit {self.unit} error code {self.error_code}")
 
         return self.value, self.unit, self.error_code
@@ -426,73 +339,15 @@ class PowerSensor(Device):
     async def get_power(self):
         return self.value, self.unit, self.error_code
 
-    async def read_energy_import(self):
-        """
-        returns the energy import of a powersensor in kW. For not SmartGridReady devices you need to add_RTU_EnergyImport_entry() first.
-        :returns: the energy import value, the unit, and error code. Has_energy_import has to be set to True in the power_sensor init
-        """
-        if self.has_energy_import:
-            value = 0
-            unit = 0
-            error_code = 0
+    
 
-            if self.smartGridreadyEID != None:
-                [value, unit, error_code] = await self.smartgridready_Comp.read_value_with_conversion('ActiveEnerBalanceAC',
-                                                                                                 'ActiveImportAC')
-            if self.nativeEID != None:
-                [value, unit, error_code] = await self.native.read_value_with_conversion('ActiveEnerBalanceAC',
-                                                                                             'ActiveImportAC')
-            #await asyncio.sleep(PowerSensor.sleep_between_requests)
-
-            if error_code == 0:
-                self.energy_value_import = value
-
-            #if self.isLogging:
-            #    self.log_value_state('read_energy_import')
-
-            print(f"Power sensor read energy import: {self.name} value {self.energy_value_import:.2f} unit {unit} "
-                  f"error code {error_code}")
-
-        return self.energy_value_import
-
-    async def get_energy_import(self):
-        self.energy_value_import
-
-    async def read_energy_export(self):
-        """
-        returns the energy export of a powersensor in kW. For not SmartGridReady devices you need to add_RTU_EnergyExport_entry() first.
-        :returns: the energy export value, the unit, and error code. Has_energy_export has to be set to True in the power_sensor init
-        """
-        if self.has_energy_export:
-            value = 0
-            unit = 0
-            error_code = 0
-
-            if self.smartGridreadyEID != "None":
-                [value, unit, error_code] = await self.smartgridready_Comp.read_value_with_conversion('ActiveEnergBalanceAC',
-                                                                                                 'ActiveExportAC')
-            if self.nativeEID != "None":
-                [value, unit, error_code] = await self.native.read_value_with_conversion('ActiveEnergBalanceAC',
-                                                                                                     'ActiveExportAC')
-            #await asyncio.sleep(PowerSensor.sleep_between_requests)
-
-            if error_code == 0:
-                self.energy_value_export = value
-            #if self.isLogging:
-            #    self.log_value_state('read_energy_export')
-
-            print(f"Power sensor read energy export: {self.name} value {self.energy_value_export:.2f} unit {unit} "
-                  f"error code {error_code}")
-
-        return self.energy_value_export
+    
 
     async def get_energy_export(self):
         return self.energy_value_export
 
     async def read(self):
         await self.read_power()
-        #await self.read_energy_import()
-        #await self.read_energy_export()
 
 class TemperatureSensor(Device):
     # derived class for temperature sensor
@@ -515,25 +370,7 @@ class TemperatureSensor(Device):
         self.minTemp = minTemp
         self.value = 0
 
-        if simulationModel != None:
-            self.simulation = SimulatedComponent(simulationModel,max_power=None,min_power=None,nominal_power=None,
-                                                 min_temperature=minTemp,max_temperature=maxTemp)
-
-    async def read_temperature(self):
-        self.value = 0
-        self.unit = 0
-        self.error_code = 0
-
-        if self.smartGridreadyEID != None:  # TODO: specify fp and dp names
-            [self.value, self.unit, self.error_code] = await self.smartgridready_Comp.read_value_with_conversion('Temperature',
-                                                                                             'Degree')
-        if self.nativeEID != None: # TODO: specify fp and dp names
-            [self.value, self.unit, self.error_code] = await self.native.read_value_with_conversion('Temperature',
-                                                                                     'Degree')
-        if self.simulationModel != None:
-            [self.value, self.unit, self.error_code] = await self.simulation.run_simulation_step()
-
-        #await asyncio.sleep(PowerSensor.sleep_between_requests)
+        
 
         if self.error_code == 0:
             if self.value > self.maxTemp:
@@ -548,8 +385,6 @@ class TemperatureSensor(Device):
 
         return self.value, self.unit, self.error_code
 
-    async def get_temperature(self):
-        return self.value, self.unit, self.error_code
 
     async def read(self):
         await self.read_temperature()
@@ -628,10 +463,7 @@ class RelaisActuator(Device):
 
         return self.error_code
 
-    def switch_device(self, functional_profile: str, state: str):
-        for i in range(self.nChannels):
-            self.error_code = self.write_channel(i, state)   # write same state to all channels
-        return self.error_code
+  
 
 class HeatPump(Device):
     # class for heat pump devices
@@ -645,10 +477,6 @@ class HeatPump(Device):
                  isLogging: bool = True,
                  communicationChannel: str = "",
                  param: dict = None
-                 #address: str = "",
-                 #port: str = "",
-                 #minPower: float,
-                 #maxPower: float
                  ):
 
         # initialize base class
@@ -656,22 +484,9 @@ class HeatPump(Device):
                          simulationModel=simulationModel, isLogging=isLogging,
                          communicationChannel=communicationChannel, param = param)
 
-        #self.address = address
-        #self.port = port
-        #self.minPower = minPower
-        #self.maxPower = maxPower
-        #self.nominalPower = minPower
-        #self.state = "OFF"
+       
         if param is None:
             param = {}
-        if simulationModel != "None":
-            self.simulation = SimulatedComponent(simulationModel, 
-                                                 #max_power=maxPower, 
-                                                 #min_power=minPower,
-                                                 #nominal_power=maxPower, 
-                                                 min_temperature=None, 
-                                                 max_temperature=None
-                                                 )
 
 
     async def read_device(self, functional_profile):
@@ -703,11 +518,7 @@ class HeatPump(Device):
 
         if self.isLogging:
             self.log_value_state('read_device')
-        """
-        print(f"Heat pump read device: {self.name} functional_profile {functional_profile} "  #{self.name}
-              f"fp_str {fp_str} dp_str {dp_str} state {self.state} value {self.value:.2f} "
-              f"error code {self.error_code}")
-        """
+    
         return self.value, self.error_code
 
 
@@ -805,9 +616,7 @@ class EVCharger(Device):
         self.phases = phases
         self.state = "OFF"
 
-        if simulationModel != None:
-            self.simulation = SimulatedComponent(simulationModel, max_power=maxPower, min_power=minPower, nominal_power=maxPower,
-                                                 min_temperature=None, max_temperature=None)
+
 
     async def read_power(self):
         self.value = 0

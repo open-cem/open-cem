@@ -11,6 +11,8 @@ import asyncio
 from OpenCEM_main import main as OpenCEM_main
 from influxdb import InfluxDBClient
 import yaml
+import paho.mqtt.client as mqtt
+
 
 # Load configuration from YAML file
 with open("yaml/OpenCEM_settings.yaml", 'r') as file:
@@ -27,8 +29,10 @@ opencem_task = None
 plot_timer = None
 live_plots_active = False
 plot_figures = {}
+config_container = None
 
-import paho.mqtt.client as mqtt
+
+
 
 input_fields = {}
 params = None
@@ -38,9 +42,7 @@ dropdown_devices = None
 params_datatype = None
 device = None
 
-latest_value_box = ui.input(label='Latest Value').classes('w-full')
-textbox_system = ui.input(label='Enter System Name').classes('w-full')
-textbox_device = ui.input(label='Enter Product Name').classes('w-full')
+
 popUp_deleteSystems = ui.dialog().props('persistent')
 system_config = ui.dialog().props('persistent')
 
@@ -60,7 +62,7 @@ def on_message(client, userdata, msg):
     value = msg.payload.decode()
     # Update the textbox in the main thread
     #ui.run_later(lambda: latest_value_box.set_value(value))
-    latest_value_box.value = value
+    #latest_value_box.value = value
 
 async def start_mqtt():
     client = mqtt.Client()
@@ -71,8 +73,6 @@ async def start_mqtt():
 
 
 
-def start_plot_update():
-    asyncio.create_task(start_mqtt())
 
 
 def start_OpenCEM():
@@ -247,19 +247,22 @@ async def newSystem():
 # Add Device
 # --------------------------
 
-async def load_local_EIDs():
+async def load_local_EIDs(config):
     global dropdown_local_EIDs
-
+    global config_container
+    config_container = config
+    config_container.clear()
     # Get the list of XML files in the xml_files directory
     xml_files = [f for f in os.listdir('xml_files') if f.endswith('.xml')]
     
     if dropdown_local_EIDs:
         dropdown_local_EIDs.delete()
 
-    dropdown_local_EIDs = ui.select(
-        options=xml_files,
-        label='Local EIDs'
-    ).classes('w-full')
+    with config_container:
+        dropdown_local_EIDs = ui.select(
+            options=xml_files,
+            label='Local EIDs'
+        ).classes('w-full')
 
 
 async def load_online_EIDs():
@@ -438,6 +441,7 @@ async def addDevice():
             'param': params,
             'datapoints': checked_datapoints
         }
+    
     try:
         # Read the existing YAML file (if it exists)
         with open(yaml_file_path, 'r') as file:
@@ -552,10 +556,14 @@ def load_available_devices(device_select):
     except Exception as e:
         ui.notify(f'Error loading devices: {e}', type='negative')
 
-def create_live_plots_optimized(hours_input, plots_container):
+def create_plots(hours_input, plots_container):
     """Create plots once, then only update data"""
     global plot_figures
     
+    if live_plots_active:
+        ui.notify('Already running', type='warning')
+        return
+
     try:
         client = InfluxDBClient(influxDB_address, 8086)
         databases = client.get_list_database()
@@ -702,7 +710,7 @@ def start_live_plots(hours_input, plots_container):
         return
     
     # Create plots once
-    create_live_plots_optimized(hours_input, plots_container)
+    create_plots(hours_input, plots_container)
     
     # Start timer for data updates only
     live_plots_active = True
@@ -724,6 +732,9 @@ def stop_live_plots():
 
 
 def show_device_info(device_select, device_info_container):
+
+
+
     """Show available measurements for selected device"""
     if not device_select.value:
         return
@@ -752,3 +763,115 @@ def show_device_info(device_select, device_info_container):
     except Exception as e:
         with device_info_container:
             ui.label(f'Error loading device info: {e}').classes('text-red-500')
+
+
+
+
+
+async def download_yaml_from_qr(url: str, qr_code_container) -> list:
+    qr_code_container.clear()
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status != 200:
+                ui.notify(f"Download error: {response.status}", type='negative')
+                return []
+            raw_bytes = await response.read()
+            devices = yaml.safe_load(raw_bytes.decode('utf-8'))
+            print(type(devices))
+
+            # Extrahiere und zeige alle Gerätenamen in NiceGUI
+            device_list = devices.get('devices', [])
+            with qr_code_container:
+                with ui.card():
+                    ui.label('Gefundene Geräte:').classes('text-lg font-bold')
+                    for device in device_list:
+                        name = device.get('name', '')
+                        xml_name = device.get('smartGridreadyEID', '')
+                        ui.label(f'• {name}  |  EID: {xml_name}').classes('ml-4')
+            return device_list
+
+
+async def show_datapoint_selection(devices, qr_code_container):
+    """Zeigt für jedes Gerät die Datenpunkte als Checkboxen an und speichert die Auswahl gesammelt."""
+    qr_code_container.clear()
+    device_checkbox_mapping = {}  # device_info -> checkbox_dict
+
+    with qr_code_container:
+        for device_info in devices:
+            eid_file = device_info.get('smartGridreadyEID', '')
+            eid_path = os.path.join('xml_files', eid_file) if eid_file else ''
+            if not eid_file or not os.path.exists(eid_path):
+                ui.notify(
+                    f"EID-Datei '{eid_file}' für Gerät '{device_info.get('name', '')}' nicht gefunden! "
+                    "Bitte zuerst das EID herunterladen.",
+                    type='negative'
+                )
+                return
+            try:
+                dev = DeviceBuilder().eid_path(eid_path).build()
+                description = dev.describe()
+                data_dict = description[1]
+            except Exception as e:
+                ui.notify(f"Fehler beim Laden der EID für {device_info.get('name', '')}: {e}", type='negative')
+                continue
+
+            checkbox_dict = {}
+            ui.label(f'Datenpunkte für Gerät: {device_info.get("name", "")}').classes('text-xl font-bold mt-4')
+            for group, values in data_dict.items():
+                for key in values.keys():
+                    cb = ui.checkbox(f'{group}: {key}')
+                    checkbox_dict[(group, key)] = cb
+
+            device_checkbox_mapping[device_info.get('name', '')] = (device_info, checkbox_dict)
+
+        # EIN Button für alle Geräte!
+        def save_all_selections():
+            yaml_file_path = 'yaml/testing.yaml'
+            try:
+                # Lade bestehende Daten, falls vorhanden
+                if os.path.exists(yaml_file_path):
+                    with open(yaml_file_path, 'r') as file:
+                        existing_data = yaml.safe_load(file) or {}
+                else:
+                    existing_data = {}
+
+                device_list = existing_data.get('devices', [])
+
+                # Für jedes Gerät die Auswahl speichern
+                for name, (device_info, checkbox_dict) in device_checkbox_mapping.items():
+                    selected = [
+                        {'fp': pair[0], 'dp': pair[1]}
+                        for pair, cb in checkbox_dict.items() if cb.value
+                    ]
+                    device_info['datapoints'] = selected
+
+                    # Prüfe, ob das Gerät schon existiert
+                    eid = device_info.get('smartGridreadyEID', '')
+                    found = False
+                    for idx, dev in enumerate(device_list):
+                        if dev.get('smartGridreadyEID', '') == eid:
+                            device_list[idx] = device_info
+                            found = True
+                            break
+                    if not found:
+                        device_list.append(device_info)
+
+                existing_data['devices'] = device_list
+
+                # Schreibe die aktualisierte Geräteliste zurück
+                with open(yaml_file_path, 'w') as file:
+                    yaml.dump(existing_data, file, sort_keys=False, default_flow_style=False)
+                ui.notify('Alle Geräte wurden in testing.yaml gespeichert!', type='positive')
+            except Exception as e:
+                ui.notify(f'Fehler beim Speichern in testing.yaml: {e}', type='negative')
+
+        ui.button('Alle Datenpunkte übernehmen', on_click=save_all_selections).classes('mt-4')
+        #print("selected_devices" + selected_devices)
+    #return selected_devices
+
+async def yaml_workflow(qr_code_container):
+    url = "https://fl-17-166.zhdk.cloud.switch.ch/api/config/matt-test?secret=mirdochwurscht"
+    devices = await download_yaml_from_qr(url, qr_code_container)
+    if devices:
+        await show_datapoint_selection(devices, qr_code_container)
+

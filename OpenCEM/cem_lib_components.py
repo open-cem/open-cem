@@ -24,8 +24,6 @@ from pprint import pprint
 
 import requests
 from pymodbus.constants import Endian
-#from sgr_library import SGrDevice
-from OpenCEM.native_device import NativeDevice
 
 import random
 import sys, os
@@ -128,70 +126,12 @@ class SmartGridreadyComponent:  # TODO: check with new sgr_library
 
         return error_code
 
-    
-
-    
-
-class NativeComponent:  # TODO: implement this
-    # class for component with native implementation
-    # real components without a working XML-file
-
-    def __init__(self, YAML_file: str, params: dict):
-
-        interface_file = YAML_file
-        print(params)
-        self.native_component = NativeDevice(interface_file)
-        self.native_component.update_yaml(params)
-        self.native_component.connect()
-
-        print(f"Native Component created: {YAML_file}")
-
-
-    async def read_value(self, data_point: str):
-        # read one value from a given data point within a functional profile
-        error_code = 0
-        value, unit,error_code = self.native_component.read_Value(data_point)
-
-        # TODO: add code here - read value from data_point
-
-
-
-        print(f"Native Component value read: {value}")
-
-        return [value, unit, error_code]
-
-    async def read_value_with_conversion(self, data_point: str):   #async def read_value_with_conversion(self, functional_profile: str,data_point: str):
-        # read a power or energy value with unit conversion to kW, kWh
-
-        [value, unit, error_code] = await self.read_value( data_point)
-        if unit.upper() == 'W' or unit.upper() == 'WATT' or unit.upper() == 'WATTS':
-            value = value / 1000  # convert W to kW
-            unit = "KILOWATT"  # change output unit to kW
-        if unit.upper() == 'WH' or unit.upper() == 'WATT HOURS' or unit.upper() == 'WATTHOURS' or unit.upper() == "WATT_HOURS":
-            value = value / 1000  # convert Wh to kWh
-            unit = "KILOWATT_HOURS"  # change output unit to kWh
-
-        return [round(value, 4), unit, error_code]  # value gets rounded
-
-    def write_value(self, data_point: str, value):
-        # write one value to a given data point within a functional profile
-
-        error_code = 0
-
-        # TODO: add code here - write value to data point
-        value = 0
-        unit = None
-
-        print(f"Native Component value write: {value} unit {unit}")
-
-        return error_code
 
 
 class Device():
     # base class for any device including sensors and actuators
 
-    def __init__(self, *, name: str = "", type: str = "", smartGridreadyEID: str = "", nativeEID: str = "", EID_param: str ="",
-                 simulationModel: str = "", 
+    def __init__(self, *, name: str = "", type: str = "", smartGridreadyEID: str = "", EID_param: str ="", 
                  isLogging: bool = True,
                  communicationChannel: str = "",
                  param: dict = {},
@@ -203,8 +143,6 @@ class Device():
         self.smartGridreadyEID = smartGridreadyEID
         self.EID_param = EID_param
 
-        self.nativeEID = nativeEID
-        self.simulationModel = simulationModel
         self.isLogging = isLogging
         self.communicationChannel = communicationChannel
         
@@ -217,9 +155,6 @@ class Device():
         self.unit = None
         self.error_code = 0
 
-
-        if nativeEID != "None":
-            self.native = NativeComponent(nativeEID, self.param)
 
         print(f"Device created: {self.name} type {self.type}")
 
@@ -253,8 +188,6 @@ class PowerSensor(Device):
     def __init__(self, *, name: str = "", type: str = "",
                  smartGridreadyEID: str = "",
                  EID_param: str = "",
-                 nativeEID: str = "",
-                 simulationModel: str = "",
                  isLogging: bool = True,
                  communicationChannel: str = "",
                  param: dict = None,
@@ -263,8 +196,8 @@ class PowerSensor(Device):
                  ):
 
         # initialize sensor
-        super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, EID_param=EID_param, nativeEID=nativeEID,
-                         simulationModel=simulationModel, isLogging=isLogging, communicationChannel=communicationChannel, param= param, dp_list=dp_list)
+        super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, EID_param=EID_param,
+                          isLogging=isLogging, communicationChannel=communicationChannel, param= param, dp_list=dp_list)
 
        
         if param is None:
@@ -327,10 +260,6 @@ class PowerSensor(Device):
         """    
 
 
-        if self.nativeEID != "None":
-            [self.value, self.unit, self.error_code] = await self.native.read_value('ActivePowerACtot')
-
-
         
         print(f"Power sensor read power: {self.name} value {self.value:.2f} unit {self.unit} error code {self.error_code}")
 
@@ -355,16 +284,14 @@ class TemperatureSensor(Device):
     def __init__(self, *, name: str = "", type: str = "",
                  smartGridreadyEID: str = "",
                  EID_param: str = "",
-                 nativeEID: str = "",
-                 simulationModel: str = "",
                  isLogging: bool = True,
                  communicationChannel: str = "",
                  address: str = "",
                  maxTemp: int, minTemp: int):
 
         # initialize sensor
-        super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, EID_param=EID_param, nativeEID=nativeEID,
-                         simulationModel=simulationModel, isLogging=isLogging, communicationChannel=communicationChannel)
+        super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, EID_param=EID_param,
+                         isLogging=isLogging, communicationChannel=communicationChannel)
         self.address = address
         self.maxTemp = maxTemp
         self.minTemp = minTemp
@@ -396,23 +323,22 @@ class RelaisActuator(Device):
                  type: str = "",
                  smartGridreadyEID: str = "",
                  EID_param: str = "",
-                 nativeEID: str = "",
-                 simulationModel: str = "",
                  isLogging: bool = True,
                  communicationChannel: str = "",
                  address: str = "",
                  nChannels: int = 1):
 
         # initialize actuator
-        super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, EID_param=EID_param,
-                         nativeEID=nativeEID,simulationModel=simulationModel, isLogging=isLogging,
-                         communicationChannel=communicationChannel)
+        super().__init__(name=name, 
+                        type=type, 
+                        smartGridreadyEID=smartGridreadyEID, 
+                        EID_param=EID_param,
+                        isLogging=isLogging,
+                        communicationChannel=communicationChannel)
         self.address = address
         self.nChannels = nChannels
 
-        #if simulationModel != None:
-        #    self.simulation = SimulatedComponent(simulationModel, max_power=None, min_power=None, nominal_power=None,
-        #                                         min_temperature=None, max_temperature=None)
+       
 
     async def read_channel(self, channel: int):
         self.state = 0
@@ -424,8 +350,6 @@ class RelaisActuator(Device):
 
         if self.smartGridreadyEID != None:
             [self.state, self.error_code] = await self.smartgridready_Comp.read_value(fp_str, dp_str)
-        if self.nativeEID != None:
-            [self.state, self.error_code] = await self.native.read_value(fp_str, dp_str)
 
         if self.isLogging:
             self.log_value_state('read_channel')
@@ -452,8 +376,6 @@ class RelaisActuator(Device):
 
         if self.smartGridreadyEID != None:
             [self.error_code] = self.smartgridready.write_value(fp_str, dp_str, state)
-        if self.nativeEID != None:
-            [self.error_code] = self.native.write_value(fp_str, dp_str, state)
 
         if self.isLogging:
             self.log_value_state('write_channel')
@@ -472,16 +394,14 @@ class HeatPump(Device):
                  type: str = "",
                  smartGridreadyEID: str = "",
                  EID_param: str = "",
-                 nativeEID: str = "",
-                 simulationModel: str = "",
                  isLogging: bool = True,
                  communicationChannel: str = "",
                  param: dict = None
                  ):
 
         # initialize base class
-        super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, EID_param=EID_param, nativeEID=nativeEID,
-                         simulationModel=simulationModel, isLogging=isLogging,
+        super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID, EID_param=EID_param,
+                        isLogging=isLogging,
                          communicationChannel=communicationChannel, param = param)
 
        
@@ -509,12 +429,6 @@ class HeatPump(Device):
         if self.smartGridreadyEID != "None":
             [self.value, self.error_code] = await self.smartgridready_Comp.read_value(fp_str, dp_str)
 
-        if self.nativeEID != "None":
-
-            [self.value, self.unit, self.error_code] = await self.native.read_value(dp_str)
-
-        if self.simulationModel != "None":
-            [self.value, self.error_code] = await self.simulation.run_simulation_step(self.state)
 
         if self.isLogging:
             self.log_value_state('read_device')
@@ -541,8 +455,6 @@ class HeatPump(Device):
 
         if self.smartGridreadyEID != None:
             [self.error_code] = self.smartgridready_Comp.write_value(fp_str, dp_str, setpoint)
-        if self.nativeEID != None:
-            [self.error_code] = self.native.write_value(fp_str, dp_str, setpoint)
 
         if self.isLogging:
             self.log_value_state('write_device_setpoint')
@@ -572,8 +484,6 @@ class HeatPump(Device):
 
         if self.smartGridreadyEID != None:
             [self.error_code] = self.smartgridready.write_value(fp_str, dp_str, state)
-        if self.nativeEID != None:
-            [self.error_code] = self.native.write_value(fp_str, dp_str, state)
 
         if self.isLogging:
             self.log_value_state('switch_device')
@@ -593,8 +503,6 @@ class EVCharger(Device):
                  type: str = "",
                  smartGridreadyEID: str = "",
                  EID_param: str = "",
-                 nativeEID: str = "",
-                 simulationModel: str = "",
                  isLogging: bool = True,
                  communicationChannel: str = "",
                  address: str = "",
@@ -604,8 +512,8 @@ class EVCharger(Device):
                  phases: str = ""):
 
         # initialize base class
-        super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID,EID_param=EID_param, nativeEID=nativeEID,
-                         simulationModel=simulationModel, isLogging=isLogging,
+        super().__init__(name=name, type=type, smartGridreadyEID=smartGridreadyEID,EID_param=EID_param,
+                        isLogging=isLogging,
                          communicationChannel=communicationChannel)
 
         self.address = address
@@ -628,10 +536,7 @@ class EVCharger(Device):
 
         if self.smartGridreadyEID != None:
             [self.value, self.error_code] = await self.smartgridready_Comp.read_value(fp_str, dp_str)
-        if self.nativeEID != None:
-            [self.value, self.error_code] = await self.native.read_value(fp_str, dp_str)
-        if self.simulationModel != None:
-            [self.value, self.error_code] = await self.simulation.run_simulation_step(self.state)
+       
 
         if self.phases == "ONE_PHASE":
             self.value = 230*self.value       # P = U*I
@@ -662,8 +567,6 @@ class EVCharger(Device):
 
         if self.smartGridreadyEID != None:
             [self.error_code] = self.smartgridready_Comp.write_value(fp_str, dp_str, self.value)
-        if self.nativeEID != None:
-            [self.error_code] = self.native.write_value(fp_str, dp_str, self.value)
 
         if self.isLogging:
             self.log_value_state('write_device_setpoint')
@@ -684,8 +587,6 @@ class EVCharger(Device):
 
         if self.smartGridreadyEID != None:
             [self.error_code] = self.smartgridready_Comp.write_value(fp_str, dp_str, state)
-        if self.nativeEID != None:
-            [self.error_code] = self.native.write_value(fp_str, dp_str, state)
 
         if self.isLogging:
             self.log_value_state('switch_device')

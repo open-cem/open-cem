@@ -14,11 +14,11 @@ Version: 2.0, October 2024
 import asyncio
 import logging
 import urllib
-#from sgr_library import SGrDevice
+import asyncio
 
 import aiohttp
 from pymodbus.client import AsyncModbusSerialClient, AsyncModbusTcpClient
-import subprocess
+
 import OpenCEM.cem_lib_components
 import yaml
 
@@ -28,34 +28,11 @@ from OpenCEM.cem_lib_components import Device, PowerSensor, TemperatureSensor, R
 from OpenCEM.cem_lib_controllers import Controller, SwitchingExcessController, DynamicExcessController, TemperatureExcessController
 from OpenCEM.cem_lib_loggers import  create_event_logger, create_device_logger, show_logger_in_console
 from datetime import datetime, timedelta
-from OpenCEM.cem_lib_auxiliary_functions import create_webpage_dict, send_data_to_webpage, parse_yaml, check_OpenCEM_shutdown, ip_address, port, backend_url
+from OpenCEM.cem_lib_auxiliary_functions import create_webpage_dict, parse_yaml, check_OpenCEM_shutdown, calculation_loop
 
 
 from Data_Logger import InfluxDataLogger
 import threading
-
-
-# devices loop
-async def calculation_loop(devices_list: list, controllers_list: list, period: int, MQTT_client):
-    
-    simulation_speed_up_factor = OpenCEM.cem_lib_components.simulation_speed_up_factor
-    while True:
-
-        # read all devices
-        for device in devices_list:
-            error_code = await device.read()
-            if error_code:
-                print(f"Error reading {device.name}: {error_code}")
-        # update webpage
-        webpage_dict = create_webpage_dict(devices_list)
-        
-        print("Webpage dict created:", webpage_dict)
-        #await send_data_to_webpage(webpage_dict, HTTP_client)
-        MQTT_client.publish('openCEM/value', json.dumps(webpage_dict))
-        print("-----------------------------------------------")
-
-        # sleep for a defined period (other tasks may run)
-        await asyncio.sleep(period / simulation_speed_up_factor)
 
 async def main():
     try:
@@ -64,7 +41,6 @@ async def main():
             settings = yaml.safe_load(f)
             loop_time = settings.get("loop_time")
             simulation_speed_up = settings.get("simulation_speed_up")
-            duration = settings.get("duration")
             log_events = settings.get("log_events")
             log_devices = settings.get("log_devices")
             console_logging_level = settings.get("console_logging_level")
@@ -83,11 +59,7 @@ async def main():
             show_logger_in_console(console_logging_level)
         logging.info("OpenCEM started")
 
-       
-        
-        
         # parse yaml
-        
         communication_dict, communication_channels_list, devices_list, controllers_list = await parse_yaml(path_OpenCEM_config)
     
         """
@@ -112,7 +84,7 @@ async def main():
         logger_thread = threading.Thread(target=influx_logger.start_logging)
         logger_thread.daemon = True  # Dies when main program dies
         logger_thread.start()
-        print("Data Logger (InfluxDB) started in background thread")
+        print("Data Logger started in background thread")
 
         
         # start calculation loop
@@ -166,5 +138,5 @@ async def main():
     logging.info("GUI closed, OpenCEM stopped")
 
 if __name__ == "__main__":
-    import asyncio
+    
     asyncio.run(main())

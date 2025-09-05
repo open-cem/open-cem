@@ -4,6 +4,7 @@ import os
 import plotly.graph_objects as go
 
 def trigger_indicator():
+    # Toggle live plot status indicator
         if status_light.color == 'red':
             status_light.color = 'green'
             status_label.text = 'Live plots: ON'
@@ -12,7 +13,7 @@ def trigger_indicator():
             status_label.text = 'Live plots: OFF'
 
 
-# Create tabs
+# Main navigation tabs
 with ui.tabs().classes('w-full') as tabs:
     config_tab = ui.tab('config', label='Configuration')
     QRCode_tab = ui.tab('QRcode', label='QR Code Configuration')
@@ -20,36 +21,36 @@ with ui.tabs().classes('w-full') as tabs:
     plots_tab = ui.tab('plots', label='Device Plots')
 
 with ui.tab_panels(tabs, value='config').classes('w-full'):
-    
     # Configuration Tab
     with ui.tab_panel('config'):
-        system_management_card = ui.card().classes('w-full')
-        with system_management_card:
-            ui.label('System Management').classes('text-lg font-bold mb-2')
-            textbox_system = ui.input(label='Enter System Name').classes('w-full')
-            ui.button('New System', on_click=GUI_functions.newSystem)
-            ui.button('Delete System', on_click=GUI_functions.open_popUp_deleteSystems)
-
+ 
         device_management = ui.card().classes('w-full')
-        config_container = ui.column().classes('w-full')
-
-        #latest_value_box = ui.input(label='Latest Value').classes('w-full')
-
-
         with device_management:
+            
             ui.label('Device Management').classes('text-lg font-bold mb-2')
-            ui.button('Get new Device', on_click=lambda: GUI_functions.load_local_EIDs(config_container))
-            textbox_device = ui.input(label='Enter Product Name').classes('w-full')
-            ui.button('Load online EIDs', on_click=GUI_functions.load_online_EIDs, icon='mdi-cloud-download')
-            ui.button('Download EID', on_click=GUI_functions.download_EID)
-            ui.button('Get Params', on_click=GUI_functions.getParams)
-            ui.button('Add Device', on_click=GUI_functions.addDevice)
-            ui.button('get Configuration', on_click=lambda: GUI_functions.dynamic_pagination(device_management))
-            ui.button('Clear config box', on_click=GUI_functions.clear_config_box)
+            
+            ui.button('Load EID for config', on_click=lambda: GUI_functions.load_local_EIDs(LocalEID_container,param_container ))
+            ui.label('Selected EID:').classes('text-sm text-gray-600 mb-2')
+            LocalEID_container = ui.column().classes('w-full')
+            download_EID = ui.card().classes('w-full')
+            with download_EID:
+                ui.label('Download EID if not locally stored').classes('text-lg font-bold mb-2')
+                ui.button('Get online EID', on_click=GUI_functions.load_online_EIDs)
+                ui.button('Download EID', on_click=GUI_functions.download_EID)
+            ui.button('Get Params', on_click=lambda: GUI_functions.getParams(param_container))
+            ui.label('EID parameter:').classes('text-sm text-gray-600 mb-2')
+            param_container = ui.column().classes('w-full')
+            ui.button('Add Device', on_click= lambda: GUI_functions.addDevice(param_container)) 
+            
+            ui.button('get Configuration', on_click=lambda: GUI_functions.dynamic_pagination(device_management,config_container))
+            config_container = ui.column().classes('w-full')
+
+            #delete device section
+            ui.label('Delete device').classes('text-lg font-bold mb-2')
             ui.button('get devices', on_click=GUI_functions.get_device_list_dropdown)
+            ui.button('delete devices', on_click=GUI_functions.delete_device_by_name)
 
-        ui.button('delete devices', on_click=GUI_functions.delete_device_by_name)
-
+    #QR-Code Tab
     with ui.tab_panel('QRcode'):
         with ui.row().classes('gap-4'):
             ui.label('QR Code Configuration').classes('text-2xl font-bold mb-4')
@@ -65,13 +66,12 @@ with ui.tab_panels(tabs, value='config').classes('w-full'):
             with ui.row().classes('gap-2'):
                 ui.button('start OpenCEM', on_click=GUI_functions.start_OpenCEM).props('color=positive')
                 ui.button('stop OpenCEM', on_click=GUI_functions.stop_OpenCEM).props('color=negative')
-                ui.button('start MQTT/Plots', on_click=GUI_functions.start_mqtt).props('color=primary')
+                
         
         with ui.card().classes('w-full mt-4'):
             ui.label('Latest MQTT Value').classes('text-lg font-bold mb-2')
 
-        # Plots Tab
-        # In your OpenCEM_main_GUI.py plots tab:
+    # Plots Tab:
     with ui.tab_panel('plots'):
         ui.label('Live Device Plots').classes('text-2xl font-bold mb-4')
         
@@ -81,23 +81,19 @@ with ui.tab_panels(tabs, value='config').classes('w-full'):
                 
                 ui.button('Show Archive', 
                         on_click=lambda: GUI_functions.create_plots(hours_input, plots_container)).props('color=secondary')
-
                 ui.button('Start Live', 
                         on_click=lambda: [
                             GUI_functions.start_live_plots(hours_input, plots_container),
                             status_light.props('color=green'),
                             setattr(status_label, 'text', 'Live plots: ON')
                         ]).props('color=positive')
-                
                 ui.button('Stop Live', 
                         on_click=lambda:[
                             GUI_functions.stop_live_plots(),
                             status_light.props('color=red'),
                             setattr(status_label, 'text', 'Live plots: OFF')
                         ]).props('color=negative')
-                
                 ui.label('Data updates every 1 second').classes('text-sm text-gray-600')
-        
                 with ui.row().classes('items-center gap-2'):
                         status_light = ui.icon('circle', color='red').classes('text-lg')
                         status_label = ui.label('Live plots: OFF').classes('text-sm font-bold')
@@ -110,34 +106,3 @@ with ui.tab_panels(tabs, value='config').classes('w-full'):
     
 
 ui.run()
-
-"""
-# Debug: Zeige alle verfügbaren Funktionen
-print("Available functions in GUI_functionstions:")
-print(dir(GUI_functionstions))
-ui.button('New System', on_click=GUI_functionstions.newSystem)
-
-system_management_card = ui.card().classes('w-full')
-with system_management_card:
-    ui.label('System Management').classes('text-lg font-bold mb-2')
-    ui.button('New System', on_click=GUI_functionstions.newSystem)
-    ui.button('Delete System', on_click=GUI_functionstions.open_popUp_deleteSystems)
-#ui.button('Load EIDs', on_click=GUI_functions.load_EIDs_name)
-device_management = ui.card().classes('w-full')
-with device_management:
-    ui.label('Device Management').classes('text-lg font-bold mb-2')
-    ui.button('Get new Device', on_click=GUI_functionstions.load_local_EIDs)
-    ui.button('Load online EIDs', on_click=GUI_functionstions.load_online_EIDs, icon='mdi-cloud-download')
-    ui.button('Download EID', on_click=GUI_functionstions.download_EID)
-    ui.button('Get Params', on_click=GUI_functionstions.getParams)
-    ui.button('Add Device', on_click=GUI_functionstions.addDevice)
-
-    ui.button('get Configuration', on_click=lambda: GUI_functionstions.dynamic_pagination(device_management))
-    ui.button('Clear config box', on_click=GUI_functionstions.clear_config_box)
-
-    ui.button('get devices', on_click=GUI_functionstions.get_device_list_dropdown)
-    ui.button('delete devices', on_click=GUI_functionstions.delete_device_by_name)
-    ui.button('start OpenCEM', on_click=GUI_functionstions.start_OpenCEM)
-    ui.button('start plot', on_click=GUI_functionstions.start_mqtt)
-ui.run()
-"""

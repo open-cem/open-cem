@@ -13,22 +13,19 @@ Version: 2.0, October 2024
 # Imports
 import asyncio
 import logging
-import urllib
+
 import asyncio
 
 import aiohttp
-from pymodbus.client import AsyncModbusSerialClient, AsyncModbusTcpClient
 
 import OpenCEM.cem_lib_components
 import yaml
 
 import paho.mqtt.client as mqtt
-import json
-from OpenCEM.cem_lib_components import Device, PowerSensor, TemperatureSensor, RelaisActuator, HeatPump, EVCharger, OpenCEM_RTU_client
-from OpenCEM.cem_lib_controllers import Controller, SwitchingExcessController, DynamicExcessController, TemperatureExcessController
-from OpenCEM.cem_lib_loggers import  create_event_logger, create_device_logger, show_logger_in_console
-from datetime import datetime, timedelta
-from OpenCEM.cem_lib_auxiliary_functions import create_webpage_dict, parse_yaml, check_OpenCEM_shutdown, calculation_loop
+
+from OpenCEM.cem_lib_components import Device 
+
+from OpenCEM.cem_lib_auxiliary_functions import parse_yaml, calculation_loop
 
 
 from Data_Logger import InfluxDataLogger
@@ -50,28 +47,14 @@ async def main():
         # set variables for the library
         OpenCEM.cem_lib_components.simulation_speed_up_factor = simulation_speed_up
 
-        # start logging
-        if log_events:
-            create_event_logger()
-        if log_devices:
-            create_device_logger()
-        if console_logging_level >= 0:
-            show_logger_in_console(console_logging_level)
-        logging.info("OpenCEM started")
-
+        
         # parse yaml
-        communication_dict, communication_channels_list, devices_list, controllers_list = await parse_yaml(path_OpenCEM_config)
+        devices_list  = await parse_yaml(path_OpenCEM_config)
     
-        """
-        # start pymodbus clients - TODO: check this
-        for channel in communication_channels_list:
-            if channel.type == "MODBUS_RTU":
-                await channel.client.connect()
-        """
 
          # start MQTT client
         mqtt_client = mqtt.Client()
-        mqtt_client.connect('192.168.137.10', 1883)  # Use your broker address/port if different
+        mqtt_client.connect('192.168.137.10', 1883) 
         mqtt_client.loop_start()
 
         # start InfluxDB logger
@@ -89,7 +72,7 @@ async def main():
         
         # start calculation loop
         task_calculation_loop = asyncio.create_task(
-            calculation_loop(devices_list, controllers_list, loop_time, mqtt_client))
+            calculation_loop(devices_list, loop_time, mqtt_client))
 
         await task_calculation_loop
 
@@ -104,7 +87,7 @@ async def main():
             try:
                 await task_calculation_loop
             except asyncio.CancelledError:
-                print("  ✅ Calculation loop stopped")
+                print(" Calculation loop stopped")
 
         # Stop MQTT client
         if mqtt_client:
@@ -120,22 +103,9 @@ async def main():
         if logger_thread and logger_thread.is_alive():
             logger_thread.join(timeout=3)
 
-        # Close communication clients
-        for obj in communication_channels_list:
-            if obj.client is not None:
-                try:
-                    if isinstance(obj.client, aiohttp.ClientSession):
-                        await obj.client.close()
-                    else:
-                        obj.client.close()
-                except Exception as e:
-                    print(f"Error closing client: {e}")
-
-        logging.info("OpenCEM stopped")
+       
         print("OpenCEM cleanup completed")
 
-    
-    logging.info("GUI closed, OpenCEM stopped")
 
 if __name__ == "__main__":
     

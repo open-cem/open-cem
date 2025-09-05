@@ -29,7 +29,7 @@ opencem_task = None
 plot_timer = None
 live_plots_active = False
 plot_figures = {}
-config_container = None
+LocalEID_container = None
 
 
 
@@ -43,37 +43,22 @@ params_datatype = None
 device = None
 
 
-popUp_deleteSystems = ui.dialog().props('persistent')
-system_config = ui.dialog().props('persistent')
 
-pagination_card = ui.card().classes('w-full')
-with pagination_card:
-        ui.label("System Configuration").classes('text-lg font-bold')
+
 
 selected_datapoints = [] 
 checkbox_dict = {} 
 
 
-
-
-
-# MQTT callback
 def on_message(client, userdata, msg):
     value = msg.payload.decode()
-    # Update the textbox in the main thread
-    #ui.run_later(lambda: latest_value_box.set_value(value))
-    #latest_value_box.value = value
-
+    
 async def start_mqtt():
     client = mqtt.Client()
     client.on_message = on_message
-    client.connect(mqtt_address, 1883)  # Use your broker address
+    client.connect(mqtt_address, 1883)  
     client.subscribe('openCEM/value')
-    client.loop_start()  # Start MQTT loop in background
-
-
-
-
+    client.loop_start()
 
 def start_OpenCEM():
     global opencem_task
@@ -93,43 +78,8 @@ def stop_OpenCEM():
         ui.notify('OpenCEM stopped', type='info')
     else:
         ui.notify('OpenCEM is not running', type='warning')  
-# --------------------------
-#  Delete System
-# --------------------------    
-
-def delete_system():
-    global dropdown_systems
-
-    selected_system = dropdown_systems.value
-    system_path = f"Systems/{selected_system}"
-
-    if os.path.exists(system_path):
-        # Delete the directory and its contents
-        os.rmdir(system_path)
-        ui.notify(f"The directory '{selected_system}' has been deleted.", type='positive')
-    else:
-        ui.notify(f"The directory '{selected_system}' does not exist.", type='warning')
-
-def open_popUp_deleteSystems():
-    
-    #global popUp_deleteSystems
-    popUp_deleteSystems.open() 
 
 
-with popUp_deleteSystems, ui.card():
-            ui.label("Bitte System auswählen")
-            systems = [f.name for f in os.scandir("Systems") if f.is_dir()]
-        
-            dropdown_systems = ui.select(
-                            options=systems,
-                            label='Systems Archive'
-                        ).classes('w-full')
-            ui.button("Delete", on_click= lambda: (delete_system(),popUp_deleteSystems.close()))
-
-
-# --------------------------           
-# Delete System End 
-# --------------------------     
 
 #---------------------------
 # configuration
@@ -156,109 +106,77 @@ def show_device_page(device):
         for dp in device.get('datapoints', []):
             ui.label(f"fp: {dp.get('fp', '')}, dp: {dp.get('dp', '')}")
 
-async def dynamic_pagination(device_card):
+async def dynamic_pagination(device_card,config_container):
     """Create dynamic pagination for the YAML data."""
     # Clear the container before creating new pagination
-    pagination_card.clear()
-    
-    # 1. Read the YAML file
-    yaml_file_path = 'yaml/config.yaml'
-    with open(yaml_file_path, 'r', encoding='utf-8') as f:
-        data = yaml.safe_load(f)
+    with config_container:
+       
+        config_container.clear()
+      
+        yaml_file_path = 'yaml/config.yaml'
+        with open(yaml_file_path, 'r', encoding='utf-8') as f:
+            data = yaml.safe_load(f)
 
-    # 2. Prepare pages
-    pages = []
+        # Prepare pages
+        pages = []
 
-    # Add the overview page
-    def overview_page():
-        show_overview(data)
-    pages.append(overview_page)
+        # Add the overview page
+        def overview_page():
+            show_overview(data)
+        pages.append(overview_page)
 
-    # Add a page for each device
-    for device in data.get('devices', []):
-        def make_device_page(dev=device):  # Use default argument to freeze the value
-            show_device_page(dev)
-        pages.append(make_device_page)
+        # Add a page for each device
+        for device in data.get('devices', []):
+            def make_device_page(dev=device):  
+                show_device_page(dev)
+            pages.append(make_device_page)
 
-    # 3. Render pages using the container
+        
+        def render_page(page_index: int):
+            config_container.clear()  
+            with config_container:
+                        
+                ui.pagination(
+                    min=0,  # Minimum page index
+                    max=len(pages) - 1,  # Maximum page index
+                    value=page_index,  # Current page index
+                    direction_links=True,  # Show first/last page links
+                    on_change=lambda e: render_page(e.value)  # Callback to render the selected page
+                )
+                        # Render the selected page content
+                pages[page_index]()
 
-    
+                # Render the first page initially
+        render_page(0)
 
-    def render_page(page_index: int):
-        pagination_card.clear()  # Clear the container before rendering the new page
-        with pagination_card:
-                    # Add pagination at the top
-            ui.pagination(
-                min=0,  # Minimum page index
-                max=len(pages) - 1,  # Maximum page index
-                value=page_index,  # Current page index
-                direction_links=True,  # Show first/last page links
-                on_change=lambda e: render_page(e.value)  # Callback to render the selected page
-            )
-                    # Render the selected page content
-            pages[page_index]()
-
-            # Render the first page initially
-    render_page(0)
-
-def clear_config_box():
-    pagination_card.clear()
-    
-async def newSystem():
-
-   
-    
-    with ui.card() as box_new_system:
-        textbox_system = ui.input(label='Enter System Name').classes('w-full')
-        def create_system_action():
-            system_name = textbox_system.value
-            system_path = f"Systems/{system_name}"
-            if not system_name:
-                ui.notify("Please enter a valid system name.", type='warning')
-                return
-            if os.path.exists(system_path):
-                ui.notify(f"The directory '{system_name}' already exists.", type='warning')
-            else:
-                os.makedirs(system_path, exist_ok=True)
-                ui.notify(f"The directory '{system_name}' has been created.", type='positive')
-            box_new_system.delete()  
-        ui.button('Create System', on_click=create_system_action).classes('mt-2')
-    """
-    global textbox_system
-
-    if textbox_system.value is not None:
-        system_name = textbox_system.value
-        system_path = f"Systems/{system_name}"
-
-        if not system_name:
-            ui.notify("Please enter a valid system name.", type='warning')
-            return
-        if os.path.exists(system_path):
-            # Trigger notify if the directory already exists
-            ui.notify(f"The directory '{system_name}' already exists.", type='warning')
-        else:
-            # Create the directory if it does not exist
-            os.makedirs(system_path, exist_ok=True)
-
-            ui.notify(f"The directory '{system_name}' has been created.", type='ongoing')
-    """
 
 # --------------------------
 # Add Device
 # --------------------------
 
-async def load_local_EIDs(config):
+async def load_local_EIDs(LocalEID, param):
+    """
+    Load available local EID files and display them in a dropdown.
+
+    Args:
+        LocalEID: The UI container where the dropdown will be placed.
+        param: The parameter container to be cleared.
+    """
     global dropdown_local_EIDs
-    global config_container
-    config_container = config
-    config_container.clear()
+    global LocalEID_container
+    param_container = param
+    LocalEID_container = LocalEID
+    param_container.clear()
+    
     # Get the list of XML files in the xml_files directory
     xml_files = [f for f in os.listdir('xml_files') if f.endswith('.xml')]
     
+    # Remove previous dropdown if it exists
     if dropdown_local_EIDs:
         dropdown_local_EIDs.delete()
 
-    with config_container:
+    # Show dropdown with available EIDs
+    with LocalEID_container:
         dropdown_local_EIDs = ui.select(
             options=xml_files,
             label='Local EIDs'
@@ -266,6 +184,10 @@ async def load_local_EIDs(config):
 
 
 async def load_online_EIDs():
+    """
+    Load available EIDs from the online SmartGridReady library and display them in a dropdown.
+    """
+
     url = "https://library.smartgridready.ch/prod?release=Published"
     global dropdown_identifier
 
@@ -280,10 +202,10 @@ async def load_online_EIDs():
                 raw_bytes = await response.read()
                 data = json.loads(raw_bytes.decode('utf-8'))
 
-                
+                # Extract identifiers for dropdown
                 identifiers = [item['identifier'] for item in data]
                 
-                
+                # Remove previous dropdown if it exists
                 if dropdown_identifier:
                     dropdown_identifier.delete()
 
@@ -297,7 +219,13 @@ async def load_online_EIDs():
 
 
 async def download_EID(EID_name: str):
+    """
+    Download the selected EID file from the library and save it locally.
 
+    Args:
+        EID_name (str): The identifier of the EID to download.
+    """
+    #use the selected value from the dropdown
     if dropdown_identifier and dropdown_identifier.value:
         EID_name = dropdown_identifier.value
 
@@ -305,11 +233,11 @@ async def download_EID(EID_name: str):
     
     async with aiohttp.request('GET', url) as response:
         status_code = response.status
-        xml_file = await response.read()  # response is xml in bytes
+        xml_file = await response.read() 
 
     if status_code == 200:
         try:
-            # save file
+            
             with open(f"xml_files/{EID_name}", "wb") as f:  # write it as bytes
                 f.write(xml_file)
                 
@@ -321,85 +249,95 @@ async def download_EID(EID_name: str):
         print(f"Download of SGr File failed.")
         
 
-async def getParams():
+async def getParams(param_container):
+    """
+    Load parameters and datapoints from the selected EID and create input fields and checkboxes.
+
+    Args:
+        param_container: The UI container where parameter fields and datapoint checkboxes will be placed.
+    """
+
     global params
     global device
     global params_datatype
     global dropdown_identifier
     global dropdown_local_EIDs
     global selected_datapoints 
+
+    param_container.clear()
     eid_path = 'xml_files/' + dropdown_local_EIDs.value
 
-    print(f"Selected EID: {dropdown_local_EIDs.value}")
-    print(f"Selected EID path: {eid_path}")
-    #eid_path = 'xml_files/SGr_04_0015_xxxx_StiebelEltron_HeatPump_V1.0.0.xml'
-
+    # Build device from EID
     device = DeviceBuilder().eid_path(eid_path).build()
-    
     text = device.configuration_parameters
     
+    # Prepare parameter names and types
     params = {param.name: '' for param in text}
-    
     params_datatype = {
-    param.name: next(
-        (attr for attr in dir(param.type)
-         if not attr.startswith('_') and getattr(param.type, attr) not in (None, "EmptyType()")),
-        None
-    )
-    for param in text
+        param.name: next(
+            (attr for attr in dir(param.type)
+            if not attr.startswith('_') and getattr(param.type, attr) not in (None, "EmptyType()")),
+            None
+        )
+        for param in text
     }
 
-    #params_datatype = {param.name: next((k for k, v in param.type.items() if v is not None), None) for param in text}
     
-    print(params_datatype)
-    ui.label('Enter Parameter Values').classes('text-xl font-bold mb-4')
+    
+    with param_container:
+        ui.label('Enter Parameter Values').classes('text-xl font-bold mb-4')
 
-    global input_fields
+        global input_fields
 
-    # Create input fields for each parameter
-    for key in params:
-        with ui.row():
-            ui.label(key).classes('w-28')  
-            input_fields[key] = ui.input(placeholder= params_datatype[key])
+        # Create input fields for each parameter
+        for key in params:
+            with ui.row():
+                ui.label(key).classes('w-28')  
+                input_fields[key] = ui.input(placeholder= params_datatype[key])
 
+        # Get datapoints from device description
+        device_describtion = device.describe()
+        data_dict = device_describtion[1]
+        checkbox_items = [
+            (group, key)
+            for group, values in data_dict.items()
+            for key in values.keys()
+        ]
 
-    device_describtion = device.describe()
-    data_dict = device_describtion[1]
-    checkbox_items = [
-        (group, key)
-        for group, values in data_dict.items()
-        for key in values.keys()
-    ]
+        # Create checkboxes for datapoints
+        ui.label('Choose Datapoints:').classes('text-xl font-bold mt-6 mb-2')
+        for group, key in checkbox_items:
+            label = f'{group} : {key}'
+            cb = ui.checkbox(label)
+            checkbox_dict[(group, key)] = cb
+           
+            
 
-    #selected_datapoints = []
+async def addDevice(param_container):
+    """
+    Validate parameter input, collect selected datapoints, and add the device to the YAML configuration.
 
-    ui.label('Choose Datapoints:').classes('text-xl font-bold mt-6 mb-2')
-    for group, key in checkbox_items:
-        label = f'{group} : {key}'
-        cb = ui.checkbox(label)
-        checkbox_dict[(group, key)] = cb
-        #cb.on('change', lambda e, g=group, k=key: handle_change(e, g, k))
-        
+    Args:
+        param_container: The UI container to clear after saving.
+    """
 
-async def addDevice():
-    #parameter
     global input_fields
     global params
     global device
     global params_datatype
     global selected_datapoints
     global dropdown_local_EIDs
+    
     yaml_file_path = 'yaml/config.yaml'
 
-    #checked_datapoints = [dict(pair) for pair, cb in checkbox_dict.items() if cb.value]
+    # Collect checked datapoints
     checked_datapoints = [
         {'fp': pair[0], 'dp': pair[1]}
         for pair, cb in checkbox_dict.items() if cb.value
     ]
-    print(f"Diese Checkboxen sind ausgewählt: {checked_datapoints}")
-    print(type(checked_datapoints))
-    expected_data_types = {
 
+    #expected data types for validation
+    expected_data_types = {
         'int16': int,
         'int32': int,
         'int': int,
@@ -409,11 +347,10 @@ async def addDevice():
     }
 
     
-       # Validate and convert input values
-    
+    # Validate and convert input values
     for key, input_field in input_fields.items():
-        value = input_field.value  # Get the user input
-        expected_type = params_datatype[key]  # Get the expected data type 
+        value = input_field.value  
+        expected_type = params_datatype[key]   
 
         # Validate and convert the value
         try:
@@ -424,45 +361,34 @@ async def addDevice():
                 raise ValueError(f"Unsupported data type: {expected_type}")
         except ValueError as e:
             ui.notify(f"Invalid value for {key}: {e}", type='negative')
-            print(f"Error: Invalid value for {key}: {e}")
-            return  # Stop saving if validation fails
+            return  
 
 
     ui.notify('Values validated and saved!')
 
+    # Prepare new device entry
     new_device = {
             'name': device.device_information.name,
-            'type': False, #device.device_information.device_category,
             'smartGridreadyEID': f"xml_files/ {dropdown_local_EIDs.value}",
-            'EID_param': None,
-            'nativeEID': None,
-            'simulationModel': None,
-            'isLogging': False,
-            'param': params,
+            'parameters': params,
             'datapoints': checked_datapoints
         }
     
     try:
-        # Read the existing YAML file (if it exists)
+        # Read the existing YAML file
         with open(yaml_file_path, 'r') as file:
-            existing_data = yaml.safe_load(file)  # Load existing data or initialize as empty
+            existing_data = yaml.safe_load(file)  
 
+        # Add new device to the list
+        existing_data["devices"].append(new_device)  
         
-        print(type(existing_data))
-        print(new_device)
-        existing_data["devices"].append(new_device)  # Append new device to the list of devices
-        # Ensure the existing data is a list
-        
-        # Update the existing data with the new parameters
-        
-
         # Write the updated data back to the YAML file
         with open('yaml/config.yaml', 'w') as file:
             yaml.dump(existing_data, file, sort_keys=False, default_flow_style=False)
 
         ui.notify('Configuration saved to YAML file!')
-        print(f"Updated YAML file: {yaml_file_path}")
 
+        param_container.clear()
     except Exception as e:
         ui.notify(f'Error saving to YAML: {e}', type='negative')
         print(f"Error: {e}")
@@ -470,13 +396,20 @@ async def addDevice():
 
 
 
-async def get_device_list_dropdown(): 
+async def get_device_list_dropdown():
+    """
+    Create a dropdown UI element with the list of device from the YAML configuration.
+
+    """
     global dropdown_devices
 
     device_list = get_device_list()
+
+    # Remove previous dropdown if it exists
     if dropdown_devices:
         dropdown_devices.delete()
 
+    # Create new dropdown with device names
     dropdown_devices = ui.select(
         options=device_list,
         label='Device List'
@@ -488,9 +421,14 @@ async def get_device_list_dropdown():
 
 
 async def delete_device_by_name():
+    """
+    Delete the selected device from the YAML configuration file.
+
+    """
     yaml_file_path = 'yaml/config.yaml'
     global dropdown_devices
 
+    # Get the selected device name from the dropdown
     if dropdown_devices and dropdown_devices.value:
         device_name = dropdown_devices.value
 
@@ -508,13 +446,19 @@ async def delete_device_by_name():
         with open(yaml_file_path, 'w') as file:
             yaml.dump(data, file, sort_keys=False, default_flow_style=False)
 
-        print(f"Device(s) with name '{device_name}' deleted.")
+        print(f"Device with name '{device_name}' deleted.")
     except Exception as e:
         print(f"Error deleting device: {e}")
     await get_device_list_dropdown()
 
     
 def get_device_list():
+    """
+    Read the YAML configuration and return a list of device names.
+
+    Returns:
+        list: List of device names (str) from the YAML config.
+    """
     yaml_file_path = 'yaml/config.yaml'
     try:
         with open(yaml_file_path, 'r') as file:
@@ -767,8 +711,18 @@ def show_device_info(device_select, device_info_container):
 
 
 
+#QR Code Configuration
+async def download_yaml_from_qr(url: str, qr_code_container):
+    """
+    Download a YAML configuration file from a given QR-Code URL, parse it and display the  devices in the interface.
 
-async def download_yaml_from_qr(url: str, qr_code_container) -> list:
+    Args:
+        url (str): The URL to download the YAML file from.
+        qr_code_container: The UI container to display the device list.
+
+    Returns:
+        list: List of device dictionaries found in the YAML file.
+    """
     qr_code_container.clear()
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
@@ -783,27 +737,33 @@ async def download_yaml_from_qr(url: str, qr_code_container) -> list:
             device_list = devices.get('devices', [])
             with qr_code_container:
                 with ui.card():
-                    ui.label('Gefundene Geräte:').classes('text-lg font-bold')
+                    ui.label('Found devices:').classes('text-lg font-bold')
                     for device in device_list:
                         name = device.get('name', '')
                         xml_name = device.get('smartGridreadyEID', '')
                         ui.label(f'• {name}  |  EID: {xml_name}').classes('ml-4')
             return device_list
 
-
 async def show_datapoint_selection(devices, qr_code_container):
-    """Zeigt für jedes Gerät die Datenpunkte als Checkboxen an und speichert die Auswahl gesammelt."""
-    qr_code_container.clear()
-    device_checkbox_mapping = {}  # device_info -> checkbox_dict
+    """
+    For each device, display all available datapoints as checkboxes.
 
+    Args:
+        devices (list): List of device dictionaries.
+        qr_code_container: The UI container to display the selection UI.
+    """
+    qr_code_container.clear()
+    device_checkbox_mapping = {} 
+    dev = None
     with qr_code_container:
         for device_info in devices:
             eid_file = device_info.get('smartGridreadyEID', '')
             eid_path = os.path.join('xml_files', eid_file) if eid_file else ''
+            # Check if EID file exists locally
             if not eid_file or not os.path.exists(eid_path):
                 ui.notify(
                     f"EID-Datei '{eid_file}' für Gerät '{device_info.get('name', '')}' nicht gefunden! "
-                    "Bitte zuerst das EID herunterladen.",
+                    "Please download the EID before.",
                     type='negative'
                 )
                 return
@@ -812,11 +772,11 @@ async def show_datapoint_selection(devices, qr_code_container):
                 description = dev.describe()
                 data_dict = description[1]
             except Exception as e:
-                ui.notify(f"Fehler beim Laden der EID für {device_info.get('name', '')}: {e}", type='negative')
+                ui.notify(f"Error during EID load for {device_info.get('name', '')}: {e}", type='negative')
                 continue
 
             checkbox_dict = {}
-            ui.label(f'Datenpunkte für Gerät: {device_info.get("name", "")}').classes('text-xl font-bold mt-4')
+            ui.label(f'Datapoints for device: {device_info.get("name", "")}').classes('text-xl font-bold mt-4')
             for group, values in data_dict.items():
                 for key in values.keys():
                     cb = ui.checkbox(f'{group}: {key}')
@@ -824,11 +784,15 @@ async def show_datapoint_selection(devices, qr_code_container):
 
             device_checkbox_mapping[device_info.get('name', '')] = (device_info, checkbox_dict)
 
-        # EIN Button für alle Geräte!
+        #save all selections for all devices
         def save_all_selections():
+            """
+            Collects all selected datapoints for all devices and saves them to the YAML file.
+            If a device already exists it is updated. otherwise it is added.
+            """
             yaml_file_path = 'yaml/testing.yaml'
             try:
-                # Lade bestehende Daten, falls vorhanden
+                # Load existing data if available
                 if os.path.exists(yaml_file_path):
                     with open(yaml_file_path, 'r') as file:
                         existing_data = yaml.safe_load(file) or {}
@@ -837,7 +801,7 @@ async def show_datapoint_selection(devices, qr_code_container):
 
                 device_list = existing_data.get('devices', [])
 
-                # Für jedes Gerät die Auswahl speichern
+                # Save selection for each device
                 for name, (device_info, checkbox_dict) in device_checkbox_mapping.items():
                     selected = [
                         {'fp': pair[0], 'dp': pair[1]}
@@ -845,8 +809,9 @@ async def show_datapoint_selection(devices, qr_code_container):
                     ]
                     device_info['datapoints'] = selected
 
-                    # Prüfe, ob das Gerät schon existiert
+                    # Check if device already exists
                     eid = device_info.get('smartGridreadyEID', '')
+                    device_info['type'] = "POWER_SENSOR"
                     found = False
                     for idx, dev in enumerate(device_list):
                         if dev.get('smartGridreadyEID', '') == eid:
@@ -858,16 +823,15 @@ async def show_datapoint_selection(devices, qr_code_container):
 
                 existing_data['devices'] = device_list
 
-                # Schreibe die aktualisierte Geräteliste zurück
+                # Write updated device list back to YAML
                 with open(yaml_file_path, 'w') as file:
                     yaml.dump(existing_data, file, sort_keys=False, default_flow_style=False)
-                ui.notify('Alle Geräte wurden in testing.yaml gespeichert!', type='positive')
+                ui.notify('Devices are safed in configuration file!', type='positive')
             except Exception as e:
-                ui.notify(f'Fehler beim Speichern in testing.yaml: {e}', type='negative')
+                ui.notify(f'Error during safe: {e}', type='negative')
 
-        ui.button('Alle Datenpunkte übernehmen', on_click=save_all_selections).classes('mt-4')
-        #print("selected_devices" + selected_devices)
-    #return selected_devices
+        ui.button('Add all datapoints', on_click=save_all_selections).classes('mt-4')
+      
 
 async def yaml_workflow(qr_code_container):
     url = "https://fl-17-166.zhdk.cloud.switch.ch/api/config/matt-test?secret=mirdochwurscht"

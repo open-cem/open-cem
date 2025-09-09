@@ -12,7 +12,7 @@ Version: 2.0, October 2024
 
 
 import logging
-from OpenCEM.cem_lib_components import Device, PowerSensor, TemperatureSensor, RelaisActuator, HeatPump, EVCharger
+from OpenCEM.cem_lib_components import Device #, PowerSensor, TemperatureSensor, RelaisActuator, HeatPump, EVCharger
 
 class Controller:
     # base class for controller

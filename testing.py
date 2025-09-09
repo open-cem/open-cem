@@ -1,11 +1,13 @@
 import asyncio
 from sgr_commhandler.device_builder import DeviceBuilder
 
-eid_path = 'xml_files/SGr_04_mmmm_dddd_Webasto_Next_V0.1.xml'
+eid_path = 'xml_files/SGr_02_mmmm_8288089799_Smart-me_SubMeterElectricity_V1.1.0.xml'
 eid_properties = {
-    "tcp_address": "192.168.137.119",
-    "tcp_port": 502
+    "device_id": "f25f4e20-b803-de4e-e75c-2714e2c0c2d9",
+    "username": "smartgridready2024@gmail.com",
+    "password": "SmartGrid%24",
 }
+
 
 async def test_device_points():
     # Device bauen und Datenpunkte extrahieren

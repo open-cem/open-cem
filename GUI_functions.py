@@ -5,7 +5,7 @@ from nicegui import ui
 from sgr_commhandler.device_builder import DeviceBuilder
 import yaml
 import os
-import logging
+
 import plotly.graph_objects as go
 import asyncio
 from OpenCEM_main import main as OpenCEM_main
@@ -15,7 +15,7 @@ import paho.mqtt.client as mqtt
 
 
 # Load configuration from YAML file
-with open("yaml/OpenCEM_settings.yaml", 'r') as file:
+with open("System_Settings/OpenCEM_settings.yaml", 'r') as file:
     config = yaml.safe_load(file)
 
 mqtt_address = config.get('mqtt_address')
@@ -30,7 +30,7 @@ plot_timer = None
 live_plots_active = False
 plot_figures = {}
 LocalEID_container = None
-
+mqtt_container = None
 
 
 
@@ -49,20 +49,39 @@ device = None
 selected_datapoints = [] 
 checkbox_dict = {} 
 
+def on_connect(client, userdata, flags, rc):
+    """
+    Callback for when the MQTT client connects to the broker.
 
+ 
+    """
+    if rc == 0:
+        # Subscribe to your topic after a successful connection
+        client.subscribe('openCEM/value')
+        print("Connected to MQTT broker and subscribed to topic.")
+    else:
+        print(f"Failed to connect to MQTT broker, return code {rc}")
+        
 def on_message(client, userdata, msg):
-    value = msg.payload.decode()
-    
-async def start_mqtt():
-    client = mqtt.Client()
-    client.on_message = on_message
-    client.connect(mqtt_address, 1883)  
-    client.subscribe('openCEM/value')
-    client.loop_start()
+    global mqtt_container
+    mqtt_message = msg.payload.decode()
+    mqtt_container.clear()
+   
+    with mqtt_container:
+        ui.label(f"Received data: {mqtt_message}").classes('text-sm')
 
-def start_OpenCEM():
+
+client = mqtt.Client()
+client.on_connect = on_connect
+client.on_message = on_message
+client.connect(mqtt_address, 1883)
+client.loop_start()
+
+
+def start_OpenCEM(latest_value_container):
     global opencem_task
-    
+    global mqtt_container
+    mqtt_container = latest_value_container
     if opencem_task and not opencem_task.done():
         ui.notify('OpenCEM is already running', type='warning')
         return
@@ -113,7 +132,7 @@ async def dynamic_pagination(device_card,config_container):
        
         config_container.clear()
       
-        yaml_file_path = 'yaml/config.yaml'
+        yaml_file_path = 'System_Settings/config.yaml'
         with open(yaml_file_path, 'r', encoding='utf-8') as f:
             data = yaml.safe_load(f)
 
@@ -328,7 +347,7 @@ async def addDevice(param_container):
     global selected_datapoints
     global dropdown_local_EIDs
     
-    yaml_file_path = 'yaml/config.yaml'
+    yaml_file_path = 'System_Settings/config.yaml'
 
     # Collect checked datapoints
     checked_datapoints = [
@@ -369,22 +388,37 @@ async def addDevice(param_container):
     # Prepare new device entry
     new_device = {
             'name': device.device_information.name,
-            'smartGridreadyEID': f"xml_files/ {dropdown_local_EIDs.value}",
+            'smartGridreadyEID': dropdown_local_EIDs.value,
             'parameters': params,
-            'datapoints': checked_datapoints
+            'datapoints': checked_datapoints,
+            'type': "DEVICE"
         }
     
     try:
         # Read the existing YAML file
         with open(yaml_file_path, 'r') as file:
-            existing_data = yaml.safe_load(file)  
+            existing_data = yaml.safe_load(file) or {} 
 
-        # Add new device to the list
-        existing_data["devices"].append(new_device)  
+        device_list = existing_data.get("devices", [])
+
+        # Check if device already exists 
+        eid = new_device.get('smartGridreadyEID', '')
+        found = False
+        for idx, dev in enumerate(device_list):
+            if dev.get('smartGridreadyEID', '') == eid:
+                device_list[idx] = new_device  # update existing
+                found = True
+                break
+        if not found:
+            device_list.append(new_device)  # add new
+
+        existing_data['devices'] = device_list
+
         
         # Write the updated data back to the YAML file
-        with open('yaml/config.yaml', 'w') as file:
+        with open('System_Settings/config.yaml', 'w') as file:
             yaml.dump(existing_data, file, sort_keys=False, default_flow_style=False)
+            ui.notify('Devices are safed in configuration file!', type='positive')
 
         ui.notify('Configuration saved to YAML file!')
 
@@ -425,7 +459,7 @@ async def delete_device_by_name():
     Delete the selected device from the YAML configuration file.
 
     """
-    yaml_file_path = 'yaml/config.yaml'
+    yaml_file_path = 'System_Settings/config.yaml'
     global dropdown_devices
 
     # Get the selected device name from the dropdown
@@ -459,7 +493,7 @@ def get_device_list():
     Returns:
         list: List of device names (str) from the YAML config.
     """
-    yaml_file_path = 'yaml/config.yaml'
+    yaml_file_path = 'System_Settings/config.yaml'
     try:
         with open(yaml_file_path, 'r') as file:
             data = yaml.safe_load(file)
@@ -639,7 +673,7 @@ def update_live_plots_data(hours_input):
                 continue
         
         client.close()
-        print(f"📊 Plot data updated at {datetime.now().strftime('%H:%M:%S')}")
+        #print(f"Plot data updated at {datetime.now().strftime('%H:%M:%S')}")
         
     except Exception as e:
         print(f"Error updating plot data: {e}")
@@ -790,7 +824,7 @@ async def show_datapoint_selection(devices, qr_code_container):
             Collects all selected datapoints for all devices and saves them to the YAML file.
             If a device already exists it is updated. otherwise it is added.
             """
-            yaml_file_path = 'yaml/testing.yaml'
+            yaml_file_path = 'System_Settings/config.yaml'
             try:
                 # Load existing data if available
                 if os.path.exists(yaml_file_path):
@@ -811,7 +845,7 @@ async def show_datapoint_selection(devices, qr_code_container):
 
                     # Check if device already exists
                     eid = device_info.get('smartGridreadyEID', '')
-                    device_info['type'] = "POWER_SENSOR"
+                    device_info['type'] = "DEVICE"
                     found = False
                     for idx, dev in enumerate(device_list):
                         if dev.get('smartGridreadyEID', '') == eid:
@@ -834,7 +868,7 @@ async def show_datapoint_selection(devices, qr_code_container):
       
 
 async def yaml_workflow(qr_code_container):
-    url = "https://fl-17-166.zhdk.cloud.switch.ch/api/config/matt-test?secret=mirdochwurscht"
+    url = "https://fl-17-166.zhdk.cloud.switch.ch/api/config/testlab?secret=TestsTestLab"
     devices = await download_yaml_from_qr(url, qr_code_container)
     if devices:
         await show_datapoint_selection(devices, qr_code_container)

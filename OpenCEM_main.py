@@ -19,7 +19,9 @@ import asyncio
 import aiohttp
 
 import OpenCEM.cem_lib_components
+
 import yaml
+
 
 import paho.mqtt.client as mqtt
 
@@ -31,16 +33,21 @@ from OpenCEM.cem_lib_auxiliary_functions import parse_yaml, calculation_loop
 from Data_Logger import InfluxDataLogger
 import threading
 
+# Load configuration from YAML file
+with open("System_Settings/OpenCEM_settings.yaml", 'r') as file:
+    config = yaml.safe_load(file)
+
+mqtt_address = config.get('mqtt_address')
+influxDB_address = config.get('influxDB_address', 'localhost')
+
+
 async def main():
     try:
         # load OpenCEM settings
-        with open("yaml/OpenCEM_settings.yaml", "r") as f:
+        with open("System_Settings/OpenCEM_settings.yaml", "r") as f:
             settings = yaml.safe_load(f)
             loop_time = settings.get("loop_time")
             simulation_speed_up = settings.get("simulation_speed_up")
-            log_events = settings.get("log_events")
-            log_devices = settings.get("log_devices")
-            console_logging_level = settings.get("console_logging_level")
             path_OpenCEM_config = settings.get("path_OpenCEM_config")
         
 
@@ -54,21 +61,20 @@ async def main():
 
          # start MQTT client
         mqtt_client = mqtt.Client()
-        mqtt_client.connect('192.168.137.10', 1883) 
+        mqtt_client.connect(mqtt_address, 1883) 
         mqtt_client.loop_start()
 
         # start InfluxDB logger
         influx_logger = InfluxDataLogger(
-        influx_host= '192.168.137.221',
-        mqtt_broker= '192.168.137.10',
-        mqtt_topic='openCEM/value'
-        )
-
+                                        influx_host= influxDB_address,
+                                        mqtt_broker= mqtt_address,
+                                        mqtt_topic='openCEM/value'
+                                    )
+        #start logger thread
         logger_thread = threading.Thread(target=influx_logger.start_logging)
-        logger_thread.daemon = True  # Dies when main program dies
+        logger_thread.daemon = True  
         logger_thread.start()
-        print("Data Logger started in background thread")
-
+        print("InfluxDB logger thread started")
         
         # start calculation loop
         task_calculation_loop = asyncio.create_task(
@@ -91,13 +97,13 @@ async def main():
 
         # Stop MQTT client
         if mqtt_client:
-            print("  Stopping MQTT client...")
+            print("Stopping MQTT client")
             try:
                 mqtt_client.loop_stop()
                 mqtt_client.disconnect()
-                print(" MQTT client stopped")
+                print("MQTT client stopped")
             except Exception as e:
-                print(f" MQTT stop error: {e}")
+                print(f"MQTT stop error: {e}")
         
         # Wait for logger thread
         if logger_thread and logger_thread.is_alive():

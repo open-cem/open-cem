@@ -30,7 +30,7 @@ class InfluxDataLogger:
         self.mqtt_port = mqtt_port
         self.mqtt_topic = mqtt_topic
     
-    def _on_mqtt_connect(self, client, rc):
+    def _on_mqtt_connect(self, client, userdata, flags, rc):
         """
         Callback for MQTT connection.
 
@@ -71,12 +71,16 @@ class InfluxDataLogger:
             
             for dp in device.get('datapoints', []):
                 measurement_name = f"{dp['fp']}_{dp['dp']}"
-                
+                try:
+                    value = float(dp['value'])
+                except (ValueError, TypeError):
+                    value = 0.0 
+                    
                 datapoint = [{
                     "measurement": measurement_name,
                     "time": dt,
                     "fields": {
-                        "value": dp['value'],
+                        "value": value,
                         "unit": dp['unit'],
                         "error_code": dp.get('error_code', 0)
                     }
@@ -85,7 +89,7 @@ class InfluxDataLogger:
                 self.influx_client.write_points(datapoint, database=db_name) 
 
 
-    def _on_mqtt_message(self,client, msg):
+    def _on_mqtt_message(self, client, userdata, msg):
         """
         Callback for incoming MQTT messages.
 

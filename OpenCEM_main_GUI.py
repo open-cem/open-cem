@@ -55,7 +55,7 @@ with ui.tab_panels(tabs, value='config').classes('w-full'):
         with ui.row().classes('gap-4'):
             ui.label('QR Code Configuration').classes('text-2xl font-bold mb-4')
 
-            ui.button('get QRCode configuration', on_click=lambda: GUI_functions.yaml_workflow(qr_code_config_container)).props('color=positive')
+            ui.button('Get QR Code Configuration', on_click=lambda: GUI_functions.yaml_workflow(qr_code_config_container)).props('color=positive')
             qr_code_config_container = ui.column().classes('w-full')
 
     # Control Tab
@@ -64,13 +64,13 @@ with ui.tab_panels(tabs, value='config').classes('w-full'):
         
         with ui.card().classes('w-full'):
             with ui.row().classes('gap-2'):
-                ui.button('start OpenCEM', on_click=GUI_functions.start_OpenCEM).props('color=positive')
+                ui.button('start OpenCEM', on_click=lambda: GUI_functions.start_OpenCEM(latest_value_container)).props('color=positive')
                 ui.button('stop OpenCEM', on_click=GUI_functions.stop_OpenCEM).props('color=negative')
                 
         
         with ui.card().classes('w-full mt-4'):
             ui.label('Latest MQTT Value').classes('text-lg font-bold mb-2')
-
+            latest_value_container = ui.column().classes('w-full')
     # Plots Tab:
     with ui.tab_panel('plots'):
         ui.label('Live Device Plots').classes('text-2xl font-bold mb-4')

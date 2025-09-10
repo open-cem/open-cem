@@ -1,0 +1,46 @@
+installationName: SimTest
+creationTimestamp: 2024-09-26 08:55:00
+version: 1
+devices:
+- name: SmartMeMeter
+  smartGridreadyEID: SGr_02_mmmm_8288089799_Smart-me_SubMeterElectricity_V1.1.0.xml
+  parameters:
+    password: SmartGrid%24
+    device_id: f25f4e20-b803-de4e-e75c-2714e2c0c2d9
+    username: smartgridready2024@gmail.com
+  customParameters: {}
+  datapoints:
+  - fp: Active Power
+    dp: ActivePowerACtot
+  - fp: Active Power
+    dp: ActivePowerACL1
+  - fp: Active Power
+    dp: ActivePowerACL2
+  type: DEVICE
+- name: WhatWatt Go REST API Local VSE All
+  smartGridreadyEID: SGr_00_mmmm_dddd_WhatWatt_Go_RestAPILocal_VSEFull_V0.1.xml
+  parameters:
+    base_uri: http://192.168.137.228
+  datapoints:
+  - fp: VoltageAC
+    dp: VoltageACL1_N
+  - fp: VoltageAC
+    dp: VoltageACL2_N
+  type: DEVICE
+- name: Ensor
+  smartGridreadyEID: SGr_00_mmmm_dddd_Ensor_Blue2Box_ModbusTCP_Opt_V1.0.xml
+  parameters:
+    tcp_port: '502'
+    tcp_address: 192.168.137.175
+    slave_id: '1'
+  customParameters: {}
+  datapoints:
+  - fp: InstantaneousActiveImportPower
+    dp: ActivePowerACtot
+  - fp: InstantaneousActiveImportPower
+    dp: ActivePowerACL1
+  - fp: InstantaneousActiveImportPower
+    dp: ActivePowerACL2
+  - fp: InstantaneousActiveImportPower
+    dp: ActivePowerACL3
+  type: DEVICE

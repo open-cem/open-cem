@@ -1,4 +1,7 @@
-# SGrPythonSamples / OpenCEM
-This is the Branch of OpenCEM, based on the SGrPython Library.
-OpenCEM = Open Source Customer Energy Manager.
-Find documentation in folder OpenCEM/Documentation.
+# OpenCEM
+
+OpenCEM is the _Open Source Customer Energy Manager_.
+
+It is based on the `sgr-commhandler` Library.
+
+Find documentation in folder [Documentation](./OpenCEM/Documentation).

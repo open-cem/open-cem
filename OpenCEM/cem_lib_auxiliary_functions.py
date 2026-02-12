@@ -16,6 +16,7 @@ import yaml
 from OpenCEM.cem_lib_components import Device
 import OpenCEM.cem_lib_components
 import json
+import os
 
 
 async def calculation_loop(devices_list: list, period: int, MQTT_client):
@@ -69,6 +70,7 @@ async def parse_yaml(path2configurationYaml: str):
     :param path2configurationYaml: The YAML configuration that should get parsed
     :return: lists for communicationChannels, devices and controllers
     """
+    xml_path = os.environ.get('XML_PATH', 'xml_files')
     with open(path2configurationYaml, "r") as f:
 
         devices_list = []
@@ -82,7 +84,7 @@ async def parse_yaml(path2configurationYaml: str):
             for device in devices_data:
                 print("device", device)
                 name = device.get("name")
-                smartgridreadyEID = "xml_files/" + device.get("smartGridreadyEID")
+                smartgridreadyEID = os.path.join(xml_path, device.get("smartGridreadyEID"))
                 EID_param = device.get("parameters")
                 dp_list = device.get("datapoints", [])
 

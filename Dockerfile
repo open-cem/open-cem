@@ -8,8 +8,11 @@ ENV INFLUX_HOST=
 ENV INFLUX_PORT=8086
 ENV INFLUX_USER=
 ENV INFLUX_PASSWORD=
-ENV CONFIG_PATH=/app/System_Settings
-ENV XML_PATH=/app/xml_files
+ENV CONFIG_PATH=/data/config
+ENV XML_PATH=/data/xml
+
+# create default data directories
+RUN mkdir -p /data/config && mkdir -p /data/xml
 
 WORKDIR /app
 

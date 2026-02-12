@@ -2,6 +2,9 @@
 .gitignore
 .gitattributes
 .git/
+.github/
+.gitlab/
+.gitlab-ci.yaml
 
 # docker
 .dockerignore
@@ -11,8 +14,9 @@ docker-compose.yml
 # jetbrains
 .idea/
 
-# visual studio code
+# visual studio
 .vscode/
+.vs/
 
 # python
 .venv/
@@ -22,12 +26,12 @@ __pycache__/
 *$py.class
 
 # docs
-*.md
+**/*.md
 
 # project-specific
 /deployment/
 /_logFiles/
 /EID_params/
 /xml_files/
-#/System_Settings/
+/System_Settings/
 /OpenCEM/Documentation/

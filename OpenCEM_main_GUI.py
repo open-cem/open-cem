@@ -153,6 +153,6 @@ except Exception:
 
 # Override configuration with environment variables
 http_address = config_helper.get_setting('HTTP_HOST', 'ip_address', settings=config, default_value='0.0.0.0')
-http_port = config_helper.get_setting('HTTP_PORT', 'port', settings=config, default_value=8000)
+http_port = int(config_helper.get_setting('HTTP_PORT', 'port', settings=config, default_value=8000))
 
 ui.run(host=http_address, port=http_port, title='OpenCEM')

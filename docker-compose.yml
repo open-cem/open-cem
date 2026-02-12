@@ -10,8 +10,8 @@ services:
     build:
       context: .
     volumes:
-      - ./System_Settings:/app/System_Settings
-      - ./xml_files:/app/xml_files
+      - ./System_Settings:/data/config
+      - ./xml_files:/data/xml
     ports:
       - '127.0.0.1:8000:8000'
     environment:
@@ -21,8 +21,8 @@ services:
       INFLUX_PORT: 8086
       HTTP_HOST: '0.0.0.0'
       HTTP_PORT: 8000
-      CONFIG_PATH: /app/System_Settings
-      XML_PATH: /app/xml_files
+      CONFIG_PATH: /data/config
+      XML_PATH: /data/xml
     logging:
       options:
         max-size: "10m"

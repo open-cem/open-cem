@@ -23,7 +23,7 @@ import os
 
 
 """
-eid_path = 'xml_files/SGr_04_0015_xxxx_StiebelEltron_HeatPump_V1.0.0.xml'
+eid_path = os.path.join(xml_path, 'SGr_04_0015_xxxx_StiebelEltron_HeatPump_V1.0.0.xml')
 eid_properties = {
     'tcp_address': '192.168.137.219',
     'slave_id': 1,

@@ -23,9 +23,9 @@ except Exception:
 
 # Override configuration with environment variables
 mqtt_address = config_helper.get_setting('MQTT_HOST', 'mqtt_address', settings=config, default_value='localhost')
-mqtt_port = config_helper.get_setting('MQTT_PORT', 'mqtt_port', settings=config, default_value=1883)
+mqtt_port = int(config_helper.get_setting('MQTT_PORT', 'mqtt_port', settings=config, default_value=1883))
 influxDB_address = config_helper.get_setting('INFLUX_HOST', 'influxDB_address', settings=config, default_value='localhost')
-influxDB_port = config_helper.get_setting('INFLUX_PORT', 'influxDB_port', settings=config, default_value=8086)
+influxDB_port = int(config_helper.get_setting('INFLUX_PORT', 'influxDB_port', settings=config, default_value=8086))
 influxDB_user = config_helper.get_setting('INFLUX_USER', 'influxDB_user', settings=config, default_value='')
 influxDB_password = config_helper.get_setting('INFLUX_PASSWORD', 'influxDB_password', settings=config, default_value='')
 
@@ -267,7 +267,7 @@ async def download_EID(EID_name: str):
     if dropdown_identifier and dropdown_identifier.value:
         EID_name = dropdown_identifier.value
 
-    url = f"https://library.smartgridready.ch/{EID_name}?viewDevice"
+    url = f"https://library.smartgridready.ch/prodx/{EID_name}"
 
     async with aiohttp.request("GET", url) as response:
         status_code = response.status
@@ -819,13 +819,14 @@ async def show_datapoint_selection(devices, qr_code_container):
         devices (list): List of device dictionaries.
         qr_code_container: The UI container to display the selection UI.
     """
+    global xml_path
     qr_code_container.clear()
     device_checkbox_mapping = {}
     dev = None
     with qr_code_container:
         for device_info in devices:
             eid_file = device_info.get("smartGridreadyEID", "")
-            eid_path = os.path.join("xml_files", eid_file) if eid_file else ""
+            eid_path = os.path.join(xml_path, eid_file) if eid_file else ""
             # Check if EID file exists locally
             if not eid_file or not os.path.exists(eid_path):
                 ui.notify(

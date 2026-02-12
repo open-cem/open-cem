@@ -33,9 +33,9 @@ except Exception:
 
 # Override configuration with environment variables
 mqtt_address = config_helper.get_setting('MQTT_HOST', 'mqtt_address', settings=config, default_value='localhost')
-mqtt_port = config_helper.get_setting('MQTT_PORT', 'mqtt_port', settings=config, default_value=1883)
+mqtt_port = int(config_helper.get_setting('MQTT_PORT', 'mqtt_port', settings=config, default_value=1883))
 influxDB_address = config_helper.get_setting('INFLUX_HOST', 'influxDB_address', settings=config, default_value='localhost')
-influxDB_port = config_helper.get_setting('INFLUX_PORT', 'influxDB_port', settings=config, default_value=8086)
+influxDB_port = int(config_helper.get_setting('INFLUX_PORT', 'influxDB_port', settings=config, default_value=8086))
 influxDB_user = config_helper.get_setting('INFLUX_USER', 'influxDB_user', settings=config, default_value='')
 influxDB_password = config_helper.get_setting('INFLUX_PASSWORD', 'influxDB_password', settings=config, default_value='')
 

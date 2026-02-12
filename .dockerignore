@@ -1,0 +1,33 @@
+# git
+.gitignore
+.gitattributes
+.git/
+
+# docker
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# jetbrains
+.idea/
+
+# visual studio code
+.vscode/
+
+# python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# docs
+*.md
+
+# project-specific
+/deployment/
+/_logFiles/
+/EID_params/
+/xml_files/
+#/System_Settings/
+/OpenCEM/Documentation/

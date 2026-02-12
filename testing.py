@@ -1,7 +1,9 @@
+import os
 import asyncio
 from sgr_commhandler.device_builder import DeviceBuilder
 
-eid_path = 'xml_files/SGr_02_mmmm_8288089799_Smart-me_SubMeterElectricity_V1.1.0.xml'
+xml_path = os.environ.get('XML_PATH', 'xml_files')
+eid_path = os.path.join(xml_path, 'SGr_02_mmmm_8288089799_Smart-me_SubMeterElectricity_V1.1.0.xml')
 eid_properties = {
     "device_id": "f25f4e20-b803-de4e-e75c-2714e2c0c2d9",
     "username": "smartgridready2024@gmail.com",

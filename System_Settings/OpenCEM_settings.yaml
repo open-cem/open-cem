@@ -1,17 +1,19 @@
 # general settings for OpenCEM
 
 loop_time: 300  # time for the loops in seconds
-simulation_speed_up: 100 # put 1 here if system is not simulated
+simulation_speed_up: 1 # put 1 here if system is not simulated
 duration: 0 # in seconds (0 means will run forever)
 
-
-# local path for configuration
-path_OpenCEM_config: "System_Settings/config.yaml"
-
-
 # local web server
-ip_address: "192.168.137.141"
-port: "8000"
+ip_address: "0.0.0.0"
+port: 8000
 
+# MQTT broker
 mqtt_address: "192.168.137.10"
+mqtt_port: 1883
+
+# InfluxDB server
 influxDB_address: "192.168.137.221"
+influxDB_port: 8086
+influxDB_user: ""
+influxDB_password: ""

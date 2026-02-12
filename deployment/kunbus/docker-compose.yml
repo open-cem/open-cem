@@ -1,0 +1,73 @@
+# OpenCEM compose stack for Kunbus
+name: kunbus
+
+# services to deploy
+services:
+  # CEM
+  cem:
+    restart: unless-stopped
+    image: ghcr.io/open-cem/open-cem:latest
+    build:
+      context: .
+    volumes:
+      - cem-config:/data/config
+      - cem-xml:/data/xml
+    ports:
+      # expose web GUI
+      - 8000:8000
+    #devices:
+    #  # pass through serial port
+    #  - "/dev/ttyS0:/dev/serial0"
+    environment:
+      CONFIG_PATH: /data/config
+      XML_PATH: /data/xml
+      MQTT_HOST: mqtt
+      MQTT_PORT: 1883
+      INFLUX_HOST: influxdb
+      INFLUX_PORT: 8086
+      HTTP_HOST: '0.0.0.0'
+      HTTP_PORT: 8000
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "5"
+  # MQTT broker
+  mqtt:
+    restart: unless-stopped
+    image: eclipse-mosquitto:2.0
+    # disabled authentication for testing purposes
+    command: /usr/sbin/mosquitto -c /mosquitto-no-auth.conf
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "5"
+  # InfluxDB V1
+  influxdb:1.12
+    restart: unless-stopped
+    image: influxdb:2
+    volumes:
+      - influx-data:/var/lib/influxdb2
+      - influx-config:/etc/influxdb2
+    ports:
+      # expose InfluxDB
+      - 8086:8086
+    environment:
+    environment:
+      INFLUXDB_REPORTING_DISABLED: true
+      INFLUXDB_HTTP_AUTH_ENABLED: false
+      INFLUXDB_HTTP_LOG_ENABLED: false
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+# persistent volumes
+volumes:
+  cem-config:
+    driver: local
+  cem-xml:
+    driver: local
+  influx-data:
+    driver: local
+  influx-config:
+    driver: local

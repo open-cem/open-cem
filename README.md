@@ -33,7 +33,7 @@ Install the dependencies from PyPi:
 pip install -U -r requirements.txt
 ```
 
-## Run
+## Run Locally
 
 Provided that you performed the installation steps and activated the virtual environment:
 
@@ -41,7 +41,7 @@ Provided that you performed the installation steps and activated the virtual env
 python openCEM_main_GUI.py
 ```
 
-## Docker
+## Run as Docker Container
 
 You can run OpenCEM as Docker container.
 
@@ -50,7 +50,7 @@ You can run OpenCEM as Docker container.
 You can build your own Docker image. Start the build from the repository's root directory:
 
 ```bash
-docker build --rm ghcr.io/open-cem/open-cem:latest .
+docker build -t ghcr.io/open-cem/open-cem:latest .
 ```
 
 ### Image
@@ -73,3 +73,11 @@ You can customize the OpenCEM Docker image at runtime using environment variable
 * `INFLUX_PORT`: The InfluxDB port, defaults to `8086`
 * `INFLUX_USER`: The (optional) InfluxDB user name
 * `INFLUX_PASSWORD`: The (optional) InfluxDB password
+
+## Local Testing
+
+You can run a local software stack which includes an _MQTT broker_ and _InfluxDB V1_ using `docker-compose.yml`:
+
+```bash
+docker compose up -d
+```

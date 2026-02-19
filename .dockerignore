@@ -30,8 +30,4 @@ __pycache__/
 
 # project-specific
 /deployment/
-/_logFiles/
-/EID_params/
-/xml_files/
-/System_Settings/
-/OpenCEM/Documentation/
+/settings/

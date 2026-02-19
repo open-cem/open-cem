@@ -24,7 +24,7 @@ from Data_Logger import InfluxDataLogger
 import threading
 
 # Load configuration from YAML file
-config_path = os.environ.get('CONFIG_PATH', 'System_Settings')
+config_path = os.environ.get('CONFIG_PATH', 'settings')
 try:
     with open(os.path.join(config_path, "OpenCEM_settings.yaml"), "r") as file:
         config = yaml.safe_load(file)

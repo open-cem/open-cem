@@ -48,7 +48,7 @@ async def main():
         # load OpenCEM settings
         with open(os.path.join(config_path, "OpenCEM_settings.yaml"), "r") as f:
             settings = yaml.safe_load(f)
-            loop_time = settings.get("loop_time", 300)
+            loop_time = settings.get("loop_time", 60)
             simulation_speed_up = settings.get("simulation_speed_up", 1)
 
         # set variables for the library

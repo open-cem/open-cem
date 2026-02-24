@@ -411,8 +411,11 @@ async def addDevice(param_container):
 
     try:
         # Read the existing YAML file
-        with open(yaml_file_path, "r") as file:
-            existing_data = yaml.safe_load(file) or {}
+        if os.path.exists(yaml_file_path):
+            with open(yaml_file_path, "r") as file:
+                existing_data = yaml.safe_load(file) or {}
+        else:
+            existing_data = {}
 
         device_list = existing_data.get("devices", [])
 
@@ -430,7 +433,7 @@ async def addDevice(param_container):
         existing_data["devices"] = device_list
 
         # Write the updated data back to the YAML file
-        with open(os.path.join(config_path, "config.yaml"), "w") as file:
+        with open(yaml_file_path, "w") as file:
             yaml.dump(existing_data, file, sort_keys=False, default_flow_style=False)
             ui.notify("Devices are safed in configuration file!", type="positive")
 

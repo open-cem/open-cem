@@ -1,5 +1,5 @@
 # OpenCEM compose stack for Kunbus
-name: kunbus
+name: open-cem
 
 # services to deploy
 services:
@@ -7,14 +7,12 @@ services:
   cem:
     restart: unless-stopped
     image: ghcr.io/open-cem/open-cem:latest
-    build:
-      context: .
     volumes:
       - cem-config:/data/config
       - cem-xml:/data/xml
     ports:
       # expose web GUI
-      - 8000:8000
+      - '8000:8000'
     #devices:
     #  # pass through serial port
     #  - "/dev/ttyS0:/dev/serial0"
@@ -33,6 +31,9 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
+    depends_on:
+      - mqtt
+      - influxdb
   # MQTT broker
   mqtt:
     restart: unless-stopped
@@ -44,16 +45,15 @@ services:
         max-size: "10m"
         max-file: "5"
   # InfluxDB V1
-  influxdb:1.12
+  influxdb:
     restart: unless-stopped
-    image: influxdb:2
+    image: influxdb:1.12
     volumes:
       - influx-data:/var/lib/influxdb2
       - influx-config:/etc/influxdb2
     ports:
       # expose InfluxDB
-      - 8086:8086
-    environment:
+      - '8086:8086'
     environment:
       INFLUXDB_REPORTING_DISABLED: true
       INFLUXDB_HTTP_AUTH_ENABLED: false

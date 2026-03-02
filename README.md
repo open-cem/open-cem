@@ -58,7 +58,7 @@ docker build -t ghcr.io/open-cem/open-cem:latest .
 An official image is provided on Github:
 
 ```bash
-docker pull ghcr.io/open-cem/open-cem:latest 
+docker pull ghcr.io/open-cem/open-cem:latest
 ```
 
 ### Environment Variables
@@ -73,6 +73,8 @@ You can customize the OpenCEM Docker image at runtime using environment variable
 * `INFLUX_PORT`: The InfluxDB port, defaults to `8086`
 * `INFLUX_USER`: The (optional) InfluxDB user name
 * `INFLUX_PASSWORD`: The (optional) InfluxDB password
+* `LOOP_TIME`: The data acquisition interval in seconds, defaults to `60`
+* `SIMULATION_SPEED`: The simulation speed-up factor, defaults to `1.0`
 
 ## Local Testing
 

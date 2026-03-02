@@ -1,8 +1,7 @@
 # general settings for OpenCEM
 
 loop_time: 60  # time for the loops in seconds
-simulation_speed_up: 1 # put 1 here if system is not simulated
-duration: 0 # in seconds (0 means will run forever)
+simulation_speed: 1.0  # put 1 here if system is not simulated
 
 # local web server
 ip_address: "0.0.0.0"

@@ -14,7 +14,7 @@ from sgr_commhandler.device_builder import DeviceBuilder
 
 
 # Simulation parameters:
-simulation_speed_up_factor = 1  # will be overwritten by setting yaml
+simulation_speed_up_factor = 1.0  # will be overwritten by setting yaml
 sim_start_time = None
 
 

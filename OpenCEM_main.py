@@ -38,21 +38,18 @@ influxDB_address = config_helper.get_setting('INFLUX_HOST', 'influxDB_address', 
 influxDB_port = int(config_helper.get_setting('INFLUX_PORT', 'influxDB_port', settings=config, default_value=8086))
 influxDB_user = config_helper.get_setting('INFLUX_USER', 'influxDB_user', settings=config, default_value='')
 influxDB_password = config_helper.get_setting('INFLUX_PASSWORD', 'influxDB_password', settings=config, default_value='')
+loop_time = int(config_helper.get_setting('LOOP_TIME', 'loop_time', settings=config, default_value=60))
+simulation_speed = float(config_helper.get_setting('SIMULATION_SPEED', 'simulation_speed', settings=config, default_value=1.0))
 
 
 async def main():
     global config_path
     global mqtt_address, mqtt_port
     global influxDB_address, influxDB_port, influxDB_user, influxDB_password
+    global loop_time, simulation_speed
     try:
-        # load OpenCEM settings
-        with open(os.path.join(config_path, "OpenCEM_settings.yaml"), "r") as f:
-            settings = yaml.safe_load(f)
-            loop_time = settings.get("loop_time", 60)
-            simulation_speed_up = settings.get("simulation_speed_up", 1)
-
         # set variables for the library
-        OpenCEM.cem_lib_components.simulation_speed_up_factor = simulation_speed_up
+        OpenCEM.cem_lib_components.simulation_speed_up_factor = simulation_speed
 
         # parse yaml
         devices_list = await parse_yaml(os.path.join(config_path, "config.yaml"))

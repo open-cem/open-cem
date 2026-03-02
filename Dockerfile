@@ -10,6 +10,8 @@ ENV INFLUX_USER=
 ENV INFLUX_PASSWORD=
 ENV CONFIG_PATH=/data/config
 ENV XML_PATH=/data/xml
+ENV LOOP_TIME=60
+ENV SIMULATION_SPEED=1.0
 
 # create default data directories
 RUN mkdir -p /data/config && mkdir -p /data/xml

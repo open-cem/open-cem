@@ -46,7 +46,7 @@ services:
   # InfluxDB V1
   influxdb:
     restart: unless-stopped
-    image: influxdb:1.12
+    image: influxdb:1.13
     ports:
       - '127.0.0.1:8086:8086'
     environment:

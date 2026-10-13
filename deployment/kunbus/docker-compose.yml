@@ -37,7 +37,7 @@ services:
   # MQTT broker
   mqtt:
     restart: unless-stopped
-    image: eclipse-mosquitto:2.0
+    image: eclipse-mosquitto:2.1-alpine
     # disabled authentication for testing purposes
     command: /usr/sbin/mosquitto -c /mosquitto-no-auth.conf
     logging:
@@ -47,7 +47,7 @@ services:
   # InfluxDB V1
   influxdb:
     restart: unless-stopped
-    image: influxdb:1.13
+    image: influxdb:1.13.1
     volumes:
       - influx-data:/var/lib/influxdb2
       - influx-config:/etc/influxdb2

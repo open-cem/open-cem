@@ -8,8 +8,8 @@ Find documentation in folder [Documentation](./OpenCEM/Documentation).
 
 ## Installation
 
-First, you must have **Python 3.12 or 3.13**  installed.
-At the moment the SGr commhandler library is not compatible with **Python 3.14 or newer**.
+First, you must have **Python 3.10 to 3.14** installed.
+At the moment the SGr commhandler library is not compatible with **Python 3.15 or newer**, mainly due to `pymodbus`.
 
 Create a virtual environment under `.venv`:
 

@@ -34,7 +34,7 @@ services:
   # MQTT broker
   mqtt:
     restart: unless-stopped
-    image: eclipse-mosquitto:2.0
+    image: eclipse-mosquitto:2.1-alpine
     # disabled authentication for testing purposes
     command: /usr/sbin/mosquitto -c /mosquitto-no-auth.conf
     ports:
@@ -46,7 +46,7 @@ services:
   # InfluxDB V1
   influxdb:
     restart: unless-stopped
-    image: influxdb:1.13
+    image: influxdb:1.13.1
     ports:
       - '127.0.0.1:8086:8086'
     environment:

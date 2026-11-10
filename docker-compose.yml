@@ -1,16 +1,24 @@
 # OpenCEM compose stack
-name: open-cem
+
+# logging
+x-logging: &default-logging
+  logging:
+    driver: json-file
+    options:
+      max-size: "5m"
+      max-file: "10"
 
 # services to deploy
 services:
   # CEM
   cem:
+    <<: *default-logging
     restart: unless-stopped
     image: open-cem
     build:
       context: .
     volumes:
-      - ./settings:/data/config
+      - ./settings:/data/config:rw
     ports:
       - '127.0.0.1:8000:8000'
     environment:
@@ -24,36 +32,26 @@ services:
       SIMULATION_SPEED: 1.0
       CONFIG_PATH: /data/config
       XML_PATH: /data/xml
-    logging:
-      options:
-        max-size: "10m"
-        max-file: "5"
     depends_on:
       - mqtt
       - influxdb
   # MQTT broker
   mqtt:
+    <<: *default-logging
     restart: unless-stopped
     image: eclipse-mosquitto:2.1-alpine
     # disabled authentication for testing purposes
     command: /usr/sbin/mosquitto -c /mosquitto-no-auth.conf
     ports:
       - '127.0.0.1:1883:1883'
-    logging:
-      options:
-        max-size: "10m"
-        max-file: "5"
   # InfluxDB V1
   influxdb:
+    <<: *default-logging
     restart: unless-stopped
-    image: influxdb:1.13.1
+    image: influxdb:1.13
     ports:
       - '127.0.0.1:8086:8086'
     environment:
       INFLUXDB_REPORTING_DISABLED: true
       INFLUXDB_HTTP_AUTH_ENABLED: false
       INFLUXDB_HTTP_LOG_ENABLED: true
-    logging:
-      options:
-        max-size: "10m"
-        max-file: "5"
